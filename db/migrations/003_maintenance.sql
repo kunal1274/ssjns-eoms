@@ -1,0 +1,11 @@
+ALTER TABLE eoms.workers ADD COLUMN version integer NOT NULL DEFAULT 1;
+ALTER TABLE eoms.occurrences ADD COLUMN version integer NOT NULL DEFAULT 1;
+ALTER TABLE eoms.periods ADD COLUMN version integer NOT NULL DEFAULT 1;
+GRANT INSERT ON eoms.workers,eoms.occurrences,eoms.periods TO eoms_app;
+GRANT UPDATE(name,active,version) ON eoms.workers TO eoms_app;
+GRANT UPDATE(version) ON eoms.occurrences,eoms.periods TO eoms_app;
+CREATE INDEX worker_estate_page ON eoms.workers(estate_id,code,id);
+CREATE INDEX occurrence_estate_page ON eoms.occurrences(estate_id,block_code,task_code,id);
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX worker_search ON eoms.workers USING gin ((code || ' ' || name) gin_trgm_ops);
+CREATE INDEX occurrence_search ON eoms.occurrences USING gin ((block_code || ' ' || task_code || ' ' || activity || ' ' || round_code) gin_trgm_ops);

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
+import { Maintenance } from "./Maintenance";
 type Row = Record<string, any>;
 const now = new Date();
 const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -28,6 +29,36 @@ function App() {
     [ready, setReady] = useState(false),
     [creating, setCreating] = useState(false),
     [selected, setSelected] = useState<string[]>([]);
+  const [workerSearch, setWorkerSearch] = useState(""),
+    [taskSearch, setTaskSearch] = useState(""),
+    [workerNext, setWorkerNext] = useState<string | null>(null),
+    [taskNext, setTaskNext] = useState<string | null>(null),
+    [workerFilter, setWorkerFilter] = useState(""),
+    [taskFilter, setTaskFilter] = useState("");
+  async function searchRefs(kind: "workers" | "occurrences", more = false) {
+    const isWorker = kind === "workers";
+    const query = more
+      ? isWorker
+        ? workerFilter
+        : taskFilter
+      : isWorker
+        ? workerSearch
+        : taskSearch;
+    const params = new URLSearchParams({ q: query });
+    const next = isWorker ? workerNext : taskNext;
+    if (more && next) params.set("cursor", next);
+    const result = await api(base + "/catalog/" + kind + "?" + params);
+    if (isWorker) {
+      setWorkers((s) => (more ? [...s, ...result.items] : result.items));
+      setWorkerNext(result.nextCursor);
+      setWorkerFilter(query);
+      if (!more) setSelected([]);
+    } else {
+      setTasks((s) => (more ? [...s, ...result.items] : result.items));
+      setTaskNext(result.nextCursor);
+      setTaskFilter(query);
+    }
+  }
   async function api(path: string, body?: unknown, key?: string) {
     const r = await fetch("/api" + path, {
       method: body === undefined ? "GET" : "POST",
@@ -79,14 +110,20 @@ function App() {
   async function refresh() {
     const [list, w, t, a] = await Promise.all([
       api(base + "/musters"),
-      api(base + "/workers"),
-      api(base + "/occurrences"),
+      api(base + "/catalog/workers"),
+      api(base + "/catalog/occurrences"),
       api(base + "/audit"),
     ]);
     setRows(list.items);
     setCursor(list.nextCursor);
-    setWorkers(w);
-    setTasks(t);
+    setWorkers(w.items);
+    setWorkerNext(w.nextCursor);
+    setWorkerFilter("");
+    setWorkerSearch("");
+    setTasks(t.items);
+    setTaskNext(t.nextCursor);
+    setTaskFilter("");
+    setTaskSearch("");
     setAudit(a);
   }
   useEffect(() => {
@@ -169,7 +206,13 @@ function App() {
           STM <span>ESTATE OPERATIONS</span>
         </div>
         <small>WORKSPACE</small>
-        {["Muster register", "Task capacity", "Audit trail"].map((x) => (
+        {[
+          "Muster register",
+          "Task capacity",
+          "Workers",
+          "Operational periods",
+          "Audit trail",
+        ].map((x) => (
           <button
             className={tab === x ? "nav active" : "nav"}
             key={x}
@@ -177,6 +220,8 @@ function App() {
               setTab(x);
               setDetail(null);
               setCreating(false);
+              if (x === "Audit trail" || x === "Muster register")
+                void act(refresh);
             }}
           >
             {x}
@@ -240,11 +285,14 @@ function App() {
             {canWrite && tab === "Muster register" && (
               <button
                 disabled={busy || !estate}
-                onClick={() => {
-                  setCreating(true);
-                  setDetail(null);
-                  setSelected([]);
-                }}
+                onClick={() =>
+                  void act(async () => {
+                    await refresh();
+                    setCreating(true);
+                    setDetail(null);
+                    setSelected([]);
+                  })
+                }
               >
                 + New muster
               </button>
@@ -279,6 +327,36 @@ function App() {
                   });
                 }}
               >
+                <div className="searchbar">
+                  <label>
+                    Find task
+                    <input
+                      value={taskSearch}
+                      onChange={(e) => setTaskSearch(e.target.value)}
+                      maxLength={100}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    className="secondary"
+                    onClick={() => void act(() => searchRefs("occurrences"))}
+                  >
+                    Search tasks
+                  </button>
+                  {taskNext && (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      className="secondary"
+                      onClick={() =>
+                        void act(() => searchRefs("occurrences", true))
+                      }
+                    >
+                      More tasks
+                    </button>
+                  )}
+                </div>
                 <div className="grid">
                   <label>
                     Task / activity
@@ -322,6 +400,40 @@ function App() {
                 </div>
                 <fieldset>
                   <legend>Workers</legend>
+                  <div className="searchbar">
+                    <label>
+                      Find worker
+                      <input
+                        value={workerSearch}
+                        onChange={(e) => setWorkerSearch(e.target.value)}
+                        maxLength={100}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      className="secondary"
+                      onClick={() => void act(() => searchRefs("workers"))}
+                    >
+                      Search workers
+                    </button>
+                    {workerNext && (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        className="secondary"
+                        onClick={() =>
+                          void act(() => searchRefs("workers", true))
+                        }
+                      >
+                        More workers
+                      </button>
+                    )}
+                  </div>
+                  <small>
+                    A new worker search clears the current selection. Load more
+                    preserves it.
+                  </small>
                   {workers.map((w) => (
                     <label className="check" key={w.id}>
                       <input
@@ -493,47 +605,22 @@ function App() {
               </small>
             </section>
           )}
-          {tab === "Task capacity" && (
-            <section className="card">
-              <h2>Registered task occurrences</h2>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Task</th>
-                    <th>Activity / round</th>
-                    <th>Capacity</th>
-                    <th>Confirmed</th>
-                    <th>Remaining</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tasks.map((t) => (
-                    <tr key={t.id}>
-                      <td>
-                        {t.block_code} / {t.task_code}
-                      </td>
-                      <td>
-                        {t.activity}
-                        <small>{t.round_code}</small>
-                      </td>
-                      <td>{t.capacity_ha} Ha</td>
-                      <td>{t.confirmed_ha} Ha</td>
-                      <td>
-                        {(
-                          Number(t.capacity_ha) - Number(t.confirmed_ha)
-                        ).toFixed(2)}{" "}
-                        Ha
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <small>
-                Task occurrence and round rules are provisional pending business
-                validation.
-              </small>
-            </section>
-          )}
+          {["Task capacity", "Workers", "Operational periods"].includes(tab) &&
+            estate && (
+              <Maintenance
+                key={estate + tab}
+                base={base}
+                api={api}
+                manager={role === "manager"}
+                kind={
+                  tab === "Workers"
+                    ? "workers"
+                    : tab === "Task capacity"
+                      ? "occurrences"
+                      : "periods"
+                }
+              />
+            )}
           {tab === "Audit trail" && (
             <section className="card">
               <h2>Latest 50 estate events</h2>
@@ -548,7 +635,8 @@ function App() {
                     <small>
                       {a.actor} · {new Date(a.created_at).toLocaleString()}
                     </small>
-                    <code>{a.record_id}</code>
+                    <code>{a.record_id || a.detail?.month}</code>
+                    {a.detail?.reason && <p>{a.detail.reason}</p>}
                   </div>
                 </div>
               ))}

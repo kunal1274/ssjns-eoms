@@ -17,7 +17,8 @@
     "test:integration": "node --import tsx --test --test-concurrency=1 tests/api.test.ts",
     "db:test": "node --import tsx scripts/test-db.ts",
     "test:browser": "node scripts/browser-check.mjs",
-    "format": "prettier --write apps packages scripts tests"
+    "format": "prettier --write apps packages scripts tests",
+    "test:maintenance-browser": "node scripts/maintenance-browser.mjs"
   },
   "dependencies": {
     "express": "5.2.1",

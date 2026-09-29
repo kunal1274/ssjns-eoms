@@ -10,6 +10,7 @@ import type { Pool, PoolClient } from "pg";
 import { webOrigin } from "./config.ts";
 import { hash, token, verifyPassword, passwordHash } from "./security.ts";
 import { allocateHundredths } from "../../../packages/domain/allocation.ts";
+import { maintenanceRoutes } from "./maintenance.ts";
 class ApiError extends Error {
   constructor(
     public status: number,
@@ -191,7 +192,7 @@ export function createApp(pool: Pool) {
     estateId: string,
     res: Response,
     action: string,
-    id: string,
+    id: string | null,
     detail: object,
   ) {
     await c.query(
@@ -475,6 +476,7 @@ export function createApp(pool: Pool) {
       }),
     );
   });
+  maintenanceRoutes(app, estateTx, audit, ApiError);
   app.get("/api/estates/:estateId/audit", async (req, res) =>
     res.json(
       await estateTx(
@@ -496,13 +498,11 @@ export function createApp(pool: Pool) {
   );
   app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
     if (error instanceof ZodError)
-      return res
-        .status(422)
-        .json({
-          error: error.errors
-            .map((e) => `${e.path.join(".")}: ${e.message}`)
-            .join("; "),
-        });
+      return res.status(422).json({
+        error: error.errors
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join("; "),
+      });
     if (error instanceof ApiError)
       return res.status(error.status).json({ error: error.message });
     if (error.code === "23503")

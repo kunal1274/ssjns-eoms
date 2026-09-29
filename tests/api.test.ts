@@ -37,7 +37,7 @@ async function fixture() {
   ).rows[0].id;
   const workers = (
     await admin.query(
-      "SELECT id FROM eoms.workers WHERE estate_id=$1 ORDER BY code LIMIT 2",
+      "SELECT id FROM eoms.workers WHERE estate_id=$1 AND active ORDER BY code LIMIT 2",
       [estate],
     )
   ).rows.map((r) => r.id);
@@ -59,7 +59,8 @@ async function create(
     .set("Origin", origin)
     .set("X-CSRF-Token", session.csrf)
     .set("Idempotency-Key", key)
-    .send(body);
+    .send(body)
+    .timeout({ deadline: 5000 });
 }
 before(async () => {
   accounts = JSON.parse(await readFile(".local/test-accounts.json", "utf8"));
@@ -255,5 +256,208 @@ test("list uses bounded keyset pages", async () => {
   assert.equal(
     (await s.agent.get(`/api/estates/${estate}/musters?limit=999999`)).status,
     422,
+  );
+});
+
+test("manager maintains workers; stale updates and supervisor writes fail", async () => {
+  const manager = await login("manager@eoms.local"),
+    supervisor = await login();
+  const payload = { code: "QA-" + randomUUID(), name: "Maintenance Worker" };
+  const post = (s: any, path: string, body: object) =>
+    s.agent
+      .post(`/api/estates/${estate}${path}`)
+      .set("Origin", origin)
+      .set("X-CSRF-Token", s.csrf)
+      .send(body)
+      .timeout({ deadline: 5000 });
+  assert.equal((await post(supervisor, "/workers", payload)).status, 403);
+  const made = await post(manager, "/workers", payload);
+  assert.equal(made.status, 201);
+  assert.equal((await post(manager, "/workers", payload)).status, 409);
+  const changed = await post(manager, `/workers/${made.body.id}`, {
+    name: "Updated Worker",
+    active: false,
+    version: 1,
+  });
+  assert.equal(changed.status, 200);
+  assert.equal(changed.body.version, 2);
+  assert.equal(
+    (
+      await post(manager, `/workers/${made.body.id}`, {
+        name: "Stale",
+        active: true,
+        version: 1,
+      })
+    ).status,
+    409,
+  );
+  const list = await manager.agent
+    .get(`/api/estates/${estate}/catalog/workers`)
+    .query({ q: payload.code, includeInactive: "true", limit: 1 });
+  assert.equal(list.status, 200);
+  assert.equal(list.body.items[0].active, false);
+  const active = await supervisor.agent
+    .get(`/api/estates/${estate}/catalog/workers`)
+    .query({ q: payload.code });
+  assert.equal(active.body.items.length, 0);
+  assert.equal(
+    (
+      await manager.agent
+        .get(`/api/estates/${other}/catalog/workers`)
+        .query({ q: payload.code })
+    ).body.items.length,
+    0,
+  );
+  const logs = await admin.query(
+    "SELECT action FROM eoms.audit WHERE record_id=$1 ORDER BY id",
+    [made.body.id],
+  );
+  assert.deepEqual(
+    logs.rows.map((r) => r.action),
+    ["worker.created", "worker.updated"],
+  );
+});
+
+test("task maintenance validates capacity, duplicate identity and confirmed work", async () => {
+  const s = await login("manager@eoms.local");
+  const post = (path: string, body: object) =>
+    s.agent
+      .post(`/api/estates/${estate}${path}`)
+      .set("Origin", origin)
+      .set("X-CSRF-Token", s.csrf)
+      .send(body)
+      .timeout({ deadline: 5000 });
+  const body = {
+    blockCode: "QA",
+    taskCode: randomUUID(),
+    activity: "Circle spraying",
+    roundCode: "QA-R1",
+    capacityHa: 2,
+  };
+  assert.equal(
+    (await post("/occurrences", { ...body, capacityHa: 0 })).status,
+    422,
+  );
+  const made = await post("/occurrences", body);
+  assert.equal(made.status, 201);
+  assert.equal((await post("/occurrences", body)).status, 409);
+  const muster = await create(s, {
+    ...(await fixture()),
+    occurrenceId: made.body.id,
+    quantityHa: 1.5,
+  });
+  assert.equal(muster.status, 201);
+  assert.equal(
+    (await post(`/musters/${muster.body.id}/confirm`, { version: 1 })).status,
+    200,
+  );
+  assert.equal(
+    (await post(`/occurrences/${made.body.id}`, { capacityHa: 1, version: 1 }))
+      .status,
+    409,
+  );
+  assert.equal(
+    (await post(`/occurrences/${made.body.id}`, { capacityHa: 3, version: 1 }))
+      .status,
+    200,
+  );
+  assert.equal(
+    (await post(`/occurrences/${made.body.id}`, { capacityHa: 4, version: 1 }))
+      .status,
+    409,
+  );
+  const list = await s.agent
+    .get(`/api/estates/${estate}/catalog/occurrences`)
+    .query({ q: body.taskCode });
+  assert.equal(list.body.items[0].capacity_ha, "3.00");
+});
+
+test("period lifecycle is manager-only, versioned, audited and enforces lock", async () => {
+  const s = await login("manager@eoms.local"),
+    clerk = await login("clerk@eoms.local");
+  const month = `${3000 + Math.floor(Math.random() * 5000)}-01-01`;
+  const post = (who: any, path: string, body: object) =>
+    who.agent
+      .post(`/api/estates/${estate}${path}`)
+      .set("Origin", origin)
+      .set("X-CSRF-Token", who.csrf)
+      .send(body)
+      .timeout({ deadline: 5000 });
+  assert.equal((await post(clerk, "/periods", { month })).status, 403);
+  assert.equal(
+    (await post(s, "/periods", { month: "2026-13-01" })).status,
+    422,
+  );
+  const made = await post(s, "/periods", { month });
+  assert.equal(made.status, 201);
+  assert.equal((await post(s, "/periods", { month })).status, 409);
+  const locked = await post(s, `/periods/${month}`, {
+    locked: true,
+    version: 1,
+    reason: "Month closed after review",
+  });
+  assert.equal(locked.status, 200);
+  assert.equal(
+    (await create(s, { ...(await fixture()), businessDate: month })).status,
+    409,
+  );
+  assert.equal(
+    (
+      await post(s, `/periods/${month}`, {
+        locked: false,
+        version: 1,
+        reason: "Stale change",
+      })
+    ).status,
+    409,
+  );
+  assert.equal(
+    (
+      await post(s, `/periods/${month}`, {
+        locked: false,
+        version: 2,
+        reason: "Correction authorised",
+      })
+    ).status,
+    200,
+  );
+  assert.equal(
+    (await create(s, { ...(await fixture()), businessDate: month })).status,
+    201,
+  );
+  const log = await admin.query(
+    "SELECT detail FROM eoms.audit WHERE estate_id=$1 AND action='period.updated' AND detail->>'month'=$2",
+    [estate, month],
+  );
+  assert.equal(log.rowCount, 2);
+});
+
+test("catalog pagination is bounded and preserves search and tenant filters", async () => {
+  const s = await login();
+  const endpoint = `/api/estates/${estate}/catalog/workers`;
+  const a = await s.agent.get(endpoint).query({ limit: 2 });
+  assert.equal(a.status, 200);
+  assert.equal(a.body.items.length, 2);
+  assert.ok(a.body.nextCursor);
+  const b = await s.agent
+    .get(endpoint)
+    .query({ limit: 2, cursor: a.body.nextCursor });
+  assert.equal(b.status, 200);
+  assert.ok(
+    b.body.items.every(
+      (r: any) => !a.body.items.some((v: any) => v.id === r.id),
+    ),
+  );
+  assert.equal(
+    (await s.agent.get(endpoint).query({ limit: 1000 })).status,
+    422,
+  );
+  assert.equal(
+    (await s.agent.get(endpoint).query({ cursor: "bad" })).status,
+    422,
+  );
+  assert.equal(
+    (await s.agent.get(`/api/estates/${other}/catalog/workers`)).status,
+    403,
   );
 });

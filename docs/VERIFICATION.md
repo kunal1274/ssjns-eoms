@@ -11,3 +11,7 @@
 Tests cover equal area conservation, invalid allocations, authentication/CSRF, estate boundaries at API and database layers, idempotent create, foreign-estate workers, clerk write denial, simultaneous task-cap confirmation, stale version, locked periods, audit privilege restrictions and bounded cursor pagination.
 
 The browser run uses synthetic development records; integration fixtures are isolated in `eoms_test`.
+
+## Maintenance milestone
+
+Four new integration scenarios were observed failing with missing routes, then passed after implementation. Current total: 2 domain tests + 15 API integration tests. Added coverage includes manager-only changes, duplicate identity, stale worker/task/period versions, confirmed-capacity lower bound, period closure enforcement/reopening, audited reasons and catalog pagination/search/estate isolation. Manager browser testing verifies worker creation/deactivation, task creation/capacity editing, period locking/reopening and searchable capture selectors. Build and existing muster browser regression are rerun for the delivery.
