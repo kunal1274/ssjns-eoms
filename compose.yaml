@@ -1,0 +1,19 @@
+name: eoms-pern
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: eoms
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - eoms_pg:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d eoms"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  eoms_pg:

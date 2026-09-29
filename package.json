@@ -1,0 +1,47 @@
+{
+  "name": "eoms-pern",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev:api": "node --watch --import tsx apps/api/src/server.ts",
+    "dev:web": "vite --config apps/web/vite.config.ts",
+    "build": "tsc --noEmit && vite build --config apps/web/vite.config.ts",
+    "check": "tsc --noEmit",
+    "test": "node --import tsx --test tests/allocation.test.ts",
+    "db:migrate": "node --import tsx scripts/migrate.ts",
+    "db:seed": "node --import tsx scripts/seed.ts",
+    "test:integration": "node --import tsx --test --test-concurrency=1 tests/api.test.ts",
+    "db:test": "node --import tsx scripts/test-db.ts",
+    "test:browser": "node scripts/browser-check.mjs",
+    "format": "prettier --write apps packages scripts tests"
+  },
+  "dependencies": {
+    "express": "5.2.1",
+    "express-rate-limit": "8.7.0",
+    "helmet": "8.1.0",
+    "lucide-react": "1.31.0",
+    "pg": "8.23.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "@types/node": "22.19.19",
+    "@types/pg": "8.15.6",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@types/supertest": "6.0.3",
+    "@vitejs/plugin-react": "5.1.4",
+    "playwright": "1.58.2",
+    "prettier": "3.6.2",
+    "supertest": "7.2.2",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vite": "7.3.6"
+  }
+}
