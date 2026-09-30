@@ -18,12 +18,16 @@ try {
     .waitFor();
   await page.getByRole("button", { name: "+ New muster", exact: true }).click();
   await page.getByLabel("Area (Ha)", { exact: true }).fill("0.10");
-  const gang = "QA-" + Date.now();
-  await page.getByLabel("Gang code", { exact: true }).fill(gang);
+  const gang = "G-01";
+  await page.getByLabel("Gang code", { exact: true }).selectOption("G-01");
   await page.getByRole("checkbox").nth(0).check();
   await page.getByRole("checkbox").nth(1).check();
+  const responsePromise = page.waitForResponse(
+    (r) => r.url().endsWith("/musters") && r.request().method() === "POST",
+  );
   await page.getByRole("button", { name: "Save draft", exact: true }).click();
-  const row = page.getByRole("row").filter({ hasText: gang });
+  const saved = await (await responsePromise).json();
+  const row = page.locator(`[data-record-id="${saved.id}"]`);
   await row.waitFor();
   await row.getByRole("button", { name: "View", exact: true }).click();
   await page
@@ -34,8 +38,7 @@ try {
     .waitFor();
   await page.reload();
   await page
-    .getByRole("row")
-    .filter({ hasText: gang })
+    .locator(`[data-record-id="${saved.id}"]`)
     .filter({ hasText: "confirmed" })
     .waitFor();
   const denied = await page.evaluate(

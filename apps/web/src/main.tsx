@@ -1,11 +1,28 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
+import { Gangs } from "./Gangs";
 import { Maintenance } from "./Maintenance";
 type Row = Record<string, any>;
 const now = new Date();
 const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 function App() {
+  const [gangs, setGangs] = useState<Row[]>([]),
+    [gangSearch, setGangSearch] = useState(""),
+    [gangNext, setGangNext] = useState<string | null>(null),
+    [gangFilter, setGangFilter] = useState(""),
+    [reviewAction, setReviewAction] = useState<"approve" | "reverse" | null>(
+      null,
+    );
+  async function searchGangs(more = false) {
+    const q = more ? gangFilter : gangSearch;
+    const params = new URLSearchParams({ q, assignable: "true" });
+    if (more && gangNext) params.set("cursor", gangNext);
+    const v = await api(base + "/gangs?" + params);
+    setGangs((s) => (more ? [...s, ...v.items] : v.items));
+    setGangNext(v.nextCursor);
+    setGangFilter(q);
+  }
   const submission = useRef<{ payload: string; key: string } | null>(null);
   function submissionKey(body: unknown) {
     const payload = JSON.stringify(body);
@@ -102,17 +119,21 @@ function App() {
       api("/estates")
         .then((v) => {
           setEstates(v);
-          setEstate(v[0]?.id || "");
+          const preferred = sessionStorage.getItem("eoms-estate");
+          setEstate(
+            v.find((e: Row) => e.id === preferred)?.id || v[0]?.id || "",
+          );
         })
         .catch((e) => setError(e.message));
   }, [user]);
   const base = "/estates/" + estate;
   async function refresh() {
-    const [list, w, t, a] = await Promise.all([
+    const [list, w, t, a, g] = await Promise.all([
       api(base + "/musters"),
       api(base + "/catalog/workers"),
       api(base + "/catalog/occurrences"),
       api(base + "/audit"),
+      api(base + "/gangs?assignable=true"),
     ]);
     setRows(list.items);
     setCursor(list.nextCursor);
@@ -125,9 +146,14 @@ function App() {
     setTaskFilter("");
     setTaskSearch("");
     setAudit(a);
+    setGangs(g.items);
+    setGangNext(g.nextCursor);
+    setGangSearch("");
+    setGangFilter("");
   }
   useEffect(() => {
     setDetail(null);
+    setReviewAction(null);
     setCreating(false);
     setRows([]);
     if (estate) void act(refresh);
@@ -210,6 +236,7 @@ function App() {
           "Muster register",
           "Task capacity",
           "Workers",
+          "Gangs",
           "Operational periods",
           "Audit trail",
         ].map((x) => (
@@ -219,6 +246,7 @@ function App() {
             onClick={() => {
               setTab(x);
               setDetail(null);
+              setReviewAction(null);
               setCreating(false);
               if (x === "Audit trail" || x === "Muster register")
                 void act(refresh);
@@ -241,7 +269,10 @@ function App() {
               aria-label="Estate"
               value={estate}
               disabled={busy}
-              onChange={(e) => setEstate(e.target.value)}
+              onChange={(e) => {
+                sessionStorage.setItem("eoms-estate", e.target.value);
+                setEstate(e.target.value);
+              }}
             >
               {estates.map((e) => (
                 <option key={e.id} value={e.id}>
@@ -290,6 +321,7 @@ function App() {
                     await refresh();
                     setCreating(true);
                     setDetail(null);
+                    setReviewAction(null);
                     setSelected([]);
                   })
                 }
@@ -360,7 +392,7 @@ function App() {
                 <div className="grid">
                   <label>
                     Task / activity
-                    <select name="task" required>
+                    <select name="task" aria-label="Task / activity" required>
                       {tasks.map((t) => (
                         <option key={t.id} value={t.id}>
                           {t.block_code} / {t.task_code} · {t.activity} ·{" "}
@@ -380,12 +412,14 @@ function App() {
                   </label>
                   <label>
                     Gang code
-                    <input
-                      name="gang"
-                      defaultValue="G-01"
-                      required
-                      maxLength={30}
-                    />
+                    <select name="gang" aria-label="Gang code" required>
+                      <option value="">Select assigned gang</option>
+                      {gangs.map((g) => (
+                        <option value={g.code} key={g.id}>
+                          {g.code} · {g.name}
+                        </option>
+                      ))}
+                    </select>
                   </label>
                   <label>
                     Area (Ha)
@@ -397,6 +431,34 @@ function App() {
                       required
                     />
                   </label>
+                </div>
+                <div className="searchbar">
+                  <label>
+                    Find gang
+                    <input
+                      value={gangSearch}
+                      maxLength={100}
+                      onChange={(e) => setGangSearch(e.target.value)}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="secondary"
+                    disabled={busy}
+                    onClick={() => void act(() => searchGangs())}
+                  >
+                    Search gangs
+                  </button>
+                  {gangNext && (
+                    <button
+                      type="button"
+                      className="secondary"
+                      disabled={busy}
+                      onClick={() => void act(() => searchGangs(true))}
+                    >
+                      More gangs
+                    </button>
+                  )}
                 </div>
                 <fieldset>
                   <legend>Workers</legend>
@@ -493,7 +555,7 @@ function App() {
                   </thead>
                   <tbody>
                     {rows.map((r) => (
-                      <tr key={r.id}>
+                      <tr key={r.id} data-record-id={r.id}>
                         <td>{r.business_date}</td>
                         <td>
                           <strong>
@@ -599,6 +661,90 @@ function App() {
                   Confirm muster
                 </button>
               )}
+              <p>
+                Review:{" "}
+                {detail.review_status === "approved" ? "Approved" : "Pending"}
+                {detail.status === "reversed"
+                  ? " · Original record retained"
+                  : ""}
+              </p>
+              {detail.review_reason && (
+                <p>Review reason: {detail.review_reason}</p>
+              )}
+              {detail.reversal_reason && (
+                <p>Reversal reason: {detail.reversal_reason}</p>
+              )}
+              {role === "manager" && detail.status === "confirmed" && (
+                <div className="actions">
+                  {detail.review_status !== "approved" && (
+                    <button
+                      disabled={busy}
+                      onClick={() => setReviewAction("approve")}
+                    >
+                      Approve work
+                    </button>
+                  )}
+                  <button
+                    className="secondary"
+                    disabled={busy}
+                    onClick={() => setReviewAction("reverse")}
+                  >
+                    Reverse work
+                  </button>
+                </div>
+              )}
+              {reviewAction && detail.status === "confirmed" && (
+                <form
+                  className="editor"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const f = new FormData(e.currentTarget);
+                    void act(async () => {
+                      await api(
+                        base + "/musters/" + detail.id + "/" + reviewAction,
+                        { version: detail.version, reason: f.get("reason") },
+                      );
+                      setDetail(await api(base + "/musters/" + detail.id));
+                      setReviewAction(null);
+                      await refresh();
+                    });
+                  }}
+                >
+                  <h3>
+                    {reviewAction === "approve"
+                      ? "Approve confirmed work"
+                      : "Reverse confirmed work"}
+                  </h3>
+                  <p>
+                    {reviewAction === "reverse"
+                      ? "This retains the original record and removes its area from current task totals. It does not reverse external payroll or SAP postings."
+                      : "Record the evidence supporting this review."}
+                  </p>
+                  <label>
+                    Action reason
+                    <input
+                      name="reason"
+                      required
+                      minLength={5}
+                      maxLength={500}
+                    />
+                  </label>
+                  <div className="actions">
+                    <button disabled={busy}>
+                      Submit{" "}
+                      {reviewAction === "approve" ? "approval" : "reversal"}
+                    </button>
+                    <button
+                      type="button"
+                      className="secondary"
+                      disabled={busy}
+                      onClick={() => setReviewAction(null)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
               <small>
                 Confirmation checks available task area and the operational
                 period.
@@ -621,6 +767,14 @@ function App() {
                 }
               />
             )}
+          {tab === "Gangs" && estate && (
+            <Gangs
+              key={estate}
+              api={api}
+              base={base}
+              manager={role === "manager"}
+            />
+          )}
           {tab === "Audit trail" && (
             <section className="card">
               <h2>Latest 50 estate events</h2>

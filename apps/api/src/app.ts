@@ -10,6 +10,7 @@ import type { Pool, PoolClient } from "pg";
 import { webOrigin } from "./config.ts";
 import { hash, token, verifyPassword, passwordHash } from "./security.ts";
 import { allocateHundredths } from "../../../packages/domain/allocation.ts";
+import { workflowRoutes, assertGangAllowed } from "./workflow.ts";
 import { maintenanceRoutes } from "./maintenance.ts";
 class ApiError extends Error {
   constructor(
@@ -341,6 +342,7 @@ export function createApp(pool: Pool) {
         return seen.response;
       }
       await openPeriod(c, id, input.businessDate);
+      await assertGangAllowed(c, res, id, input.gangCode, ApiError);
       const occurrence = (
         await c.query(
           "SELECT id,capacity_ha FROM eoms.occurrences WHERE estate_id=$1 AND id=$2",
@@ -408,8 +410,11 @@ export function createApp(pool: Pool) {
           )
         ).rows[0];
         if (!first) throw new ApiError(404, "Muster not found");
-        if (first.status === "confirmed") return first;
+        if (first.status === "reversed")
+          throw new ApiError(409, "Reversed work cannot be confirmed again");
         await openPeriod(c, id, first.business_date);
+        await assertGangAllowed(c, res, id, first.gang_code, ApiError);
+        if (first.status === "confirmed") return first;
         const occurrence = (
           await c.query(
             "SELECT capacity_ha FROM eoms.occurrences WHERE estate_id=$1 AND id=$2 FOR UPDATE",
@@ -422,6 +427,8 @@ export function createApp(pool: Pool) {
             [id, record],
           )
         ).rows[0];
+        if (row.status === "reversed")
+          throw new ApiError(409, "Reversed work cannot be confirmed again");
         if (row.status === "confirmed") return row;
         if (row.version !== input.version)
           throw new ApiError(
@@ -477,6 +484,7 @@ export function createApp(pool: Pool) {
     );
   });
   maintenanceRoutes(app, estateTx, audit, ApiError);
+  workflowRoutes(app, estateTx, audit, openPeriod, ApiError);
   app.get("/api/estates/:estateId/audit", async (req, res) =>
     res.json(
       await estateTx(

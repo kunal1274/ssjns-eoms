@@ -14,11 +14,12 @@
     "test": "node --import tsx --test tests/allocation.test.ts",
     "db:migrate": "node --import tsx scripts/migrate.ts",
     "db:seed": "node --import tsx scripts/seed.ts",
-    "test:integration": "node --import tsx --test --test-concurrency=1 tests/api.test.ts",
+    "test:integration": "node --import tsx --test --test-concurrency=1 tests/api.test.ts tests/workflow.test.ts",
     "db:test": "node --import tsx scripts/test-db.ts",
     "test:browser": "node scripts/browser-check.mjs",
     "format": "prettier --write apps packages scripts tests",
-    "test:maintenance-browser": "node scripts/maintenance-browser.mjs"
+    "test:maintenance-browser": "node scripts/maintenance-browser.mjs",
+    "test:workflow-browser": "node scripts/workflow-browser.mjs"
   },
   "dependencies": {
     "express": "5.2.1",

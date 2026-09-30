@@ -103,6 +103,18 @@ try {
         [id, estateId, a.role],
       );
   }
+  for (const estate of estates) {
+    const gang = (
+      await c.query(
+        "INSERT INTO eoms.gangs(estate_id,code,name) VALUES($1,'G-01','Development field gang') ON CONFLICT(estate_id,code) DO UPDATE SET code=EXCLUDED.code RETURNING id",
+        [estate.id],
+      )
+    ).rows[0];
+    await c.query(
+      "INSERT INTO eoms.gang_supervisors(estate_id,gang_id,user_id) SELECT estate_id,$2,user_id FROM eoms.memberships WHERE estate_id=$1 AND role='supervisor' ON CONFLICT DO NOTHING",
+      [estate.id, gang.id],
+    );
+  }
   await c.query("COMMIT");
   if (credentials.length) {
     await mkdir(".local", { recursive: true });

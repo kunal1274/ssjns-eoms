@@ -15,3 +15,9 @@ The browser run uses synthetic development records; integration fixtures are iso
 ## Maintenance milestone
 
 Four new integration scenarios were observed failing with missing routes, then passed after implementation. Current total: 2 domain tests + 15 API integration tests. Added coverage includes manager-only changes, duplicate identity, stale worker/task/period versions, confirmed-capacity lower bound, period closure enforcement/reopening, audited reasons and catalog pagination/search/estate isolation. Manager browser testing verifies worker creation/deactivation, task creation/capacity editing, period locking/reopening and searchable capture selectors. Build and existing muster browser regression are rerun for the delivery.
+
+## Gang/review milestone
+
+Three new workflow integration scenarios first failed against missing routes, then passed. Current total: 2 domain tests + 18 API integration tests. Coverage includes gang registration/assignment, foreign-estate supervisor rejection, supervisor revocation, stale versions, manager-only review, draft review rejection, reason validation, locked periods, simultaneous reversal (one success), unchanged historical allocations, one reversal event and released task capacity. Browser coverage creates a gang/task, captures work, confirms, approves, reverses and reloads the retained record.
+
+Final checks for this milestone: all three browser scripts passed; desktop/mobile workflow screenshots reviewed; TypeScript/Vite build passed. Browser regression also caught and verified the fix for selected-estate persistence across reload. Only the selected estate identifier is stored in sessionStorage; access is revalidated against the server-provided estate list.

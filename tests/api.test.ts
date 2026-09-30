@@ -44,7 +44,7 @@ async function fixture() {
   return {
     occurrenceId: occurrence,
     businessDate: "2026-09-28",
-    gangCode: "UG-01",
+    gangCode: "G-01",
     quantityHa: 1.5,
     workerIds: workers,
   };

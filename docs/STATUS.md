@@ -15,3 +15,5 @@ Next sequence:
 Unknown dependencies: hosting, identity provider, partner products/contracts, payroll owner/rules, retention, concurrency and service objectives. These do not block continued local implementation but do block claims of production readiness.
 
 Completed maintenance milestone: manager-only worker creation/name/status updates, task occurrence creation/capacity updates, reasoned period creation/lock/reopen, version conflicts, audit events and searchable cursor catalogs integrated into muster capture. Remote is connected to kunal1274/ssjns-eoms.
+
+Gang/review milestone: registered gang master, supervisor assignments with versioned audit, capture/confirmation authorization, separate manager review, terminal reasoned reversal with conserved historical evidence and atomic events. Provisional manager-only approval/reversal selected for development; client sign-off remains open. Current estate read scope is unchanged. Effective dates, gang worker rosters, borrowing, block authorization, multi-stage separation of duties and formal correction/replacement lineage are not complete.

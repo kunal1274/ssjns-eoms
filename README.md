@@ -39,6 +39,7 @@ npm run build
 npm audit
 npm run test:browser
 npm run test:maintenance-browser
+npm run test:workflow-browser
 ```
 
 Integration tests use separate `eoms_test`, with synthetic fixtures. Browser tests require running API/web servers and installed Chrome; they create one labelled QA muster in the development estate, using 0.10 Ha of its first task. They are a smoke check, not an unrestricted repeatable load test. Desktop/mobile screenshots are in `docs/`. Domain and API tests were first observed failing against unimplemented code, then passed after implementation.
@@ -52,7 +53,7 @@ Integration tests use separate `eoms_test`, with synthetic fixtures. Browser tes
 - Task occurrence lock serializes confirmation against the same area budget. Idempotency keys deduplicate create retries; version checks reject stale draft confirmation. Audit is append-only for the runtime role, not tamper-proof against database administrators.
 - Integration outbox records confirmation events atomically. No dispatcher, SAP/HR connection or external acknowledgement is implemented yet.
 - React web layout is responsive. PWA installation, offline queue/conflict resolution and React Native are future milestones. React Native will reuse API contracts/domain logic; web UI requires adaptation.
-- Gang assignment restrictions, full role matrix, additional master-data workflows, other activities, allocation modes, approval/reversal flows, deductions, payroll, reports and business rule sign-off remain in the broader execution plan.
+- Effective-dated gang/worker rosters, block restrictions, full role matrix, additional master-data workflows, other activities, allocation modes, multi-stage approval and correction flows, deductions, payroll, reports and business rule sign-off remain in the broader execution plan.
 - Production startup is intentionally gated in `server.ts` until hosting, identity, recovery, monitoring, security and tenancy decisions are implemented and validated.
 
 ## Git and handoff
@@ -66,3 +67,13 @@ Managers now use Workers to add, rename, deactivate/reactivate workers; Task cap
 Task identity is immutable in this slice. Capacity changes lock the same occurrence row as confirmation and cannot reduce below confirmed area. Draft totals are not reserved; they are checked at confirmation. Period updates lock the same row used by capture/confirmation, so committed closure blocks subsequent writes. Reopening remains a single-manager operation pending client approval of the final approval matrix.
 
 `test:maintenance-browser` creates synthetic workers/tasks and a far-future period to avoid closing operational months. It verifies create/edit/search/lock/reopen and captures desktop/mobile evidence.
+
+## Gang and review milestone
+
+Use Gangs to register gangs and assign existing estate supervisors. New muster capture selects an active registered gang. The API checks current assignments on supervisor creation and confirmation; managers may operate any active gang in their estate. Assignment changes take effect immediately, use optimistic versions, and retain before/after audit evidence. Estate-wide read access remains unchanged. This is not yet effective-dated worker membership, borrowing or block-level authorization. The supervisor picker currently returns up to 200 eligible staff; larger directories require pagination.
+
+After confirmation, a manager can approve work or reverse it with a reason. Development default: same-manager confirmation/review is allowed, with no second approver. This rule remains provisional pending client sign-off. Approval leaves operational status confirmed and records a separate review state. Reversal is terminal: original quantities/shares, confirmation and approval evidence remain, while current task totals exclude the reversed work. Duplicate or stale transitions return 409; refresh to inspect the persisted outcome. Audit and outbox events commit in the same transaction. Locked months reject review/reversal.
+
+This is an operational reversal only. No payroll/SAP reversal is sent, and no automatic replacement or linked correction document is created. Posted-period protection, configurable approval stages, formal unlock/correction lineage and partner compensation must be implemented before live integrations.
+
+Migration 004 registers historical free-text gang codes without granting new assignments. Managers must explicitly assign supervisors to those historical gangs before further confirmation. The development seed creates G-01 and assigns seeded estate supervisors to it; rerunning that development-only seed restores those demonstration assignments. No historical muster is deleted or renamed.
