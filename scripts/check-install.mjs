@@ -12,7 +12,11 @@ try {
   });
   const page = await context.newPage();
   await page.goto(process.env.PWA_BASE_URL || "http://localhost:5175");
-  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.waitForFunction(
+    () => navigator.serviceWorker.controller !== null,
+    undefined,
+    { timeout: 15000 },
+  );
   await page.reload();
   const c = await context.newCDPSession(page);
   const manifest = await c.send("Page.getAppManifest"),

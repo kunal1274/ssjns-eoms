@@ -24,7 +24,6 @@ jobs:
           --health-cmd "pg_isready -U postgres -d eoms"
           --health-interval 5s --health-timeout 5s --health-retries 15
     env:
-      NODE_ENV: development
       ADMIN_DATABASE_URL: postgresql://postgres:isolated_ci_admin@127.0.0.1:5432/eoms
       DATABASE_URL: postgresql://eoms_app:isolated_ci_app@127.0.0.1:5432/eoms
       APP_DB_PASSWORD: isolated_ci_app

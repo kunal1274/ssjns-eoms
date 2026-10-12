@@ -38,6 +38,7 @@ async function ready(url, child) {
   throw Error("Timed out waiting for " + url);
 }
 async function run(script) {
+  console.log("Starting browser check:", script);
   await new Promise((resolve, reject) => {
     const c = spawn(process.execPath, [script], {
       env: {
@@ -47,10 +48,19 @@ async function run(script) {
       },
       stdio: "inherit",
     });
-    c.on("error", reject);
-    c.on("exit", (code) =>
-      code === 0 ? resolve() : reject(Error(script + " failed with " + code)),
-    );
+    const deadline = setTimeout(() => {
+      c.kill("SIGTERM");
+      reject(Error(script + " exceeded the 120-second test deadline"));
+    }, 120000);
+    deadline.unref();
+    c.on("error", (error) => {
+      clearTimeout(deadline);
+      reject(error);
+    });
+    c.on("exit", (code) => {
+      clearTimeout(deadline);
+      code === 0 ? resolve() : reject(Error(script + " failed with " + code));
+    });
   });
 }
 try {

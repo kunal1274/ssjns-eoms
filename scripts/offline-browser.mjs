@@ -81,7 +81,11 @@ async function deviceRows() {
 }
 try {
   await page.goto(process.env.PWA_BASE_URL || "http://localhost:5175");
-  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.waitForFunction(
+    () => navigator.serviceWorker.controller !== null,
+    undefined,
+    { timeout: 15000 },
+  );
   await page.reload();
   await login();
   await queueOne();

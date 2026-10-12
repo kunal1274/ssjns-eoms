@@ -12,6 +12,15 @@ async function files(dir) {
   return out;
 }
 const paths = await files("");
+let registration = false;
+for (const path of paths.filter((p) => p.endsWith(".js")))
+  registration ||= (await readFile(root + path, "utf8")).includes(
+    "serviceWorker.register(",
+  );
+if (!registration)
+  throw Error(
+    "PWA registration missing from bundle. Build with NODE_ENV unset or production, not development.",
+  );
 const hash = createHash("sha256");
 for (const p of paths) hash.update(await readFile(root + p));
 const cache = "eoms-shell-" + hash.digest("hex").slice(0, 16);
