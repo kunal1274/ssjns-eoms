@@ -5,9 +5,15 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: "127.0.0.1",
-    port: 5174,
+    port: Number(process.env.WEB_PORT || 5174),
     strictPort: true,
-    proxy: { "/api": "http://127.0.0.1:4100" },
+    proxy: { "/api": process.env.API_TARGET || "http://127.0.0.1:4100" },
+  },
+  preview: {
+    host: "127.0.0.1",
+    port: Number(process.env.PWA_PORT || 5175),
+    strictPort: true,
+    proxy: { "/api": process.env.API_TARGET || "http://127.0.0.1:4101" },
   },
   build: { outDir: "dist" },
 });

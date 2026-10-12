@@ -8,7 +8,7 @@ const accounts = JSON.parse(await readFile(".local/dev-accounts.json", "utf8")),
   errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 try {
-  await page.goto("http://localhost:5174");
+  await page.goto(process.env.BROWSER_BASE_URL || "http://localhost:5174");
   const a = accounts.find((a) => a.email === "manager@eoms.local");
   await page.getByLabel("Email", { exact: true }).fill(a.email);
   await page.getByLabel("Password", { exact: true }).fill(a.password);
@@ -65,6 +65,7 @@ try {
   await page
     .getByLabel("Gang code", { exact: true })
     .selectOption("WF-" + suffix);
+  await page.getByLabel("Work date", { exact: true }).fill("2026-09-28");
   await page.getByLabel("Area (Ha)", { exact: true }).fill("1");
   await page.getByRole("checkbox").first().check();
   const pending = page.waitForResponse(
@@ -73,6 +74,11 @@ try {
   await page.getByRole("button", { name: "Save draft", exact: true }).click();
   const saved = await (await pending).json();
   const row = page.locator(`[data-record-id="${saved.id}"]`);
+  while (
+    !(await row.count()) &&
+    (await page.getByRole("button", { name: "Load more", exact: true }).count())
+  )
+    await page.getByRole("button", { name: "Load more", exact: true }).click();
   await row.getByRole("button", { name: "View", exact: true }).click();
   await page
     .getByRole("button", { name: "Confirm muster", exact: true })
@@ -96,6 +102,17 @@ try {
     .getByRole("heading", { name: "Muster detail · reversed", exact: true })
     .waitFor();
   await page.reload();
+  await page
+    .getByRole("heading", { name: "Muster register", exact: true })
+    .waitFor();
+  await page
+    .getByRole("button", { name: "+ New muster", exact: true })
+    .waitFor();
+  while (
+    !(await row.count()) &&
+    (await page.getByRole("button", { name: "Load more", exact: true }).count())
+  )
+    await page.getByRole("button", { name: "Load more", exact: true }).click();
   await page
     .locator(`[data-record-id="${saved.id}"]`)
     .getByRole("button", { name: "View", exact: true })

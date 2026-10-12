@@ -1,12 +1,42 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
+import { SyncQueue } from "./SyncQueue";
+import { PwaInstall } from "./PwaInstall";
+import { enqueue, clearDeviceDrafts, deviceDraftCount } from "./offline";
+import { allocateHundredths } from "../../../packages/domain/allocation";
 import { Gangs } from "./Gangs";
 import { Maintenance } from "./Maintenance";
 type Row = Record<string, any>;
 const now = new Date();
 const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 function App() {
+  const [online, setOnline] = useState(navigator.onLine),
+    [queueRevision, setQueueRevision] = useState(0),
+    [deviceMessage, setDeviceMessage] = useState("");
+  useEffect(() => {
+    const connected = () => setOnline(true),
+      disconnected = () => setOnline(false);
+    window.addEventListener("online", connected);
+    window.addEventListener("offline", disconnected);
+    return () => {
+      window.removeEventListener("online", connected);
+      window.removeEventListener("offline", disconnected);
+    };
+  }, []);
+  useEffect(() => {
+    const logout = (e: StorageEvent) => {
+      if (e.key === "eoms-logout") {
+        setUser(null);
+        setEstate("");
+        setRows([]);
+        setCreating(false);
+      }
+    };
+    window.addEventListener("storage", logout);
+    return () => window.removeEventListener("storage", logout);
+  }, []);
+
   const [gangs, setGangs] = useState<Row[]>([]),
     [gangSearch, setGangSearch] = useState(""),
     [gangNext, setGangNext] = useState<string | null>(null),
@@ -77,6 +107,10 @@ function App() {
     }
   }
   async function api(path: string, body?: unknown, key?: string) {
+    if (!navigator.onLine)
+      throw Error(
+        "Reconnect for this action. You can save a device draft using references already loaded.",
+      );
     const r = await fetch("/api" + path, {
       method: body === undefined ? "GET" : "POST",
       headers: {
@@ -182,6 +216,12 @@ function App() {
           <p>
             Sign in to securely record field work and review estate activity.
           </p>
+          {!online && (
+            <p className="notice">
+              Offline. Reconnect to sign in. Previously saved device drafts are
+              retained until you reconnect or clear browser data.
+            </p>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -219,7 +259,7 @@ function App() {
                 {error}
               </p>
             )}
-            <button disabled={busy}>Sign in</button>
+            <button disabled={busy || !online}>Sign in</button>
           </form>
           <small>Development environment · Synthetic estate data</small>
         </section>
@@ -268,7 +308,7 @@ function App() {
             <select
               aria-label="Estate"
               value={estate}
-              disabled={busy}
+              disabled={busy || !online}
               onChange={(e) => {
                 sessionStorage.setItem("eoms-estate", e.target.value);
                 setEstate(e.target.value);
@@ -290,7 +330,30 @@ function App() {
             disabled={busy}
             onClick={() =>
               void act(async () => {
-                await api("/auth/logout", {});
+                if (!online)
+                  throw Error(
+                    "Reconnect to sign out and revoke the server session.",
+                  );
+                if (!navigator.locks)
+                  throw Error(
+                    "This browser cannot coordinate device storage safely.",
+                  );
+                let signedOut = false;
+                await navigator.locks.request("eoms-device-sync", async () => {
+                  const count = await deviceDraftCount();
+                  if (
+                    count &&
+                    !confirm(
+                      `Sign out and discard ${count} device draft(s)? Sync them first to retain them on the server.`,
+                    )
+                  )
+                    return;
+                  await api("/auth/logout", {});
+                  await clearDeviceDrafts();
+                  signedOut = true;
+                });
+                if (!signedOut) return;
+                localStorage.setItem("eoms-logout", String(Date.now()));
                 setUser(null);
                 setEstate("");
                 setRows([]);
@@ -302,8 +365,26 @@ function App() {
         </header>
         <main>
           <div className="notice">
-            DEVELOPMENT · Synthetic data · First operational workflow
+            DEVELOPMENT · Synthetic data ·{" "}
+            {online ? "Online" : "Offline — local draft capture only"}
           </div>
+          <PwaInstall />
+          {deviceMessage && <p role="status">{deviceMessage}</p>}
+          {!online && (
+            <p className="notice">
+              Use references loaded before disconnecting. Server actions and
+              sign-out require a connection. After reload, reconnect to
+              authenticate; device drafts remain stored.
+            </p>
+          )}
+          <SyncQueue
+            key={user.id}
+            owner={user.id}
+            estateNames={Object.fromEntries(estates.map((e) => [e.id, e.name]))}
+            online={online}
+            revision={queueRevision}
+            onSynced={refresh}
+          />
           <div className="heading">
             <div>
               <p className="eyebrow">FIELD OPERATIONS</p>
@@ -318,7 +399,11 @@ function App() {
                 disabled={busy || !estate}
                 onClick={() =>
                   void act(async () => {
-                    await refresh();
+                    if (online) await refresh();
+                    if (!workers.length || !tasks.length || !gangs.length)
+                      throw Error(
+                        "Load workers, tasks and an assigned gang while online before capturing offline.",
+                      );
                     setCreating(true);
                     setDetail(null);
                     setReviewAction(null);
@@ -344,6 +429,11 @@ function App() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   const f = new FormData(e.currentTarget);
+                  const saveOnDevice =
+                    !online ||
+                    (e.nativeEvent as SubmitEvent).submitter?.getAttribute(
+                      "data-device",
+                    ) === "true";
                   void act(async () => {
                     const body = {
                       occurrenceId: f.get("task"),
@@ -352,10 +442,40 @@ function App() {
                       quantityHa: Number(f.get("quantity")),
                       workerIds: selected,
                     };
-                    await api(base + "/musters", body, submissionKey(body));
+                    const key = submissionKey(body);
+                    allocateHundredths(body.quantityHa, body.workerIds);
+                    if (
+                      !body.occurrenceId ||
+                      !body.gangCode ||
+                      !body.businessDate
+                    )
+                      throw Error("Choose a task, gang and work date");
+                    if (saveOnDevice) {
+                      if (!navigator.locks)
+                        throw Error(
+                          "This browser does not support coordinated device drafts.",
+                        );
+                      await navigator.locks.request("eoms-device-sync", () =>
+                        enqueue({
+                          id: key,
+                          ownerId: user.id,
+                          estateId: estate,
+                          payload: body,
+                          status: "pending",
+                          createdAt: new Date().toISOString(),
+                        }),
+                      );
+                      setQueueRevision((v) => v + 1);
+                      setDeviceMessage(
+                        "Saved on this device. Reconnect and sync to create the server draft.",
+                      );
+                    } else {
+                      await api(base + "/musters", body, key);
+                      setDeviceMessage("Draft saved to server.");
+                    }
                     submission.current = null;
                     setCreating(false);
-                    await refresh();
+                    if (!saveOnDevice) await refresh();
                   });
                 }}
               >
@@ -515,8 +635,22 @@ function App() {
                 </fieldset>
                 <div className="actions">
                   <button disabled={busy || !selected.length}>
-                    Save draft
+                    {online ? "Save draft" : "Save on device"}
                   </button>
+                  {online && (
+                    <button
+                      type="submit"
+                      data-device="true"
+                      className="secondary"
+                      disabled={busy || !selected.length}
+                    >
+                      Save on device
+                    </button>
+                  )}
+                  <small>
+                    Device drafts are stored locally, not encrypted by this app.
+                    Use a trusted device. Server validation occurs at sync.
+                  </small>
                   <button
                     type="button"
                     className="secondary"
@@ -802,3 +936,13 @@ function App() {
   );
 }
 createRoot(document.getElementById("root")!).render(<App />);
+
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .register("/sw.js")
+    .catch(() =>
+      console.warn(
+        "Offline shell registration failed; online app remains available.",
+      ),
+    );
+}

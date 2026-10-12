@@ -40,9 +40,10 @@ npm audit
 npm run test:browser
 npm run test:maintenance-browser
 npm run test:workflow-browser
+npm run verify:browser
 ```
 
-Integration tests use separate `eoms_test`, with synthetic fixtures. Browser tests require running API/web servers and installed Chrome; they create one labelled QA muster in the development estate, using 0.10 Ha of its first task. They are a smoke check, not an unrestricted repeatable load test. Desktop/mobile screenshots are in `docs/`. Domain and API tests were first observed failing against unimplemented code, then passed after implementation.
+Integration tests use separate `eoms_test`, with synthetic fixtures. Individual browser tests require running API/web servers and installed Chrome. The combined `verify:browser` runner starts and stops its own servers on ports 4200/4201/5274/5275 and uses isolated synthetic fixtures in the development database. It requires a prior build and seeded development/test databases. It is regression verification, not a load test. Desktop/mobile screenshots are in `docs/`. Domain and API tests were first observed failing against unimplemented code, then passed after implementation.
 
 ## Design and current boundaries
 
@@ -52,7 +53,7 @@ Integration tests use separate `eoms_test`, with synthetic fixtures. Browser tes
 - Indexed, bounded keyset muster pagination. Millions of operational records is the sizing target; no million-row capacity result is claimed. The UI uses searchable keyset-paginated worker/task catalogs (25 per page, maximum 100). Legacy reference endpoints remain capped for compatibility. Search indexes are present; representative load benchmarking is still required.
 - Task occurrence lock serializes confirmation against the same area budget. Idempotency keys deduplicate create retries; version checks reject stale draft confirmation. Audit is append-only for the runtime role, not tamper-proof against database administrators.
 - Integration outbox records confirmation events atomically. No dispatcher, SAP/HR connection or external acknowledgement is implemented yet.
-- React web layout is responsive. PWA installation, offline queue/conflict resolution and React Native are future milestones. React Native will reuse API contracts/domain logic; web UI requires adaptation.
+- React web layout is responsive. The initial PWA shell and device-draft queue are implemented with the limits described below. Full cold-start offline field operation and React Native remain future milestones. React Native will reuse API contracts/domain logic; web UI requires adaptation.
 - Effective-dated gang/worker rosters, block restrictions, full role matrix, additional master-data workflows, other activities, allocation modes, multi-stage approval and correction flows, deductions, payroll, reports and business rule sign-off remain in the broader execution plan.
 - Production startup is intentionally gated in `server.ts` until hosting, identity, recovery, monitoring, security and tenancy decisions are implemented and validated.
 
@@ -77,3 +78,19 @@ After confirmation, a manager can approve work or reverse it with a reason. Deve
 This is an operational reversal only. No payroll/SAP reversal is sent, and no automatic replacement or linked correction document is created. Posted-period protection, configurable approval stages, formal unlock/correction lineage and partner compensation must be implemented before live integrations.
 
 Migration 004 registers historical free-text gang codes without granting new assignments. Managers must explicitly assign supervisors to those historical gangs before further confirmation. The development seed creates G-01 and assigns seeded estate supervisors to it; rerunning that development-only seed restores those demonstration assignments. No historical muster is deleted or renamed.
+
+## PWA and device drafts
+
+Build once with `npm run build`. In separate terminals run `npm run dev:pwa-api` and `npm run preview:pwa`, then open http://localhost:5175. The existing http://localhost:5174 development UI remains available, but its hot-reload server does not register the built service worker. Both use the same development PostgreSQL database; each browser origin has its own local draft queue.
+
+Sign in online, select the estate and load the task, gang and workers. Save on device explicitly, or disconnect while keeping the signed-in tab open and use Save on device. Reconnect and choose Sync drafts. Acknowledged items become server drafts and leave the queue. Confirmation, review and reversal are separate online actions. No automatic/background posting occurs.
+
+The built app has a manifest, icons and a versioned static-only service-worker cache. Install app appears when the browser exposes its installation prompt; otherwise use the browser's installation menu. Close existing app tabs and reopen to activate a waiting build update. API responses, authentication credentials and server masters are never cached by the service worker.
+
+Device drafts use IndexedDB and are separated by account. Sync validates the active server identity, uses the original immutable idempotency key, and coordinates tabs through Web Locks. A lost response or server/session failure retains pending work. Validation/permission/period conflicts become Needs review. Fix the cause, choose Retry after correction and sync again; the payload/key remain unchanged. To change captured values, discard and re-enter after checking for an earlier server acknowledgement.
+
+Sign out requires connectivity and prompts before discarding unsynced device data. Browser storage is not encrypted by this app and may be evicted or cleared; use trusted devices. Offline capture works only with references loaded in the currently open authenticated session. Offline reload loads the shell but requires reconnection/authentication before viewing or syncing queued drafts. This is not yet a complete secure cold-start offline field application. Encryption/device provisioning, persistent offline reference preparation, revocation policy and full disconnected authentication are later work.
+
+## Automated checks
+
+GitHub Actions runs unit/sync and PostgreSQL integration tests, the build, all four browser workflows, Chrome manifest/installability diagnostics and the dependency audit on pushes to main and pull requests. Actions are pinned to immutable revisions; the job has read-only repository permissions. CI databases/accounts are disposable and independent of local credentials. See `docs/MILESTONE-CLOSEOUT.md` for the delivered checkpoint and explicit future work.

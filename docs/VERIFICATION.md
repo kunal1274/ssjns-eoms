@@ -21,3 +21,11 @@ Four new integration scenarios were observed failing with missing routes, then p
 Three new workflow integration scenarios first failed against missing routes, then passed. Current total: 2 domain tests + 18 API integration tests. Coverage includes gang registration/assignment, foreign-estate supervisor rejection, supervisor revocation, stale versions, manager-only review, draft review rejection, reason validation, locked periods, simultaneous reversal (one success), unchanged historical allocations, one reversal event and released task capacity. Browser coverage creates a gang/task, captures work, confirms, approves, reverses and reloads the retained record.
 
 Final checks for this milestone: all three browser scripts passed; desktop/mobile workflow screenshots reviewed; TypeScript/Vite build passed. Browser regression also caught and verified the fix for selected-estate persistence across reload. Only the selected estate identifier is stored in sessionStorage; access is revalidated against the server-provided estate list.
+
+## PWA and milestone closeout
+
+Three sync-domain scenarios were first observed failing against a stub, then passed. Current total: 5 domain/sync tests + 18 PostgreSQL/API tests (23). Four browser workflows cover capture, maintenance, gang/review, and offline/sync. Offline checks include static-only cache contents, disconnected save, reload retention, a lost response after server commit, immutable-key retry without duplicate creation, session expiry, account isolation, locked-period conflict, retry after correction, and sign-out discard/cancel handling.
+
+The combined browser runner starts its own temporary servers, refuses occupied ports, and stops its child processes afterward. Chrome manifest and installability diagnostics passed using a temporary non-incognito profile; evidence is in pwa-installability.json. Desktop/mobile screenshots were visually reviewed. A new high-severity source-map-js dependency advisory was found during the refreshed audit and addressed with a targeted transitive update.
+
+GitHub Actions configuration performs the same build/tests/browser/audit checks. Hosted CI status is recorded separately after pushing; local passing checks do not by themselves establish a hosted CI result.
