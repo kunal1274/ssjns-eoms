@@ -127,6 +127,6 @@ A feature is not complete merely because a screen renders. Its evidence must inc
 
 ## Current next action
 
-**F01 is Complete as a source-audit phase** with fresh CI evidence; this does not close its recorded security findings or establish production readiness. **F02 — Requirements Traceability is In progress** in [docs/TRACEABILITY-F02.md](TRACEABILITY-F02.md). Complete the requirement-to-code/test/evidence links and explicitly record owner/client decisions before starting F03. Do not claim exact hosted-demo/repository parity where the rendered artifact has not been independently inspected.
+**F01 is Complete as a source-audit phase** with fresh CI evidence; this does not close its recorded security findings or establish production readiness. **F02 — Requirements Traceability is In progress** in [docs/TRACEABILITY-F02.md](TRACEABILITY-F02.md), with implementation/test/browser line anchors in [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md) and proposed owner decisions in [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md). Map owner-approved requirements and journeys, resolve or formally defer decisions, and obtain owner acceptance before starting F03. Do not claim exact hosted-demo/repository parity where the rendered artifact has not been independently inspected.
 
 No phase is marked complete by this plan alone.
