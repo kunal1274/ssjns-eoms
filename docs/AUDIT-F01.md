@@ -4,15 +4,15 @@
 **Repository:** `kunal1274/ssjns-eoms`  
 **Working branch:** `planning/production-roadmap-data-security`  
 **Review basis:** uploaded repository ZIP plus static review of application, database migrations, tests, Docker configuration and project documentation.  
-**Audit type:** source/configuration review. This is not a completed clean build, full test run, penetration test, or production certification.
+**Audit type:** source/configuration review plus fresh GitHub Actions execution evidence. This is not a penetration test or production certification.
 
 ## Executive summary
 
 The uploaded source is a real PERN development codebase: React + TypeScript + Vite web/PWA, Express + TypeScript API, PostgreSQL schema/migrations, domain helpers, operational workflows, and automated test scripts. It includes a limited muster workflow with master-data maintenance, gang assignment, manager review/reversal, audit/outbox records, idempotency/version checks, and a device-draft sync path.
 
-**F01 remains In progress.** The foundation is useful, but the source does not establish production readiness. Major scope still outstanding includes a customer/group/estate/division/block hierarchy, configurable permissions, complete user lifecycle, licensing/seat enforcement, reusable workflow configuration, broader operational modules, live integrations, production operations/recovery, and load evidence.
+**F01 audit is complete; production readiness is not.** The foundation is useful, but the source does not establish production readiness. Major scope still outstanding includes a customer/group/estate/division/block hierarchy, configurable permissions, complete user lifecycle, licensing/seat enforcement, reusable workflow configuration, broader operational modules, live integrations, production operations/recovery, and load evidence. The high-priority findings below are recorded for remediation in their relevant phases; closing F01 means the source audit and its verification evidence are complete, not that every finding is already fixed.
 
-The project owner clarified that the demo was created within ChatGPT and has not been run externally. The provided URL returned 401 to the retrieval method available in this review, so I could not independently inspect its rendered UI or verify screen-to-source parity. This does not establish that the project is external or separate. The uploaded ZIP is the source basis for this F01 code audit; no additional external export is being requested at this stage.
+The project owner clarified that this project and demo were created within ChatGPT and have not been run externally. The provided URL returned 401 to the retrieval method available in this review; that is a limitation of this inspection path, not evidence of an external deployment. The uploaded ZIP is the source basis for this F01 code audit. Screenshots and browser-verification evidence are included in the archive. Exact parity between the hosted ChatGPT-rendered page and the repository build is not claimed; if it matters to requirement interpretation, it will be recorded as a traceability question in F02 rather than treated as an external-export prerequisite for this source audit.
 
 ## Source inventory
 
@@ -52,14 +52,24 @@ The project owner clarified that the demo was created within ChatGPT and has not
 | Medium | Operational integrations are incomplete | Outbox events are persisted transactionally, but no dispatcher or live SAP/HR adapter is documented as implemented. | Add idempotent dispatch, retry/acknowledgement, reconciliation and scoped service identities before partner posting. |
 | Medium | Production operations evidence is absent | No production startup is allowed; load capacity, backup/restore, monitoring, recovery objectives, security review and UAT are not established by this source audit. | Keep production gate. Define and evidence these gates before deployment. |
 
-## Verification attempt in this review environment
+## Fresh execution evidence
 
-- The archive was extracted and source/configuration/migrations/tests were inspected.
-- Runtime available: Node v22.16.0 and npm 10.9.2. The README requests Node 24+; CI is configured for Node 24.
-- `npm ci --ignore-scripts --no-audit --no-fund --prefer-offline` did not finish within the available tool execution window. The dependency tree remained incomplete.
-- Docker and `psql` are not installed in this review environment.
-- Therefore, **no fresh TypeScript check, build, unit test, integration test, migration test, browser test or database RLS test is claimed** from this run.
-- The repository's CI workflow is configured to run migrations, domain/API tests, build, browser verification and `npm audit`. Any previously recorded green run is historical evidence only; it is not a fresh result for this uploaded snapshot.
+**GitHub Actions run #3 — passed on 15 October 2026:** [Open run #3](https://github.com/kunal1274/ssjns-eoms/actions/runs/38783373801). The run was triggered by the draft audit-only PR against `main`; no application code was changed by this audit branch.
+
+| Check | Result | Evidence |
+|---|---|---|
+| Clean dependency install | Passed | `npm ci` installed 194 packages. |
+| PostgreSQL migrations and seed | Passed | Migrations 001–004 applied; restricted `eoms_app` runtime role configured; synthetic seed completed. |
+| Isolated DB/security setup | Passed | `npm run db:test` created and migrated the separate `eoms_test` database. |
+| Domain/sync tests | Passed | 5 passed, 0 failed. |
+| PostgreSQL/API/workflow integration tests | Passed | 18 passed, 0 failed. Tests ran against the restricted runtime role and include estate isolation, CSRF, session invalidation, role restrictions, RLS filtering and audit immutability checks. |
+| TypeScript check and production web build | Passed | `npm run build` completed. |
+| Browser regression | Passed | Authenticated capture/confirm/persisted reload/audit/cross-estate denial/logout; maintenance; gang/review/reversal; PWA offline/sync and conflict paths; Chrome manifest/installability checks. |
+| Dependency audit | Passed | `npm audit --audit-level=high` reported 0 vulnerabilities. |
+
+The CI log contains non-blocking deprecation warnings for transitive Node APIs and for the Node 20 runtime metadata on pinned GitHub Actions. Track these in F05; they did not fail this run.
+
+The review container itself has Node v22.16.0 but no Docker or `psql`; its dependency installation timed out. This limitation was overcome for execution evidence by the fresh CI job, which provisioned PostgreSQL 18 and completed the checks above. No local-container run is claimed.
 
 ## F01 acceptance checklist
 
@@ -67,10 +77,10 @@ The project owner clarified that the demo was created within ChatGPT and has not
 - [x] API authentication, request guards, transaction context and authorization helpers reviewed.
 - [x] Database migrations, RLS policies, foreign keys and runtime grants reviewed at source level.
 - [x] Existing tests and CI workflow inspected.
-- [x] Initial high-priority hardening findings recorded.
-- [ ] Clean dependency installation and TypeScript/build verification completed.
-- [ ] PostgreSQL migrations and integration/security tests executed against the restricted runtime role.
-- [ ] Browser regression suite executed and evidence recorded.
-- [ ] UI-to-source parity independently verified where the actual ChatGPT project artifact is available for inspection.
+- [x] High-priority hardening findings recorded with follow-up phases.
+- [x] Clean dependency installation and TypeScript/build verification completed in CI.
+- [x] PostgreSQL migrations and integration/security tests executed against the restricted runtime role in CI.
+- [x] Browser regression suite executed and evidence recorded in CI.
+- [x] Verification evidence linked to a fresh run on the working branch.
 
-**Disposition: F01 remains In progress.** No application code or `main` branch changes were made during this review.
+**Disposition: F01 Complete as a source-audit phase.** The audit identified unresolved hardening and product-scope gaps; those remain explicit work items and production remains gated. No application code or `main` branch changes were made during this review.
