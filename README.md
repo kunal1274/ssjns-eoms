@@ -1,6 +1,6 @@
 # STM EOMS · PERN foundation
 
-Connected development milestones, separate from the approved UI demo. React + Express/Node + PostgreSQL with TypeScript. Synthetic data only; not a production release.
+Connected PERN development foundation for the Estate Opera EOMS project. The related hosted demo was created within ChatGPT; this repository provides the React + Express/Node + PostgreSQL implementation. Exact parity with the hosted rendered artifact is not claimed until its journeys are traced. Synthetic data only; not a production release.
 
 ## Start locally
 
