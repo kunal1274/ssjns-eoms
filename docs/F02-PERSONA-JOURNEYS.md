@@ -5,7 +5,7 @@
 **Branch:** `planning/production-roadmap-data-security`  
 **Canonical phase tracker:** [PROGRESS.md](PROGRESS.md)  
 **Related evidence:** [TRACEABILITY-F02.md](TRACEABILITY-F02.md), [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md), [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md)  
-**Latest CI:** [GitHub Actions run #21](https://github.com/kunal1274/ssjns-eoms/actions/runs/38789475035) passed on the current documentation commit before this register was added; CI must be checked again after the final F02 documentation commit.
+**CI evidence:** [GitHub Actions run #31](https://github.com/kunal1274/ssjns-eoms/actions/runs/38793118636) passed on commit `7e022cc32ca4f3e21d7f0cf4fb622e2a4154f473` after this register and the draft requirement catalogue were added. CI confirms repository checks only; it does not approve these proposed personas or journeys.
 
 ## Purpose and interpretation
 
