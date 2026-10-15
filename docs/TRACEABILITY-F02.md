@@ -1,15 +1,15 @@
 # F02 — Requirements Traceability Matrix (initial baseline)
 
 **Status:** In progress  
-**Review date:** 15 October 2026  
+**Review date:** 16 October 2026  
 **Repository:** `kunal1274/ssjns-eoms`  
 **Working branch:** `planning/production-roadmap-data-security`  
 **Canonical tracker:** [PROGRESS.md](PROGRESS.md)  
-**F01 evidence:** [AUDIT-F01.md](AUDIT-F01.md), [fresh GitHub Actions run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797)
+**F01 evidence:** [AUDIT-F01.md](AUDIT-F01.md), [fresh source-code verification run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797). Latest documentation baseline [run #21](https://github.com/kunal1274/ssjns-eoms/actions/runs/38789475035) passed on commit `c631542780b018d33a1a30f0eddd4a20f4d2601e`; the new journey register and subsequent F02 doc edits require their own final CI check.
 
 ## Purpose and rules
 
-This document starts the trace from each owner-defined F01–F25 phase and the downstream EOMS workstreams to the current code, schema, tests, evidence, gaps and acceptance work.
+This document starts the trace from each owner-defined F01–F25 phase and the downstream EOMS workstreams to the current code, schema, tests, evidence, gaps and acceptance work. The draft [persona journey register](F02-PERSONA-JOURNEYS.md) proposes testable journeys and positive/negative boundaries for owner review; it does not represent owner approval.
 
 This is an **initial traceability baseline**, not a claim that all business requirements have been approved. Where a rule depends on client/commercial/operations sign-off, it is marked **Decision required** instead of guessed. A screen, screenshot, source comment or passing test proves only the behavior it actually covers.
 
@@ -38,6 +38,7 @@ This is an **initial traceability baseline**, not a claim that all business requ
 | SRC-11 | [`docs/SOURCE-MAP-F02.md`](SOURCE-MAP-F02.md) | Source, schema, API-test and browser-journey links with line anchors for the current implementation slice; analyst-assigned `CAP-*` keys are not owner-approved business requirement IDs. |
 | SRC-12 | `scripts/browser-check.mjs`, `scripts/maintenance-browser.mjs`, `scripts/workflow-browser.mjs`, `scripts/offline-browser.mjs`, `scripts/verify-browser.mjs` | End-to-end browser journey evidence for the repository build, linked with line anchors in `SOURCE-MAP-F02.md`; it does not prove hosted-demo parity or future access-control/license journeys. |
 | SRC-13 | [`docs/F02-OWNER-DECISIONS.md`](F02-OWNER-DECISIONS.md) | DEC-01's flexible tenant/legal/operating hierarchy and scope-security design is selected as the product baseline by project-owner direction; customer-specific legal/operating mapping remains open. DEC-02–DEC-09 remain proposals pending explicit disposition. |
+| SRC-14 | [`docs/F02-PERSONA-JOURNEYS.md`](F02-PERSONA-JOURNEYS.md) | Draft candidate personas and JRN-* journeys, each with proposed positive/negative boundaries, current evidence/gaps and phase/decision links. This is an owner-review artifact, not a signed requirements source. |
 
 The project owner has clarified that the hosted demo was created within ChatGPT and has not been run externally. Direct URL retrieval returned 401 in this review path, so exact rendered-page parity cannot be independently asserted from the URL alone. This is **not** treated as an external deployment prerequisite. If a particular demo-only screen or interaction is required but not represented by the source archive/screenshots, record it as an owner clarification item rather than inventing a requirement.
 
@@ -46,10 +47,10 @@ The project owner has clarified that the hosted demo was created within ChatGPT 
 | Requirement ID / phase | Requirement intent | Current implementation and evidence | Status | Acceptance / gap to close |
 |---|---|---|---|---|
 | F01 | Audit the source, schema, configuration, tests and documented boundaries. | Source inventory and security findings in [AUDIT-F01.md](AUDIT-F01.md); CI run #9 passed 5 unit/sync tests, 18 integration tests, build, browser/PWA checks and audit. | **Complete — audit only** | Findings remain follow-up work; this status does not certify production readiness. |
-| F02 | Map approved requirements and journeys to code, acceptance rules, tests and evidence. | This matrix plus [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md) now link current API routes, schema, test cases and line anchors for the implemented slice; the complete owner-approved baseline is still outstanding. | **In progress** | Map all approved requirement IDs and persona journeys; add missing UI/browser and security-regression evidence; resolve or formally defer ambiguities; obtain owner acceptance of the baseline. |
+| F02 | Map approved requirements and journeys to code, acceptance rules, tests and evidence. | This matrix, [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md) and the draft [F02-PERSONA-JOURNEYS.md](F02-PERSONA-JOURNEYS.md) link the current implementation slice and propose journeys with positive/negative boundaries; the complete owner-approved baseline remains outstanding. | **In progress** | Owner-review the candidate persona/journey inventory; map approved requirement IDs to exact code/test evidence; add missing UI/browser and security-regression evidence; resolve or formally defer ambiguities; obtain owner acceptance. |
 | F03 | Define architecture conventions and decisions. | PERN/TypeScript boundaries are visible in source and README. No complete accepted ADR/convention set was found. | Missing | Record module boundaries, API contracts, validation/errors, migrations, logging, tenancy, jobs, integrations and test conventions. |
 | F04 | Reproducible full Docker environment with health checks, migrations and persistence. | `compose.yaml` provides PostgreSQL only; API/web run as host processes per README. CI separately proves a PostgreSQL-backed test environment. | Partial | Containerize the agreed app stack, define health/readiness and migration sequencing, document secrets, persistence, reset and recovery. |
-| F05 | Required automated checks run on pull requests and failures block acceptance. | CI runs dependency install, migrations/seed/DB tests, unit/integration tests, build, browser/PWA checks and `npm audit`; completed run #11 passed, and CI for the latest traceability edits is pending verification. | Partial | Decide/enforce formatting/lint rules if required, verify branch protection/status requirements, handle deprecation warnings and document required check policy. |
+| F05 | Required automated checks run on pull requests and failures block acceptance. | CI runs dependency install, migrations/seed/DB tests, unit/integration tests, build, browser/PWA checks and `npm audit`; [run #21](https://github.com/kunal1274/ssjns-eoms/actions/runs/38789475035) passed on the prior documentation baseline. The new journey register and subsequent F02 edits still need final CI verification. | Partial | Verify CI on the final F02 documentation commit; decide/enforce formatting/lint rules if required, verify branch protection/status requirements, handle deprecation warnings and document required check policy. |
 | F06 | Customer/group/company/estate/division/block hierarchy and inheritance. | Current schema has companies, estates and estate memberships. No complete customer/group/division/block hierarchy is present. | Partial | Agree hierarchy, ownership, cross-company boundaries and inheritance before designing migrations and policies. |
 | F07 | Secure authentication and sessions, including required production identity controls. | Local password login, opaque hashed session tokens, HttpOnly/SameSite cookie, 8-hour expiry, Origin/CSRF checks and login rate limiting exist; CI covers login, invalid credentials, CSRF and logout invalidation. | Partial | Decide SSO/MFA/identity provider, recovery, session administration, expiry/revocation and production cookie/HTTPS policy. Review broad runtime access to user/session tables. |
 | F08 | User invitation, activation, suspension, deactivation/reactivation and revocation. | A user active flag and session check exist; a complete administrative lifecycle is not present. | Missing | Define authorized actors, invitations/recovery, revocation timing, audit and negative tests. |
@@ -122,9 +123,11 @@ F02 can close only when:
 - [x] A source-to-test map with specific file/line anchors is linked for the current implementation slice.
 - [x] Existing browser journeys have specific script/line anchors and their evidence boundaries are recorded.
 - [x] Ambiguous business/commercial decisions are explicitly recorded rather than guessed.
-- [ ] Each row is refined to exact source requirement IDs and specific code/test locations.
-- [ ] Every in-scope journey has positive and negative acceptance criteria and evidence links.
-- [ ] Owner/client decisions are resolved or explicitly accepted as deferred blockers.
+- [x] A candidate persona/journey register with proposed positive and negative boundaries is recorded for owner review.
+- [ ] Each requirement is mapped to exact owner-approved IDs and specific code/test locations.
+- [ ] Every owner-confirmed in-scope journey has positive and negative acceptance criteria and adequate evidence links.
+- [ ] DEC-02–DEC-09 are resolved or explicitly deferred by the accountable owner, with date and rationale.
+- [ ] Any required hosted-demo-only journey is identified and traced, or the owner confirms none remain.
 - [ ] The traceability baseline is reviewed and accepted before F03 architecture conventions begin.
 
-**Current disposition: F02 In progress.** This is the first pass; it is not yet a fully approved requirement baseline.
+**Current disposition: F02 In progress.** The candidate journey inventory is a review draft, not a fully approved requirement baseline.
