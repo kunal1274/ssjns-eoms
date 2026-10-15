@@ -17,7 +17,7 @@ This roadmap follows the project owner's exact F01–F25 tracker. Those 25 phase
 6. Do not enable production startup or live ERP/payroll posting until security, business-rule, operational and client-acceptance gates pass.
 7. Do not guess payroll multipliers, UOM precision, approval rules, data retention, license model or integration behavior. Use approved requirements and signed-off examples.
 
-## Initial repository baseline (remote source review, 15 October 2026)
+## Initial repository baseline (source review and fresh CI evidence, 15 October 2026)
 
 - The codebase uses React + TypeScript + Vite, Express/Node + TypeScript and PostgreSQL.
 - It contains migrations, a limited muster workflow, worker/task/period maintenance, gang assignments, manager review/reversal, audit/outbox records, PWA/device-draft synchronization and automated test scripts.
@@ -26,9 +26,8 @@ This roadmap follows the project owner's exact F01–F25 tracker. Those 25 phase
 - PostgreSQL forced RLS, estate membership checks, a restricted runtime role and estate-aware foreign keys exist for the current slice. This is a foundation—not complete customer/group/estate/division/block/record/field security.
 - The API deliberately blocks production startup pending identity, HTTPS, tenancy and operations review.
 - Existing docs describe a limited development checkpoint, not the complete EOMS scope or a production release.
-- The hosted demo is reported to be v8, but its source was not available through the current repository review path. We must obtain the source/export and compare it with this codebase before claiming v8 parity.
-
-The latest recorded main-branch CI run inspected was successful on 12 October 2026: [GitHub Actions run #2](https://github.com/kunal1274/ssjns-eoms/actions/runs/38268463329). This is historical CI evidence, not a fresh test run of the planning branch. See [F01 audit](AUDIT-F01.md) for the source-level findings and limits.
+- The project owner confirms the hosted demo was created within ChatGPT and has not been run externally. Direct URL retrieval returned 401 through the available inspection path; this does not establish an external deployment. The uploaded ZIP and included browser evidence are the source basis for F01. Exact hosted-render-to-repository parity is not claimed; any demo-only journey must be captured as an explicit F02 clarification rather than assumed.
+- Fresh GitHub Actions run #3 passed on the working branch on 15 October 2026: [run #3](https://github.com/kunal1274/ssjns-eoms/actions/runs/38783373801). It installed dependencies, applied PostgreSQL migrations, seeded synthetic data, ran DB/domain/API/workflow tests, built the app, passed browser/PWA workflows and reported zero npm audit vulnerabilities. See [F01 audit](AUDIT-F01.md) for findings and scope limits.
 
 ## Canonical phases F01–F25
 
@@ -128,6 +127,6 @@ A feature is not complete merely because a screen renders. Its evidence must inc
 
 ## Current next action
 
-Work on **F01 only**. Initial remote repository findings are recorded in [docs/AUDIT-F01.md](AUDIT-F01.md); the current status is **In progress**. To close F01, obtain the actual hosted v8 source/export and execute the clean local Docker/database/test/build/security checks. Do not start F02 or claim source parity until this acceptance gate is met.
+**F01 is Complete as a source-audit phase** with fresh CI evidence; this does not close its recorded security findings or establish production readiness. **F02 — Requirements Traceability is In progress** in [docs/TRACEABILITY-F02.md](TRACEABILITY-F02.md). Complete the requirement-to-code/test/evidence links and explicitly record owner/client decisions before starting F03. Do not claim exact hosted-demo/repository parity where the rendered artifact has not been independently inspected.
 
 No phase is marked complete by this plan alone.
