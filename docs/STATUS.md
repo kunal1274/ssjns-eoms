@@ -4,7 +4,7 @@ Scope for this closeout: finish and verify milestones already built, as clarifie
 
 Delivered: PERN persistence/authentication/estate isolation; muster creation/confirmation/audit/outbox; manager worker/task/period maintenance; searchable reference catalogs; gang supervisor assignments; manager review/terminal operational reversal; initial PWA/static shell and durable device-draft queue; explicit sync/conflict retry; reproducible CI verification.
 
-Approved direction remains web/PWA first, React Native later, millions of operational records, and shared PostgreSQL subject to client approval. Existing published mock UI remains separate.
+Approved direction remains web/PWA first, React Native later, millions of operational records, and shared PostgreSQL subject to client approval. The project owner confirms the hosted demo was created within ChatGPT and has not been run externally. Exact rendered-demo-to-repository parity has not been independently verified; this is a traceability question, not an assumption that a separate external deployment exists.
 
 See MILESTONE-CLOSEOUT.md for acceptance evidence and scope limits. Immediate next action is client review of the implemented checkpoint, including provisional approval rules.
 
