@@ -20,8 +20,8 @@ Existing code is evidence for an audit, but does not automatically mean a phase 
 
 | ID | Workstream | Phase | Status | Current note |
 |---|---|---|---|---|
-| F01 | Foundation | Source code audit | **In progress** | Uploaded repository ZIP reviewed; source-level security findings recorded. Fresh install/test/build and browser evidence remain outstanding. The demo URL returned 401 to the available retrieval method; the owner confirms it was created within ChatGPT, so no external export is presumed necessary. Rendered UI-to-source parity remains unverified. See [F01 audit](AUDIT-F01.md). |
-| F02 | Foundation | Requirements traceability | Not started | Map approved EOMS documents and demo journeys to code, tests and acceptance evidence. |
+| F01 | Foundation | Source code audit | **Complete** | Source/configuration/security review recorded and fresh CI run #3 passed dependency install, migrations, DB tests, 5 domain/sync tests, 18 integration tests, build, browser/PWA workflows and npm audit (0 vulnerabilities). Findings remain open for their assigned phases; production is still gated. See [F01 audit](AUDIT-F01.md). |
+| F02 | Foundation | Requirements traceability | **In progress** | Building the first traceability matrix from the canonical F01–F25 plan, roadmap, status/closeout docs, source routes/schema/tests and available browser evidence. Client-dependent rules and hosted-demo parity will be marked as questions, not guessed. See [F02 traceability](TRACEABILITY-F02.md). |
 | F03 | Foundation | Architecture conventions | Not started | Existing PERN/TypeScript structure identified; conventions and decisions not yet formally accepted. |
 | F04 | Foundation | Docker environment | Not started | Compose currently provisions PostgreSQL only; API/web are documented as host-run development processes. |
 | F05 | Foundation | Automated quality checks | Not started | CI and test scripts exist; current checks need a fresh run and formal acceptance gate. |
@@ -52,10 +52,10 @@ F01 can be marked **Complete** only after all of these are evidenced:
 
 - [x] Uploaded repository ZIP, application source, migrations, tests and project documentation inspected.
 - [x] Existing implementation, documented boundaries and source-level security findings recorded in `AUDIT-F01.md`.
-- [x] CI workflow and available historical CI evidence noted.
-- [ ] Clean dependency installation and TypeScript/build commands executed, with results recorded.
-- [ ] PostgreSQL migrations and RLS/security tests executed as the restricted runtime role.
-- [ ] Browser regression suite executed and evidence recorded.
-- [ ] If UI-to-source parity is required, inspect the actual ChatGPT project artifact/rendered UI; direct URL retrieval returned 401, and no external export is presumed necessary.
+- [x] CI workflow reviewed and a fresh run completed on the working branch.
+- [x] Clean dependency installation and TypeScript/build commands passed in CI.
+- [x] PostgreSQL migrations, seed and integration/security tests passed against the restricted runtime role in CI.
+- [x] Browser regression/PWA workflows and dependency audit passed in CI.
+- [x] Audit findings and follow-up phases documented; F01 is closed as an audit, not as a claim of production readiness.
 
-No production readiness or hosted-demo parity is implied by this tracker.
+F01 closure does not imply that recorded security findings are fixed or that production readiness or exact hosted-demo/repository UI parity has been established.
