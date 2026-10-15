@@ -2,7 +2,7 @@
 
 **Status:** Working evidence map; not a complete approved requirements baseline.  
 **Branch:** `planning/production-roadmap-data-security`  
-**Latest branch CI evidence:** [GitHub Actions run #11](https://github.com/kunal1274/ssjns-eoms/actions/runs/38785370600) passed on the latest documentation-only commit. The prior [run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797) is the fresh source-code verification baseline.
+**Most recent completed CI evidence:** [GitHub Actions run #11](https://github.com/kunal1274/ssjns-eoms/actions/runs/38785370600) passed on a documentation-only commit. The prior [run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797) is the fresh source-code verification baseline. CI for the latest traceability-document edits is being checked separately.
 
 This map names current source locations and test cases so later work can distinguish implemented behavior from missing requirements. A passing test proves only the scenario it asserts. The `CAP-*` trace keys below are analyst-assigned inventory identifiers, not owner-approved business requirement IDs; the canonical owner-defined phase IDs remain F01–F25.
 
@@ -47,6 +47,20 @@ The links below include GitHub line anchors to make review and follow-up test wo
 | Work offline and sync | Current-account filtering and acknowledgement-only removal; immutable retry payload after lost response. | Business conflicts block drafts; session/server failures preserve pending drafts. | Encrypted local storage, cold-start offline flow, explicit user conflict resolution and complete offline authorization matrix. |
 | Manage access and licensing | No configurable permission editor, custom-role lifecycle, role simulation or license enforcement found. | No complete positive/negative tests can be claimed for missing capability. | Owner-approved permission catalogue, role templates/custom roles, scope inheritance, named/concurrent seat choice, entitlement/grace/expiry/suspension policy. |
 | Operate and recover in production | CI builds and tests; server blocks production startup while documented prerequisites are unmet. | Restricted-role/RLS and browser checks pass in CI. | Full Docker stack, readiness and dependency health, secrets, backup/restore rehearsal, RPO/RTO, load/SLO, monitoring, security review and UAT. |
+
+## Browser journey implementation anchors
+
+These browser scripts provide end-to-end evidence for the repository build and should be read alongside the API tests above.
+
+| Browser journey | Script and specific coverage | What the current script proves |
+|---|---|---|
+| Authenticated capture, confirmation, persisted reload, audit, cross-estate denial and logout | [scripts/browser-check.mjs](../scripts/browser-check.mjs#L27-L102) | A seeded supervisor can create/confirm work, read it after refresh, view audit, receive a 403 for another estate, and sign out. |
+| Worker/task/period maintenance and responsive views | [scripts/maintenance-browser.mjs](../scripts/maintenance-browser.mjs#L22-L114) | Worker create/deactivate/search, task creation/capacity edit/search, period open/lock/reopen and capture selectors are exercised; desktop/mobile screenshots are saved. |
+| Gang assignment, capture, approval and reasoned reversal | [scripts/workflow-browser.mjs](../scripts/workflow-browser.mjs#L22-L140) | The current manager workflow is exercised through approval/reversal and persisted read-only evidence; the script asserts there are no page errors. |
+| Offline draft queue and recovery paths | [scripts/offline-browser.mjs](../scripts/offline-browser.mjs#L33-L208) | Static-only cache, offline draft capture/reload, lost-response retry, session expiry, account isolation, locked-period conflict and logout discard protection are exercised. |
+| Browser suite orchestration and installability | [scripts/verify-browser.mjs](../scripts/verify-browser.mjs#L67-L98); [CI workflow](../.github/workflows/verify.yml#L40-L41); [package scripts](../package.json#L19-L27) | The combined runner starts isolated services and invokes the maintenance, offline and installability checks; CI runs the browser verification workflow. |
+
+**Boundary:** these scripts validate the repository build with synthetic fixtures. They do not prove exact parity with the separately rendered ChatGPT-hosted demo, production readiness, load capacity or unimplemented persona/permission/license journeys.
 
 ## Schema and data-level security map
 
