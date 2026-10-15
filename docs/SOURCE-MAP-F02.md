@@ -2,9 +2,9 @@
 
 **Status:** Working evidence map; not a complete approved requirements baseline.  
 **Branch:** `planning/production-roadmap-data-security`  
-**Current CI evidence:** [GitHub Actions run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797)
+**Latest branch CI evidence:** [GitHub Actions run #11](https://github.com/kunal1274/ssjns-eoms/actions/runs/38785370600) passed on the latest documentation-only commit. The prior [run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797) is the fresh source-code verification baseline.
 
-This map names current source locations and test cases so later work can distinguish implemented behavior from missing requirements. A passing test proves only the scenario it asserts.
+This map names current source locations and test cases so later work can distinguish implemented behavior from missing requirements. A passing test proves only the scenario it asserts. The `CAP-*` trace keys below are analyst-assigned inventory identifiers, not owner-approved business requirement IDs; the canonical owner-defined phase IDs remain F01–F25.
 
 ## Route and capability mapping
 
@@ -20,6 +20,34 @@ This map names current source locations and test cases so later work can disting
 | Offline draft sync | `packages/domain/` sync logic and PWA code; README and `docs/MILESTONE-CLOSEOUT.md` | `tests/sync.test.ts`: current-account isolation, lost-response retry, conflict/session/server failure handling; browser checks in CI run #9 | Needs an already loaded signed-in tab for offline capture; no app-level encryption or cold-start offline identity. |
 | Migrations and runtime security | `db/migrations/001_foundation.sql` through `004_gangs_review.sql`; `apps/api/src/server.ts` | `scripts/test-db.ts`, `tests/api.test.ts`, CI run #9 | Current role check rejects superuser and RLS bypass but does not verify every role attribute; pooled-context regression tests should be expanded. |
 
+## Anchored implementation-to-test trace
+
+The links below include GitHub line anchors to make review and follow-up test work specific. These links trace the **current implementation slice**; they do not imply that future EOMS requirements have been accepted or implemented.
+
+| Trace key | Behavior traced | Implementation / schema | Existing test evidence | Acceptance status and remaining gap |
+|---|---|---|---|---|
+| CAP-AUTH-01 | Login, session resolution, logout, origin and CSRF guards | [API auth/session routes](../apps/api/src/app.ts#L64-L153); [password/token helpers](../apps/api/src/security.ts#L9-L23); [users and sessions schema](../db/migrations/001_foundation.sql#L6-L8) | [Unauthenticated, session/logout, invalid password, origin and CSRF cases](../tests/api.test.ts#L76-L126) | **Partial.** Existing checks cover the named cases. Invitation, account recovery, MFA/SSO, administrative session revocation and complete user lifecycle are not implemented. |
+| CAP-SCOPE-01 | Estate membership boundary and cross-estate route denial | [Transaction and estate-scope helpers](../apps/api/src/app.ts#L155-L190); [estate and operational routes](../apps/api/src/app.ts#L217-L260); [RLS and grants](../db/migrations/001_foundation.sql#L26-L39) | [Cross-estate/RLS denial](../tests/api.test.ts#L127-L148); [cross-estate worker reference denial](../tests/api.test.ts#L163-L173) | **Partial.** Estate isolation is tested. Customer/group/division/block inheritance, field-level controls, export/search/attachment scope, background-job scope and pooled-connection actor switching need separate requirements and tests. |
+| CAP-MUSTER-01 | Persist muster and worker shares with idempotency/conflict handling | [Muster create/read routes](../apps/api/src/app.ts#L263-L397); [muster, shares, outbox and idempotency schema](../db/migrations/001_foundation.sql#L16-L24) | [Persistence/idempotency/conflict and reference validation](../tests/api.test.ts#L149-L177); [allocation invariants](../tests/allocation.test.ts#L4-L15) | **Partial.** Current capture path is tested. Full attendance/checkroll, wage rules, overtime, incentives, deductions, rounding policy and payroll reconciliation need owner-approved rules. |
+| CAP-WORKFLOW-01 | Confirm, approve and reverse muster with version/period/assignment guards | [Confirmation route](../apps/api/src/app.ts#L398-L487); [review/reversal routes](../apps/api/src/workflow.ts#L225-L286); [review fields and constraints](../db/migrations/004_gangs_review.sql#L10-L18) | [Concurrency, stale version and locked-period checks](../tests/api.test.ts#L178-L230); [approval/reversal and locked-period journeys](../tests/workflow.test.ts#L123-L258) | **Partial.** The current muster workflow has evidence. Same-person confirmation/review policy remains provisional; reversal does not implement payroll/SAP compensating entries or a generic workflow engine. |
+| CAP-MASTER-01 | Worker/task/period maintenance and bounded catalogue reads | [Maintenance routes](../apps/api/src/maintenance.ts#L90-L335); [current worker/task/period schema](../db/migrations/001_foundation.sql#L13-L15); [narrower update grants](../db/migrations/002_transaction_locks.sql#L3-L4) and [maintenance grants](../db/migrations/003_maintenance.sql#L5-L6) | [Pagination](../tests/api.test.ts#L241-L261); [worker maintenance](../tests/api.test.ts#L262-L320); [task maintenance](../tests/api.test.ts#L321-L374); [period lifecycle and catalogue filters](../tests/api.test.ts#L375-L463) | **Partial.** Existing maintenance paths are tested. Effective-dated workforce, borrowing, block entity/security, calendars, UOM/rates and import lifecycle are not established. |
+| CAP-GANG-01 | Gang registration, supervisor assignment and capture eligibility | [Gang and assignment routes](../apps/api/src/workflow.ts#L83-L190); [gang schema/RLS/grants](../db/migrations/004_gangs_review.sql#L1-L9) | [Gang assignment and unassigned supervisor denial](../tests/workflow.test.ts#L70-L122); [assignment removal guard](../tests/workflow.test.ts#L210-L258) | **Partial.** Current assignment gates capture. Assignments are not yet a complete, effective-dated general data-read scope. |
+| CAP-AUDIT-01 | Record operational decisions and prevent runtime audit mutation | [Audit writer and route](../apps/api/src/app.ts#L191-L203); [audit read route](../apps/api/src/app.ts#L488-L503); [audit/outbox schema and runtime grants](../db/migrations/001_foundation.sql#L20-L24) and [grants](../db/migrations/001_foundation.sql#L32-L36) | [Runtime audit immutability and restricted-role check](../tests/api.test.ts#L231-L240); workflow audit assertions in [review/reversal tests](../tests/workflow.test.ts#L123-L209) | **Partial.** Runtime mutation is restricted in tested cases. Audit readership, retention, sensitive-field policy and permission-specific access remain unresolved. |
+| CAP-SYNC-01 | Keep drafts isolated by account; retry safely and block conflicts | [Sync implementation](../packages/domain/sync.ts#L1-L42); [sync tests](../tests/sync.test.ts#L37-L84); [milestone boundaries](MILESTONE-CLOSEOUT.md) | Current-account filtering, lost-response retry, conflict and session/server failure cases are named in the linked tests. | **Partial.** Sync behavior has unit evidence. Browser storage encryption, cold-start offline identity, conflict-resolution UX and complete server-side scope coverage are not proven by these unit tests alone. |
+| CAP-DEPLOY-01 | Restricted runtime role and production startup gate | [Production guard and runtime role check](../apps/api/src/server.ts#L4-L18); [role, RLS and grants](../db/migrations/001_foundation.sql#L2-L39); [later grant migrations](../db/migrations/002_transaction_locks.sql#L1-L5), [003](../db/migrations/003_maintenance.sql#L1-L12), [004](../db/migrations/004_gangs_review.sql#L1-L25) | [Restricted runtime-role and audit protection test](../tests/api.test.ts#L231-L240); latest CI [run #11](https://github.com/kunal1274/ssjns-eoms/actions/runs/38785370600) | **Partial.** Production startup is gated and CI passes. Full role-attribute drift detection, pooled-context isolation tests, redacted logging, full app Docker, backup/restore, load and operations evidence remain open. |
+
+## Journey acceptance coverage and gaps
+
+| Journey | Positive acceptance currently evidenced | Negative/boundary acceptance currently evidenced | Not yet covered / decision needed |
+|---|---|---|---|
+| Sign in and maintain session | Valid user obtains session; logout invalidates it. | Unauthenticated request, wrong password, cross-origin write, missing CSRF rejected. | Invite/recover/deactivate, MFA/SSO, admin revocation, session/device management and production identity policy. |
+| Capture work | Valid muster persists and can be read back; repeated request is idempotent. | Changed idempotency payload conflicts; cross-estate worker reference and clerk create are denied. | Full persona × scope × license matrix; field-level restrictions; all failure/retry modes; approved payroll calculations. |
+| Confirm/review/reverse work | Confirmation, manager review/reversal and audit/outbox effects are covered in integration tests. | Concurrent confirmation cap, stale versions, locked periods, role denial, missing assignment and repeated/invalid transitions are covered in the current suite. | Approved separation of duties, delegation, correction lineage and external financial compensation. |
+| Maintain masters | Worker/task/period operations and pagination/search filters have tests. | Stale updates, supervisor write attempts, duplicate identity, capacity violations and locked-period rules are tested. | Lifecycle/effective dates, bulk import, parent hierarchy and data-field classification. |
+| Work offline and sync | Current-account filtering and acknowledgement-only removal; immutable retry payload after lost response. | Business conflicts block drafts; session/server failures preserve pending drafts. | Encrypted local storage, cold-start offline flow, explicit user conflict resolution and complete offline authorization matrix. |
+| Manage access and licensing | No configurable permission editor, custom-role lifecycle, role simulation or license enforcement found. | No complete positive/negative tests can be claimed for missing capability. | Owner-approved permission catalogue, role templates/custom roles, scope inheritance, named/concurrent seat choice, entitlement/grace/expiry/suspension policy. |
+| Operate and recover in production | CI builds and tests; server blocks production startup while documented prerequisites are unmet. | Restricted-role/RLS and browser checks pass in CI. | Full Docker stack, readiness and dependency health, secrets, backup/restore rehearsal, RPO/RTO, load/SLO, monitoring, security review and UAT. |
+
 ## Schema and data-level security map
 
 | Objects | Present purpose | Follow-up |
@@ -33,14 +61,14 @@ This map names current source locations and test cases so later work can disting
 
 ## Verification baseline
 
-Run #9 passed the existing workflow: clean `npm ci`, migrations and seed, isolated database tests, 5 domain/sync tests, 18 API/workflow integration tests, build, browser/PWA verification and `npm audit --audit-level=high` (0 vulnerabilities). The tests use synthetic data and a restricted runtime role for application behavior.
+Run #9 passed the existing source-code workflow: clean `npm ci`, migrations and seed, isolated database tests, 5 domain/sync tests, 18 API/workflow integration tests, build, browser/PWA verification and `npm audit --audit-level=high` (0 vulnerabilities). The tests use synthetic data and a restricted runtime role for application behavior. Latest branch run #11 also passed after the traceability documentation update; it does not add new application-code coverage.
 
 This does not cover all F02 requirements, prove production capacity, certify the security design, or establish exact parity with the ChatGPT-hosted rendered artifact.
 
 ## Next traceability actions
 
-1. Give every approved requirement a stable ID and link it to its source document/owner decision.
-2. Link each requirement to the exact API, schema, UI and test location where implemented.
-3. Add positive, negative, boundary, concurrency and recovery acceptance cases for uncovered requirements.
-4. Mark requirements as implemented, partial, missing or blocked based on evidence.
+1. Replace analyst-assigned `CAP-*` inventory keys with, or map them to, owner-approved requirement IDs once the owner baseline is supplied/accepted.
+2. Add exact UI/browser-test line anchors and trace each approved persona journey through API, schema, UI and test evidence.
+3. Add automated positive, negative, boundary, concurrency, pooled-connection and recovery cases for the uncovered requirements.
+4. Resolve or explicitly defer the open hierarchy, identity, permissions, separation-of-duties, licensing, payroll, integration and operations decisions.
 5. Obtain owner review before F02 is accepted and F03 begins.
