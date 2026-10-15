@@ -5,7 +5,7 @@
 **Repository:** `kunal1274/ssjns-eoms`  
 **Working branch:** `planning/production-roadmap-data-security`  
 **Canonical tracker:** [PROGRESS.md](PROGRESS.md)  
-**F01 evidence:** [AUDIT-F01.md](AUDIT-F01.md), [GitHub Actions run #3](https://github.com/kunal1274/ssjns-eoms/actions/runs/38783373801)
+**F01 evidence:** [AUDIT-F01.md](AUDIT-F01.md), [fresh GitHub Actions run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797)
 
 ## Purpose and rules
 
@@ -33,7 +33,7 @@ This is an **initial traceability baseline**, not a claim that all business requ
 | SRC-06 | `apps/api/src/app.ts`, `maintenance.ts`, `workflow.ts`, `security.ts`, `server.ts` | Current routes, validation, authentication, role checks, transactions and workflow behavior. |
 | SRC-07 | `db/migrations/001_foundation.sql`–`004_gangs_review.sql` | Current schema, grants, row-level security, constraints and state fields. |
 | SRC-08 | `tests/allocation.test.ts`, `sync.test.ts`, `api.test.ts`, `workflow.test.ts` | Current unit, synchronization, API, database and workflow test coverage. |
-| SRC-09 | `.github/workflows/verify.yml` and [run #3](https://github.com/kunal1274/ssjns-eoms/actions/runs/38783373801) | Fresh evidence for migrations, restricted runtime DB tests, unit/integration tests, build, browser/PWA checks and dependency audit. |
+| SRC-09 | `.github/workflows/verify.yml` and [run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797) | Fresh evidence for migrations, restricted runtime DB tests, unit/integration tests, build, browser/PWA checks and dependency audit. |
 | SRC-10 | Browser evidence under `docs/*desktop.png`, `docs/*mobile.png` and `docs/pwa-installability.json` | Evidence for the repository build's tested screens and browser behavior, not proof of unobserved behavior in another rendered artifact. |
 
 The project owner has clarified that the hosted demo was created within ChatGPT and has not been run externally. Direct URL retrieval returned 401 in this review path, so exact rendered-page parity cannot be independently asserted from the URL alone. This is **not** treated as an external deployment prerequisite. If a particular demo-only screen or interaction is required but not represented by the source archive/screenshots, record it as an owner clarification item rather than inventing a requirement.
@@ -42,7 +42,7 @@ The project owner has clarified that the hosted demo was created within ChatGPT 
 
 | Requirement ID / phase | Requirement intent | Current implementation and evidence | Status | Acceptance / gap to close |
 |---|---|---|---|---|
-| F01 | Audit the source, schema, configuration, tests and documented boundaries. | Source inventory and security findings in [AUDIT-F01.md](AUDIT-F01.md); CI run #3 passed 5 unit/sync tests, 18 integration tests, build, browser/PWA checks and audit. | **Complete — audit only** | Findings remain follow-up work; this status does not certify production readiness. |
+| F01 | Audit the source, schema, configuration, tests and documented boundaries. | Source inventory and security findings in [AUDIT-F01.md](AUDIT-F01.md); CI run #9 passed 5 unit/sync tests, 18 integration tests, build, browser/PWA checks and audit. | **Complete — audit only** | Findings remain follow-up work; this status does not certify production readiness. |
 | F02 | Map approved requirements and journeys to code, acceptance rules, tests and evidence. | This document provides the first pass; the matrix is not yet reviewed against every requirement and journey. | **In progress** | Complete route/data/test cross-references, capture all missing requirements, resolve ambiguities and obtain owner acceptance of the baseline. |
 | F03 | Define architecture conventions and decisions. | PERN/TypeScript boundaries are visible in source and README. No complete accepted ADR/convention set was found. | Missing | Record module boundaries, API contracts, validation/errors, migrations, logging, tenancy, jobs, integrations and test conventions. |
 | F04 | Reproducible full Docker environment with health checks, migrations and persistence. | `compose.yaml` provides PostgreSQL only; API/web run as host processes per README. CI separately proves a PostgreSQL-backed test environment. | Partial | Containerize the agreed app stack, define health/readiness and migration sequencing, document secrets, persistence, reset and recovery. |
