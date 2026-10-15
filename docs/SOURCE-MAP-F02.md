@@ -2,9 +2,9 @@
 
 **Status:** Working evidence map; not a complete approved requirements baseline.  
 **Branch:** `planning/production-roadmap-data-security`  
-**Most recent completed CI evidence:** [GitHub Actions run #21](https://github.com/kunal1274/ssjns-eoms/actions/runs/38789475035) passed on commit `c631542780b018d33a1a30f0eddd4a20f4d2601e`, including dependency install, migrations/DB tests, unit/integration tests, build, browser verification and dependency audit. That run predates the new [persona journey register](F02-PERSONA-JOURNEYS.md); CI for the final F02 documentation commit must be checked separately. The earlier [run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797) remains the fresh source-code verification baseline.
+**Most recent completed CI evidence:** [GitHub Actions run #26](https://github.com/kunal1274/ssjns-eoms/actions/runs/38792293821) passed on the journey-register documentation commit, including dependency install, migrations/DB tests, unit/integration tests, build, browser verification and dependency audit. It predates the draft [requirement catalogue](F02-REQUIREMENT-CATALOGUE.md) and subsequent traceability edits; CI for the final F02 documentation commit must be checked separately. The earlier [run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797) remains the fresh source-code verification baseline.
 
-This map names current source locations and test cases so later work can distinguish implemented behavior from missing requirements. The proposed persona and journey inventory is in [F02-PERSONA-JOURNEYS.md](F02-PERSONA-JOURNEYS.md); its JRN-* keys are draft trace keys pending owner review. A passing test proves only the scenario it asserts. The `CAP-*` trace keys below are analyst-assigned inventory identifiers, not owner-approved business requirement IDs; the canonical owner-defined phase IDs remain F01–F25.
+This map names current source locations and test cases so later work can distinguish implemented behavior from missing requirements. The proposed requirement IDs and acceptance statements are in [F02-REQUIREMENT-CATALOGUE.md](F02-REQUIREMENT-CATALOGUE.md), and the proposed persona/journey inventory is in [F02-PERSONA-JOURNEYS.md](F02-PERSONA-JOURNEYS.md). REQ-* and JRN-* keys are draft trace keys pending owner review. A passing test proves only the scenario it asserts. The `CAP-*` trace keys below are analyst-assigned inventory identifiers, not owner-approved business requirement IDs; the canonical owner-defined phase IDs remain F01–F25.
 
 ## Route and capability mapping
 
@@ -81,8 +81,8 @@ This does not cover all F02 requirements, prove production capacity, certify the
 
 ## Next traceability actions
 
-1. Review and accept/change the proposed persona and journey inventory in [F02-PERSONA-JOURNEYS.md](F02-PERSONA-JOURNEYS.md); add any missing in-scope journeys, including any specifically identified hosted-demo-only journey.
-2. Replace analyst-assigned `CAP-*` and draft `JRN-*` keys with, or map them to, owner-approved requirement IDs once the owner baseline is supplied/accepted.
+1. Review and accept/change the proposed requirement catalogue in [F02-REQUIREMENT-CATALOGUE.md](F02-REQUIREMENT-CATALOGUE.md) and journey inventory in [F02-PERSONA-JOURNEYS.md](F02-PERSONA-JOURNEYS.md); add any missing in-scope or specifically identified hosted-demo-only journey.
+2. Map draft `REQ-*`, `JRN-*` and analyst-assigned `CAP-*` keys to the owner-approved requirement baseline; retain draft IDs only where the owner accepts them.
 3. Add exact UI/browser-test line anchors for every approved journey through API, schema, UI and test evidence; the current anchors cover only implemented repository journeys.
 4. Add automated positive, negative, boundary, concurrency, pooled-connection and recovery cases for the uncovered requirements.
 5. Resolve or explicitly defer DEC-02–DEC-09 with owner/date and rationale; obtain owner review before F02 is accepted and F03 begins.
