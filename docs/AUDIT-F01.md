@@ -1,78 +1,76 @@
-# F01 — Source Code Audit (initial findings)
+# F01 — Foundation Source Code Audit
 
 **Review date:** 15 October 2026  
-**Repository reviewed:** `kunal1274/ssjns-eoms`  
-**Branch inspected:** `main`  
-**Inspected main HEAD:** `87b3f6d0a0206a704a9719c3171b4ab49bb38520`  
-**Audit type:** remote source/configuration review. This is not a local test run, penetration test, or production certification.
+**Repository:** `kunal1274/ssjns-eoms`  
+**Working branch:** `planning/production-roadmap-data-security`  
+**Review basis:** uploaded repository ZIP plus static review of application, database migrations, tests, Docker configuration and project documentation.  
+**Audit type:** source/configuration review. This is not a completed clean build, full test run, penetration test, or production certification.
 
 ## Executive summary
 
-The repository is a real, connected PERN development codebase, not just a static UI. It has a persistent PostgreSQL foundation, basic session authentication, estate membership checks, row-level security (RLS), a muster workflow, worker/task/period maintenance, gang assignments, manager review/reversal, an outbox and an initial PWA/device-draft sync path.
+The uploaded source is a real PERN development codebase: React + TypeScript + Vite web/PWA, Express + TypeScript API, PostgreSQL schema/migrations, domain helpers, operational workflows, and automated test scripts. It includes a limited muster workflow with master-data maintenance, gang assignment, manager review/reversal, audit/outbox records, idempotency/version checks, and a device-draft sync path.
 
-It is nevertheless a **limited development checkpoint**, not the complete EOMS and not a production release. The README and status documents explicitly describe missing production identity, detailed data scope, licensing, configurable roles/workflows, full checkroll/payroll, live ERP/HR adapters, operations/recovery and load validation.
+**F01 remains In progress.** The foundation is useful, but the source does not establish production readiness. Major scope still outstanding includes a customer/group/estate/division/block hierarchy, configurable permissions, complete user lifecycle, licensing/seat enforcement, reusable workflow configuration, broader operational modules, live integrations, production operations/recovery, and load evidence.
 
-The reported hosted demo (v8) is a separate source surface. The current connected GitHub tooling allowed review of the repository but did not provide the hosted site's source export. A direct page retrieval attempt returned **401 Unauthorized**. Source parity with the hosted demo remains unverified.
+The project owner clarified that the demo was created within ChatGPT and has not been run externally. The provided URL returned 401 to the retrieval method available in this review, so I could not independently inspect its rendered UI or verify screen-to-source parity. This does not establish that the project is external or separate. The uploaded ZIP is the source basis for this F01 code audit; no additional external export is being requested at this stage.
 
-## Repository structure observed
+## Source inventory
 
 - `apps/web`: React + TypeScript + Vite web/PWA frontend.
 - `apps/api`: Express + TypeScript API.
-- `packages/domain`: domain logic including worker-area allocation.
-- `db/migrations`: four migrations (foundation, transaction locks, maintenance, gang/review).
-- `scripts`: migrations, synthetic seed setup, database setup and browser verification.
-- `tests`: domain/sync, API and workflow tests.
-- `compose.yaml`: PostgreSQL service with persistent volume and health check.
-- `.github/workflows/verify.yml`: automated CI workflow.
+- `packages/domain`: allocation and offline synchronization logic.
+- `db/migrations`: four SQL migrations (foundation, transaction locks, maintenance, gangs/review).
+- `scripts`: migration/seed setup, database tests and browser verification.
+- `tests`: domain, sync, API and workflow tests.
+- `compose.yaml`: PostgreSQL service, persistent volume and health check; it does not containerize the API and web app.
+- `.github/workflows/verify.yml`: CI workflow for migrations, tests, build, browser verification and dependency audit.
 
-## Verified existing behavior (source-level)
+## Positive findings from source inspection
 
-1. **Muster capture:** validates date, quantity precision, unique worker IDs and bounded worker count; checks estate ownership, active workers, task capacity, gang eligibility and open period.
-2. **Transactional writes:** muster creation/confirmation records audit evidence; confirmation creates an outbox event in the same transaction. Idempotency keys and version checks address retry/stale updates.
-3. **Current master maintenance:** estate managers can maintain workers, task occurrences and operational periods; updates are versioned, and period locking is enforced for relevant writes.
-4. **Gang workflow:** managers maintain gangs and supervisor assignments; supervisor writes check assignment at capture/confirmation.
-5. **Review/reversal:** manager-only approval and reasoned operational reversal exist for the current muster slice. Documentation says same-manager confirmation/review is provisional and reversal is not an SAP/payroll correction.
-6. **Authentication baseline:** password hashing, opaque session token stored as a hash, HttpOnly/SameSite cookie, eight-hour expiry, origin/CSRF checks and login rate limiting are present in API source.
-7. **Database baseline:** the migrations create a restricted `eoms_app` role, enable and force RLS on the current tenant-owned tables, and use estate membership checks and estate-aware foreign keys. The API sets actor context transaction-locally before scoped queries.
-8. **Offline/PWA baseline:** device drafts and explicit synchronization are documented; API responses and credentials are not included in the static service-worker cache. The documentation also notes that browser storage is not encrypted by the app and full cold-start offline identity/reference loading is not implemented.
-9. **Quality automation:** unit/domain, PostgreSQL integration, browser workflows, build and dependency audit commands are configured. The latest recorded main-branch GitHub Actions run inspected was successful on 12 October 2026: [run #2](https://github.com/kunal1274/ssjns-eoms/actions/runs/38268463329). This is historical CI evidence, not a fresh run of the current planning branch.
+1. **Basic authentication controls:** passwords are hashed with scrypt; session tokens are random opaque values and only their SHA-256 hashes are stored; the cookie is HttpOnly and SameSite=Strict; sessions expire after eight hours; writes check Origin and a CSRF token; login requests are rate-limited.
+2. **Fail-closed production gate:** `apps/api/src/server.ts` refuses to start when `NODE_ENV=production` until the documented production requirements are addressed.
+3. **Transaction-local actor context:** scoped database operations set `app.user_id` with transaction-local `set_config(..., true)`; transactions set a statement timeout and release pooled connections in `finally`.
+4. **Current estate row security:** migrations enable and force RLS on current estate-owned operational tables. Membership checks and estate-aware foreign keys reduce cross-estate reference mistakes.
+5. **Operational integrity:** muster creation/confirmation and audit/outbox writes share transactions. Idempotency keys, optimistic versions, task-row locking and period locking cover important retry and concurrency cases.
+6. **Authorization tests exist:** API tests cover unauthenticated access, logout/session invalidation, wrong passwords, Origin/CSRF rejection, cross-estate access, basic RLS filtering, role-restricted actions and runtime audit-table immutability.
+7. **Offline boundaries are documented:** the service worker caches the static shell rather than `/api/` responses; drafts are stored in browser IndexedDB and explicit sync rechecks server authorization. Browser storage is not encrypted by the app, and full cold-start offline operation is not implemented.
 
-## Gaps and items requiring follow-up
+## Findings requiring action
 
-| Area | Initial finding | Required follow-up |
-|---|---|---|
-| Hosted v8 parity | Demo source was not available through this review path; direct retrieval returned 401. README says published mock UI is separate. | Obtain/export source and compare screen, route, behavior and assets before importing anything. |
-| Docker | Compose defines PostgreSQL, while README starts API and web in host processes. | F04 must add/validate the intended containerized application stack, health checks, migrations and persistent volumes without risking data. |
-| Requirement traceability | Existing status/verification docs describe delivered slices but not a complete source-requirement-to-test matrix. | F02: trace approved source documents and demo journeys to code, acceptance rules and tests. |
-| Architecture conventions | React/TS + Express/TS + PostgreSQL is established, but decisions/conventions are not yet a complete accepted architecture record. | F03: document boundaries, validation, error handling, migrations, API contracts, test patterns and ADRs. |
-| Organization hierarchy | Current tables include companies, estates and estate memberships. Customer/group/division/block hierarchy is not represented end-to-end. | F06 and F12: define tenant hierarchy and access inheritance before expanding schema/policies. |
-| Authentication lifecycle | Basic local login/logout and sessions exist; SSO/MFA, user invitation/provisioning, recovery, revocation and production identity are documented as open. | F07–F08: define requirements, implement and test full lifecycle. |
-| Authentication-table privilege scope | Migration 001 grants the runtime role SELECT on all of `eoms.users` and SELECT/INSERT/DELETE on `eoms.sessions`; these tables do not have RLS in that migration. Login/session lookup uses them. That means the application DB identity can read all stored password hashes and session rows if an unrestricted query path is introduced. This is a hardening concern, not proof of an externally exploitable vulnerability. | F07/F12: review column/table grants and auth-query design. Consider narrowly scoped database functions or a dedicated auth access pattern; test login, session expiry/revocation and cross-user isolation before changing grants. |
-| Roles/permissions | Current schema constrains memberships to `manager`, `supervisor`, `clerk`; route checks are role-specific. There is no stable permission catalogue/custom-role engine/editor. | F09–F18: introduce resource/action permissions, scoped assignments, role versioning, templates, editor, preview and tests. |
-| Data-level security | Existing RLS protects current estate-level rows. It does not yet express customer-admin/group/division/block scopes or field-level data classifications. | F12 must include API and DB enforcement, tenant-aware foreign keys, fail-closed context, exports/search/attachments, negative tests and independent review. |
-| Audit visibility | The audit endpoint is estate-scoped, but source-level routing does not restrict it to a dedicated auditor/manager permission. | Confirm intended policy and enforce it through F09–F12; avoid exposing sensitive audit detail to every estate member by default. |
-| Separation of duties | The documented development behavior allows same-manager confirmation and review; the final approval matrix is unsigned. | F13: decide and enforce no-self-approval/conflict rules and delegation if required. |
-| Licensing | No plan/feature entitlement or seat enforcement model was found in the reviewed foundation. | F19–F22: agree named/concurrent seats, modules, limits, grace and expiry rules, then enforce on the server. |
-| Workflow and journeys | Existing state transitions are muster-specific; no reusable workflow engine, full role-based task queue or complete EOMS journey matrix is present. | F23–F25: design configurable states/approvals/tasks and test authorized and forbidden journeys end-to-end. |
-| Integrations | Outbox rows are persisted, but documentation says there is no dispatcher or live SAP/HR adapter. | Design idempotent dispatch, acknowledgement/retry, reconciliation and narrowly scoped service identities before live posting. |
-| Production readiness | API startup intentionally throws in production mode pending identity, HTTPS, tenancy and operations review. | Keep the gate in place until security, monitoring, backup/restore, load, rollout and UAT gates pass. |
+| Priority | Finding | Evidence / impact | Required action |
+|---|---|---|---|
+| High | Runtime authentication-table privileges are broad | Migration 001 grants `eoms_app` SELECT on all columns/rows in `eoms.users` (including password hashes) and SELECT/INSERT/DELETE on `eoms.sessions`; neither table has RLS there. No current public route directly returns all rows, so this is a least-privilege concern, not proof of a remotely exploitable vulnerability. | In F07/F12, design narrow authentication/session access (for example, carefully scoped database functions or a dedicated auth access pattern). Verify login, expiry, logout/revocation and inactive-user behavior before narrowing grants. |
+| High | Operational table write grants exceed the API's apparent field needs | Migration 001 grants table-level UPDATE on `eoms.musters`; migration 004 grants table-level UPDATE on `eoms.gangs`. These privileges permit updating columns beyond the subset used by current API handlers, including security-sensitive identifiers/state. | Review every SQL mutation and replace broad UPDATE grants with column-level grants where feasible. Add tests proving prohibited column changes fail for `eoms_app`. Keep RLS and API authorization as separate layers. |
+| High | RLS scope is estate-level, not the target hierarchy | Current schema has companies, estates and estate memberships, but no complete customer/group/division/block authorization model. | Define hierarchy and inheritance before expanding data. F12 must cover API and DB policy, tenant-aware relationships, fail-closed context and all data paths. |
+| Medium–High | Audit visibility is broad within an estate | `GET /api/estates/:estateId/audit` checks estate membership but does not require a distinct audit/manager permission. | Confirm the intended audit readership. Then enforce the policy server-side and test allowed/denied roles; do not assume all estate users should see audit detail. |
+| Medium | Authorization is role-string based | Current roles are constrained to `manager`, `supervisor`, `clerk`; authorization checks are distributed across route helpers. There is no stable resource/action permission catalogue or custom-role model. | F09–F18: define permissions, scope-aware assignments, templates, custom roles, editor, publication/versioning and role preview/testing. |
+| Medium | Explicit pooled-context isolation test is missing | Existing tests demonstrate RLS with an actor context and no-context filtering, but do not clearly exercise alternating users/concurrent requests over reused pooled connections as a dedicated regression test. | Add tests for absent context, invalid context, alternating actors, transaction rollback and pooled connection reuse. Run them as the restricted runtime role. |
+| Medium | Production user lifecycle is incomplete | Local login/logout/session expiry exist; invitation, recovery, provisioning, MFA/SSO policy, session administration and lifecycle audit are not implemented as a complete workflow. | F07–F08: define and implement lifecycle requirements before production identity is enabled. |
+| Medium | Docker stack is partial | Compose provisions PostgreSQL only; README runs API and web as host processes. | F04: define a complete repeatable app stack, health/readiness checks, migration sequencing, secrets handling and persistent-data behavior. |
+| Medium | Workflow is specific to muster | Current approval/reversal is not a reusable configurable workflow engine. Same-manager confirmation/review is documented as provisional; reversal is not a payroll/SAP correction. | F13 and F23–F25: obtain approval-matrix decisions and implement configurable workflow/journeys only against accepted requirements. |
+| Medium | Licensing and entitlement enforcement are absent | No server-enforced modules/features/seats/expiry model is present in this foundation. | F19–F22: agree commercial decisions, then enforce entitlements server-side and test bypass attempts. |
+| Medium | Operational integrations are incomplete | Outbox events are persisted transactionally, but no dispatcher or live SAP/HR adapter is documented as implemented. | Add idempotent dispatch, retry/acknowledgement, reconciliation and scoped service identities before partner posting. |
+| Medium | Production operations evidence is absent | No production startup is allowed; load capacity, backup/restore, monitoring, recovery objectives, security review and UAT are not established by this source audit. | Keep production gate. Define and evidence these gates before deployment. |
 
-## Data-level security review notes
+## Verification attempt in this review environment
 
-The existing database policy is a useful starting point, but it must not be treated as completed data-level security:
+- The archive was extracted and source/configuration/migrations/tests were inspected.
+- Runtime available: Node v22.16.0 and npm 10.9.2. The README requests Node 24+; CI is configured for Node 24.
+- `npm ci --ignore-scripts --no-audit --no-fund --prefer-offline` did not finish within the available tool execution window. The dependency tree remained incomplete.
+- Docker and `psql` are not installed in this review environment.
+- Therefore, **no fresh TypeScript check, build, unit test, integration test, migration test, browser test or database RLS test is claimed** from this run.
+- The repository's CI workflow is configured to run migrations, domain/API tests, build, browser verification and `npm audit`. Any previously recorded green run is historical evidence only; it is not a fresh result for this uploaded snapshot.
 
-- Current row scope is principally **estate membership**; it is not a complete customer → group → estate → division → block policy.
-- Current membership role names are fixed and are not a substitute for a permission catalogue.
-- Every list, detail, search, report, export, attachment, background job and integration must apply the same authorized scope.
-- Pooled PostgreSQL connections must always receive actor/scope context transaction-locally and fail closed if it is absent. Tests must prove that context cannot leak across requests.
-- Cross-tenant and cross-scope relationships need database constraints as well as API validation.
-- Sensitive fields (especially personal, wage, bank and payroll data) require separate read/write rules and must not leak through logs or exports.
-- The authentication tables currently have broader runtime SELECT access than a fully hardened data-level design should assume; tighten this only with a tested replacement login/session access path.
-- RLS negative tests must run as the restricted application role, not just as a database administrator.
-- RLS does not replace server authorization, threat modeling or an independent security review.
+## F01 acceptance checklist
 
-## F01 disposition
+- [x] Uploaded repository source inventory inspected.
+- [x] API authentication, request guards, transaction context and authorization helpers reviewed.
+- [x] Database migrations, RLS policies, foreign keys and runtime grants reviewed at source level.
+- [x] Existing tests and CI workflow inspected.
+- [x] Initial high-priority hardening findings recorded.
+- [ ] Clean dependency installation and TypeScript/build verification completed.
+- [ ] PostgreSQL migrations and integration/security tests executed against the restricted runtime role.
+- [ ] Browser regression suite executed and evidence recorded.
+- [ ] UI-to-source parity independently verified where the actual ChatGPT project artifact is available for inspection.
 
-**Status remains: In progress.**
-
-The repository audit has begun and this report records the initial source-level findings. F01 is not complete because hosted v8 source reconciliation and fresh local execution evidence remain outstanding. No application code was changed as part of this initial audit.
+**Disposition: F01 remains In progress.** No application code or `main` branch changes were made during this review.
