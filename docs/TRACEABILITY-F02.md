@@ -37,6 +37,7 @@ This is an **initial traceability baseline**, not a claim that all business requ
 | SRC-10 | Browser evidence under `docs/*desktop.png`, `docs/*mobile.png` and `docs/pwa-installability.json` | Evidence for the repository build's tested screens and browser behavior, not proof of unobserved behavior in another rendered artifact. |
 | SRC-11 | [`docs/SOURCE-MAP-F02.md`](SOURCE-MAP-F02.md) | Source, schema, API-test and browser-journey links with line anchors for the current implementation slice; analyst-assigned `CAP-*` keys are not owner-approved business requirement IDs. |
 | SRC-12 | `scripts/browser-check.mjs`, `scripts/maintenance-browser.mjs`, `scripts/workflow-browser.mjs`, `scripts/offline-browser.mjs`, `scripts/verify-browser.mjs` | End-to-end browser journey evidence for the repository build, linked with line anchors in `SOURCE-MAP-F02.md`; it does not prove hosted-demo parity or future access-control/license journeys. |
+| SRC-13 | [`docs/F02-OWNER-DECISIONS.md`](F02-OWNER-DECISIONS.md) | Proposed defaults and accountable owners for DEC-01–DEC-09. These are review prompts only, not accepted requirements or authorization to implement. |
 
 The project owner has clarified that the hosted demo was created within ChatGPT and has not been run externally. Direct URL retrieval returned 401 in this review path, so exact rendered-page parity cannot be independently asserted from the URL alone. This is **not** treated as an external deployment prerequisite. If a particular demo-only screen or interaction is required but not represented by the source archive/screenshots, record it as an owner clarification item rather than inventing a requirement.
 
@@ -97,6 +98,8 @@ These apply to every feature and must be explicit in the requirement-to-test lin
 7. **Production gate:** passing CI is necessary but not sufficient for production; identity, monitoring, backup/restore, load, security review and UAT remain separate gates.
 
 ## Open decisions to carry into the trace
+
+Decision prompts, proposed defaults and accountable owners are recorded in [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md). Those proposals are not client sign-off; this matrix remains the canonical status tracker.
 
 | Decision ID | Question | Why it matters | Required owner |
 |---|---|---|---|
