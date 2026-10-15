@@ -12,7 +12,7 @@ The repository is a real, connected PERN development codebase, not just a static
 
 It is nevertheless a **limited development checkpoint**, not the complete EOMS and not a production release. The README and status documents explicitly describe missing production identity, detailed data scope, licensing, configurable roles/workflows, full checkroll/payroll, live ERP/HR adapters, operations/recovery and load validation.
 
-The reported hosted demo (v8) is a separate source surface. The current connected GitHub tooling allowed review of the repository but did not provide the hosted site's source export. Therefore source parity with the hosted demo remains unverified.
+The reported hosted demo (v8) is a separate source surface. The current connected GitHub tooling allowed review of the repository but did not provide the hosted site's source export. A direct page retrieval attempt returned **401 Unauthorized**. Source parity with the hosted demo remains unverified.
 
 ## Repository structure observed
 
@@ -41,12 +41,13 @@ The reported hosted demo (v8) is a separate source surface. The current connecte
 
 | Area | Initial finding | Required follow-up |
 |---|---|---|
-| Hosted v8 parity | Demo source was not available through this review path; README says published mock UI is separate. | Obtain/export source and compare screen, route, behavior and assets before importing anything. |
+| Hosted v8 parity | Demo source was not available through this review path; direct retrieval returned 401. README says published mock UI is separate. | Obtain/export source and compare screen, route, behavior and assets before importing anything. |
 | Docker | Compose defines PostgreSQL, while README starts API and web in host processes. | F04 must add/validate the intended containerized application stack, health checks, migrations and persistent volumes without risking data. |
 | Requirement traceability | Existing status/verification docs describe delivered slices but not a complete source-requirement-to-test matrix. | F02: trace approved source documents and demo journeys to code, acceptance rules and tests. |
 | Architecture conventions | React/TS + Express/TS + PostgreSQL is established, but decisions/conventions are not yet a complete accepted architecture record. | F03: document boundaries, validation, error handling, migrations, API contracts, test patterns and ADRs. |
 | Organization hierarchy | Current tables include companies, estates and estate memberships. Customer/group/division/block hierarchy is not represented end-to-end. | F06 and F12: define tenant hierarchy and access inheritance before expanding schema/policies. |
 | Authentication lifecycle | Basic local login/logout and sessions exist; SSO/MFA, user invitation/provisioning, recovery, revocation and production identity are documented as open. | F07–F08: define requirements, implement and test full lifecycle. |
+| Authentication-table privilege scope | Migration 001 grants the runtime role SELECT on all of `eoms.users` and SELECT/INSERT/DELETE on `eoms.sessions`; these tables do not have RLS in that migration. Login/session lookup uses them. That means the application DB identity can read all stored password hashes and session rows if an unrestricted query path is introduced. This is a hardening concern, not proof of an externally exploitable vulnerability. | F07/F12: review column/table grants and auth-query design. Consider narrowly scoped database functions or a dedicated auth access pattern; test login, session expiry/revocation and cross-user isolation before changing grants. |
 | Roles/permissions | Current schema constrains memberships to `manager`, `supervisor`, `clerk`; route checks are role-specific. There is no stable permission catalogue/custom-role engine/editor. | F09–F18: introduce resource/action permissions, scoped assignments, role versioning, templates, editor, preview and tests. |
 | Data-level security | Existing RLS protects current estate-level rows. It does not yet express customer-admin/group/division/block scopes or field-level data classifications. | F12 must include API and DB enforcement, tenant-aware foreign keys, fail-closed context, exports/search/attachments, negative tests and independent review. |
 | Audit visibility | The audit endpoint is estate-scoped, but source-level routing does not restrict it to a dedicated auditor/manager permission. | Confirm intended policy and enforce it through F09–F12; avoid exposing sensitive audit detail to every estate member by default. |
@@ -66,6 +67,7 @@ The existing database policy is a useful starting point, but it must not be trea
 - Pooled PostgreSQL connections must always receive actor/scope context transaction-locally and fail closed if it is absent. Tests must prove that context cannot leak across requests.
 - Cross-tenant and cross-scope relationships need database constraints as well as API validation.
 - Sensitive fields (especially personal, wage, bank and payroll data) require separate read/write rules and must not leak through logs or exports.
+- The authentication tables currently have broader runtime SELECT access than a fully hardened data-level design should assume; tighten this only with a tested replacement login/session access path.
 - RLS negative tests must run as the restricted application role, not just as a database administrator.
 - RLS does not replace server authorization, threat modeling or an independent security review.
 
