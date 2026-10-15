@@ -5,11 +5,11 @@
 **Repository:** `kunal1274/ssjns-eoms`  
 **Working branch:** `planning/production-roadmap-data-security`  
 **Canonical tracker:** [PROGRESS.md](PROGRESS.md)  
-**F01 evidence:** [AUDIT-F01.md](AUDIT-F01.md), [fresh source-code verification run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797). Latest documentation baseline [run #21](https://github.com/kunal1274/ssjns-eoms/actions/runs/38789475035) passed on commit `c631542780b018d33a1a30f0eddd4a20f4d2601e`; the new journey register and subsequent F02 doc edits require their own final CI check.
+**F01 evidence:** [AUDIT-F01.md](AUDIT-F01.md), [fresh source-code verification run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797). [Run #26](https://github.com/kunal1274/ssjns-eoms/actions/runs/38792293821) passed on the journey-register documentation commit before the draft requirement catalogue was added; CI for the final F02 documentation commit is being checked separately.
 
 ## Purpose and rules
 
-This document starts the trace from each owner-defined F01–F25 phase and the downstream EOMS workstreams to the current code, schema, tests, evidence, gaps and acceptance work. The draft [persona journey register](F02-PERSONA-JOURNEYS.md) proposes testable journeys and positive/negative boundaries for owner review; it does not represent owner approval.
+This document starts the trace from each owner-defined F01–F25 phase and the downstream EOMS workstreams to the current code, schema, tests, evidence, gaps and acceptance work. The draft [requirement catalogue](F02-REQUIREMENT-CATALOGUE.md) assigns proposed REQ-* keys and testable acceptance statements from the roadmap, and the [persona journey register](F02-PERSONA-JOURNEYS.md) proposes testable journeys and positive/negative boundaries. Neither is an approved requirements specification until reviewed by the owner.
 
 This is an **initial traceability baseline**, not a claim that all business requirements have been approved. Where a rule depends on client/commercial/operations sign-off, it is marked **Decision required** instead of guessed. A screen, screenshot, source comment or passing test proves only the behavior it actually covers.
 
@@ -39,6 +39,7 @@ This is an **initial traceability baseline**, not a claim that all business requ
 | SRC-12 | `scripts/browser-check.mjs`, `scripts/maintenance-browser.mjs`, `scripts/workflow-browser.mjs`, `scripts/offline-browser.mjs`, `scripts/verify-browser.mjs` | End-to-end browser journey evidence for the repository build, linked with line anchors in `SOURCE-MAP-F02.md`; it does not prove hosted-demo parity or future access-control/license journeys. |
 | SRC-13 | [`docs/F02-OWNER-DECISIONS.md`](F02-OWNER-DECISIONS.md) | DEC-01's flexible tenant/legal/operating hierarchy and scope-security design is selected as the product baseline by project-owner direction; customer-specific legal/operating mapping remains open. DEC-02–DEC-09 remain proposals pending explicit disposition. |
 | SRC-14 | [`docs/F02-PERSONA-JOURNEYS.md`](F02-PERSONA-JOURNEYS.md) | Draft candidate personas and JRN-* journeys, each with proposed positive/negative boundaries, current evidence/gaps and phase/decision links. This is an owner-review artifact, not a signed requirements source. |
+| SRC-15 | [`docs/F02-REQUIREMENT-CATALOGUE.md`](F02-REQUIREMENT-CATALOGUE.md) | Draft REQ-* catalogue with testable acceptance statements derived from the owner-defined phase tracker and production roadmap; IDs and criteria remain pending owner review. |
 
 The project owner has clarified that the hosted demo was created within ChatGPT and has not been run externally. Direct URL retrieval returned 401 in this review path, so exact rendered-page parity cannot be independently asserted from the URL alone. This is **not** treated as an external deployment prerequisite. If a particular demo-only screen or interaction is required but not represented by the source archive/screenshots, record it as an owner clarification item rather than inventing a requirement.
 
@@ -47,7 +48,7 @@ The project owner has clarified that the hosted demo was created within ChatGPT 
 | Requirement ID / phase | Requirement intent | Current implementation and evidence | Status | Acceptance / gap to close |
 |---|---|---|---|---|
 | F01 | Audit the source, schema, configuration, tests and documented boundaries. | Source inventory and security findings in [AUDIT-F01.md](AUDIT-F01.md); CI run #9 passed 5 unit/sync tests, 18 integration tests, build, browser/PWA checks and audit. | **Complete — audit only** | Findings remain follow-up work; this status does not certify production readiness. |
-| F02 | Map approved requirements and journeys to code, acceptance rules, tests and evidence. | This matrix, [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md) and the draft [F02-PERSONA-JOURNEYS.md](F02-PERSONA-JOURNEYS.md) link the current implementation slice and propose journeys with positive/negative boundaries; the complete owner-approved baseline remains outstanding. | **In progress** | Owner-review the candidate persona/journey inventory; map approved requirement IDs to exact code/test evidence; add missing UI/browser and security-regression evidence; resolve or formally defer ambiguities; obtain owner acceptance. |
+| F02 | Map approved requirements and journeys to code, acceptance rules, tests and evidence. | This matrix, [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md), draft [F02-REQUIREMENT-CATALOGUE.md](F02-REQUIREMENT-CATALOGUE.md) and [F02-PERSONA-JOURNEYS.md](F02-PERSONA-JOURNEYS.md) link current evidence and propose requirement IDs, acceptance statements and journeys; the complete owner-approved baseline remains outstanding. | **In progress** | Owner-review the candidate persona/journey inventory; map approved requirement IDs to exact code/test evidence; add missing UI/browser and security-regression evidence; resolve or formally defer ambiguities; obtain owner acceptance. |
 | F03 | Define architecture conventions and decisions. | PERN/TypeScript boundaries are visible in source and README. No complete accepted ADR/convention set was found. | Missing | Record module boundaries, API contracts, validation/errors, migrations, logging, tenancy, jobs, integrations and test conventions. |
 | F04 | Reproducible full Docker environment with health checks, migrations and persistence. | `compose.yaml` provides PostgreSQL only; API/web run as host processes per README. CI separately proves a PostgreSQL-backed test environment. | Partial | Containerize the agreed app stack, define health/readiness and migration sequencing, document secrets, persistence, reset and recovery. |
 | F05 | Required automated checks run on pull requests and failures block acceptance. | CI runs dependency install, migrations/seed/DB tests, unit/integration tests, build, browser/PWA checks and `npm audit`; [run #21](https://github.com/kunal1274/ssjns-eoms/actions/runs/38789475035) passed on the prior documentation baseline. The new journey register and subsequent F02 edits still need final CI verification. | Partial | Verify CI on the final F02 documentation commit; decide/enforce formatting/lint rules if required, verify branch protection/status requirements, handle deprecation warnings and document required check policy. |
@@ -123,8 +124,10 @@ F02 can close only when:
 - [x] A source-to-test map with specific file/line anchors is linked for the current implementation slice.
 - [x] Existing browser journeys have specific script/line anchors and their evidence boundaries are recorded.
 - [x] Ambiguous business/commercial decisions are explicitly recorded rather than guessed.
+- [x] A draft requirement catalogue assigns traceable REQ-* keys and testable acceptance statements for owner review.
 - [x] A candidate persona/journey register with proposed positive and negative boundaries is recorded for owner review.
-- [ ] Each requirement is mapped to exact owner-approved IDs and specific code/test locations.
+- [ ] The owner accepts/changes the draft REQ-* IDs and confirms coverage against any signed requirements source.
+- [ ] Each approved requirement is mapped to exact source and specific code/test locations.
 - [ ] Every owner-confirmed in-scope journey has positive and negative acceptance criteria and adequate evidence links.
 - [ ] DEC-02–DEC-09 are resolved or explicitly deferred by the accountable owner, with date and rationale.
 - [ ] Any required hosted-demo-only journey is identified and traced, or the owner confirms none remain.
