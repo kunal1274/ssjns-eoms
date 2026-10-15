@@ -1,6 +1,6 @@
 # Estate Opera EOMS — Progress Tracker
 
-**Last updated:** 15 October 2026  
+**Last updated:** 16 October 2026  
 **Repository:** [kunal1274/ssjns-eoms](https://github.com/kunal1274/ssjns-eoms)  
 **Working branch:** `planning/production-roadmap-data-security`
 
@@ -21,10 +21,10 @@ Existing code is evidence for an audit, but does not automatically mean a phase 
 | ID | Workstream | Phase | Status | Current note |
 |---|---|---|---|---|
 | F01 | Foundation | Source code audit | **Complete** | Source/configuration/security review recorded and fresh CI run #3 passed dependency install, migrations, DB tests, 5 domain/sync tests, 18 integration tests, build, browser/PWA workflows and npm audit (0 vulnerabilities). Findings remain open for their assigned phases; production is still gated. See [F01 audit](AUDIT-F01.md). |
-| F02 | Foundation | Requirements traceability | **In progress** | Initial matrix, source/schema/API-test and browser-journey line anchors are recorded. The flexible tenant/legal/plantation hierarchy and scope-security baseline is selected in [owner decisions](F02-OWNER-DECISIONS.md), with supporting evidence in [F02 traceability](TRACEABILITY-F02.md) and [source map](SOURCE-MAP-F02.md). Remaining: map owner-approved requirement IDs and all in-scope persona journeys, disposition DEC-02–DEC-09, verify CI for the latest documentation commits and obtain owner acceptance before F03. |
+| F02 | Foundation | Requirements traceability | **In progress** | Selected flexible tenant/legal/plantation hierarchy baseline (DEC-01); traceability matrix and source/test anchors; draft [persona journey register](F02-PERSONA-JOURNEYS.md) with proposed positive/negative boundaries. [CI run #21](https://github.com/kunal1274/ssjns-eoms/actions/runs/38789475035) passed on the prior documentation baseline. Remaining: owner-review journeys, map approved requirement IDs, disposition DEC-02–DEC-09, verify CI on the final F02 documentation commit and obtain owner acceptance before F03. |
 | F03 | Foundation | Architecture conventions | Not started | Existing PERN/TypeScript structure identified; conventions and decisions not yet formally accepted. |
 | F04 | Foundation | Docker environment | Not started | Compose currently provisions PostgreSQL only; API/web are documented as host-run development processes. |
-| F05 | Foundation | Automated quality checks | Not started | CI and test scripts exist; current checks need a fresh run and formal acceptance gate. |
+| F05 | Foundation | Automated quality checks | Not started | CI and test scripts exist; latest verified documentation baseline run #21 passed. F05 still requires a formal quality-gate/branch-protection review and acceptance. |
 | F06 | Access control | Customer hierarchy | Not started | Current schema has companies and estates; customer/group/division/block hierarchy is incomplete. |
 | F07 | Access control | Authentication and sessions | Not started | Basic local-development login/session/CSRF controls exist; production identity requirements remain open. |
 | F08 | Access control | User lifecycle | Not started | Full invitation, recovery, provisioning, suspension and revocation lifecycle not accepted or complete. |
