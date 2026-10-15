@@ -1,7 +1,7 @@
 # F02 — Owner decision register and proposed defaults
 
 **Status:** Proposal for review only; none of these defaults is accepted until the accountable owner confirms it.  
-**Purpose:** Make F02 decisions explicit so later architecture and implementation do not encode unapproved assumptions.
+**Purpose:** Make F02 decisions explicit so later architecture and implementation do not encode unapproved assumptions. DEC-01's flexible hierarchy/security design is selected as the product baseline; all other proposed defaults remain unapproved until explicitly accepted.
 
 ## Decision protocol
 
@@ -12,14 +12,52 @@
 
 ## Decisions
 
-### DEC-01 — Customer and operational hierarchy
+### DEC-01 — Customer tenancy, legal entities and plantation operating hierarchy
 
-**Question:** What is the authoritative customer/group/company/estate/division/block structure, and how does access inherit?
+**Status:** **Selected as the product-design baseline on 16 October 2026**, following the project owner's direction to use the commonly recommended plantation ERP approach. This approves the product's flexible architecture, **not** any particular client's legal-company chart or estate names.
 
-**Proposed default:** Model the conceptual path as **Customer → Group → Company → Estate → Division → Block**, allowing Group, Division or Block to be optional only where the customer's operating model requires it. Every record must have an unambiguous tenant/parent relationship. Parent-level access should flow downward only when the assignment explicitly grants inheritance; no implicit access to siblings, other customers or parent records. Deny by default.
+**Design principle:** Keep the SaaS tenant boundary, legal/financial structure and plantation operating structure separate. Do not hard-code them into one mandatory chain.
 
-**Owner:** Product owner and client data/security owner.  
-**Blocks:** F06, F12, F11 and hierarchy-dependent reports/exports.
+**A. SaaS tenant boundary (security boundary)**
+
+`Platform → Customer tenant`
+
+- Each customer tenant is a hard data-isolation boundary, not an extra plantation operating unit.
+- Every tenant-owned record and background/integration operation must carry a verifiable tenant context; PostgreSQL row-level security (RLS) must fail closed if that context is missing or invalid.
+- A user can belong to more than one tenant only through explicit membership, with tenant context selected and validated for each request.
+
+**B. Legal and financial structure (configurable)**
+
+`Customer tenant → Group (optional) → Legal entity / Company`
+
+- A tenant may have one company or multiple legal entities under a group.
+- Create a separate legal entity only where legal, statutory, tax, currency, fiscal-calendar or accounting requirements justify it; do not create a separate company merely because an estate or division exists.
+- Legal entity ownership/accounting attribution must be explicit for operational transactions and can be effective-dated where ownership or responsibility changes.
+- Maintain legal/reporting hierarchies separately from the plantation's operational hierarchy when the business needs different views.
+
+**C. Plantation operating hierarchy (configurable)**
+
+`Legal entity / responsible company → Region / Business unit (optional) → Estate / Plantation → Division / Afdeling → Field (optional) → Block`
+
+- **Estate** is the plantation/site management level; **Division/Afdeling** groups fields; **Block** is the primary agronomic and field-operations unit for work, harvest/yield, inputs and cost attribution.
+- **Field** is an optional grouping level where the client's terminology and mapping requires it. An estate can contain divisions directly, and configurations may omit levels that do not exist in the real organization.
+- Use block-level capture where the process is naturally block-based, then aggregate results upward to field, division, estate, company and group. Do not force every transaction to block level if its real business object is a mill, nursery, warehouse, workshop, fleet asset or another operational site.
+- Mills, nurseries, warehouses, workshops and other facilities should be modeled as typed operational sites linked to the relevant tenant and legal entity, and optionally to an estate; do not force them under a block.
+- Use stable IDs, tenant-scoped unique business codes, effective dates and an auditable change history for hierarchy changes. Preserve the historical operational/financial attribution of posted records.
+
+**D. Authorization and data-level security**
+
+- Roles/permissions answer **what action** a user may perform; scope assignments answer **which records/locations** they may act on; licensing answers **which modules/features** the customer has purchased. These remain separate controls.
+- Scope assignments must name the node and permitted actions/permissions. Descendant access is granted only when the assignment's inheritance policy explicitly allows it. No implicit sibling access, upward access, or access to another tenant.
+- Enforce scope in the server and PostgreSQL RLS—not just menus or client-side filters. Apply it to APIs, search, reports/exports, attachments, offline synchronization, background jobs and integrations.
+- Where a user has multiple assignments, the effective access is the explicitly authorized union of those assignments within the selected tenant, still constrained by permissions and licensed features.
+
+**Industry/ERP basis:** Microsoft Dynamics 365 recommends deciding legal entities from legal/accounting requirements, using operating units for operational control, and allowing multiple hierarchies for different purposes ([organization hierarchy guidance](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/fin-ops/organization-administration/plan-organizational-hierarchy), [organizational hierarchies overview](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/fin-ops/organization-administration/organizations-organizational-hierarchies)). Plantation references commonly use Estate → Division/Afdeling → Block, with optional Field as a grouping level and block-level capture/aggregation ([plantation ERP overview](https://www.saka-erp.id/software-perkebunan-kelapa-sawit), [plantation hierarchy and block-level data research](https://www.tropcropconsult.com/wp-content/uploads/2017/04/What-does-OMP-do-20170405-small.pdf), [SAP S/4HANA plantation example](https://www.weefer.co.id/sap-s4hana-for-plantation/)). These are a recommended baseline, not a claim that every plantation uses identical terminology.
+
+**Owner/client confirmation still required:** actual group/company structure, optional operating levels, legal entity responsible for each estate/site, special managed-estate arrangements, and any cross-company operational responsibilities. Record these as tenant configuration and customer-specific requirements rather than changing the core design.
+
+**Owner:** Product owner (architecture baseline) and client data/security owner (customer-specific mapping).  
+**Downstream phases:** F06 (customer hierarchy), F09–F12 (permissions and record-level access), F19–F22 (licensing) and all modules that store location-scoped transactions.
 
 ### DEC-02 — Production identity and session policy
 
