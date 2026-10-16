@@ -9,7 +9,7 @@
 
 ## Purpose and rules
 
-This document starts the trace from each owner-defined F01–F25 phase and the downstream EOMS workstreams to the current code, schema, tests, evidence, gaps and acceptance work. The draft [requirement catalogue](F02-REQUIREMENT-CATALOGUE.md) assigns proposed REQ-* keys and testable acceptance statements from the roadmap, and the [persona journey register](F02-PERSONA-JOURNEYS.md) proposes testable journeys and positive/negative boundaries. Neither is an approved requirements specification until reviewed by the owner.
+This document starts the trace from each owner-defined F01–F25 phase and the downstream EOMS workstreams to the current code, schema, tests, evidence, gaps and acceptance work. The draft [requirement catalogue](F02-REQUIREMENT-CATALOGUE.md) assigns proposed REQ-* keys and testable acceptance statements from the roadmap, the [persona journey register](F02-PERSONA-JOURNEYS.md) proposes testable journeys and positive/negative boundaries, and [recommended decision dispositions](F02-DECISION-RECOMMENDATIONS.md) proposes safe defaults and interim guards for DEC-02–DEC-09. These are review aids, not approved requirements or client policy until accepted by the accountable owner.
 
 This is an **initial traceability baseline**, not a claim that all business requirements have been approved. Where a rule depends on client/commercial/operations sign-off, it is marked **Decision required** instead of guessed. A screen, screenshot, source comment or passing test proves only the behavior it actually covers.
 
@@ -40,6 +40,7 @@ This is an **initial traceability baseline**, not a claim that all business requ
 | SRC-13 | [`docs/F02-OWNER-DECISIONS.md`](F02-OWNER-DECISIONS.md) | DEC-01's flexible tenant/legal/operating hierarchy and scope-security design is selected as the product baseline by project-owner direction; customer-specific legal/operating mapping remains open. DEC-02–DEC-09 remain proposals pending explicit disposition. |
 | SRC-14 | [`docs/F02-PERSONA-JOURNEYS.md`](F02-PERSONA-JOURNEYS.md) | Draft candidate personas and JRN-* journeys, each with proposed positive/negative boundaries, current evidence/gaps and phase/decision links. This is an owner-review artifact, not a signed requirements source. |
 | SRC-15 | [`docs/F02-REQUIREMENT-CATALOGUE.md`](F02-REQUIREMENT-CATALOGUE.md) | Draft REQ-* catalogue with testable acceptance statements derived from the owner-defined phase tracker and production roadmap; IDs and criteria remain pending owner review. |
+| SRC-16 | [`docs/F02-DECISION-RECOMMENDATIONS.md`](F02-DECISION-RECOMMENDATIONS.md) | Recommended safe defaults, interim guards and accountable-owner inputs for DEC-02–DEC-09; proposals only, not approved client policy. |
 
 The project owner has clarified that the hosted demo was created within ChatGPT and has not been run externally. Direct URL retrieval returned 401 in this review path, so exact rendered-page parity cannot be independently asserted from the URL alone. This is **not** treated as an external deployment prerequisite. If a particular demo-only screen or interaction is required but not represented by the source archive/screenshots, record it as an owner clarification item rather than inventing a requirement.
 
@@ -101,7 +102,7 @@ These apply to every feature and must be explicit in the requirement-to-test lin
 
 ## Open decisions to carry into the trace
 
-The selected DEC-01 product architecture and the remaining proposed defaults/accountable owners are recorded in [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md). The architecture baseline is selected; this is not client sign-off on any particular customer's company chart, estate structure or access assignments. DEC-02–DEC-09 remain unapproved proposals. This matrix remains the canonical status tracker.
+The selected DEC-01 product architecture and the remaining proposed defaults/accountable owners are recorded in [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md), with a proposed disposition and safe interim guard for each open decision in [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md). The architecture baseline is selected; this is not client sign-off on any particular customer's company chart, estate structure or access assignments. DEC-02–DEC-09 remain unapproved proposals. This matrix remains the canonical status tracker.
 
 | Decision ID | Question | Why it matters | Required owner |
 |---|---|---|---|
@@ -126,6 +127,7 @@ F02 can close only when:
 - [x] Ambiguous business/commercial decisions are explicitly recorded rather than guessed.
 - [x] A draft requirement catalogue assigns traceable REQ-* keys and testable acceptance statements for owner review.
 - [x] A candidate persona/journey register with proposed positive and negative boundaries is recorded for owner review.
+- [x] Recommended safe defaults and interim guards are recorded for DEC-02–DEC-09 without marking them accepted.
 - [ ] The owner accepts/changes the draft REQ-* IDs and confirms coverage against any signed requirements source.
 - [ ] Each approved requirement is mapped to exact source and specific code/test locations.
 - [ ] Every owner-confirmed in-scope journey has positive and negative acceptance criteria and adequate evidence links.
