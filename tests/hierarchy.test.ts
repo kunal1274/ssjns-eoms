@@ -75,7 +75,7 @@ before(async () => {
     ])
   ).rows[0].customer_id;
   const id = randomUUID(),
-    email = "readonly-" + suffix() + "@fixture.local",
+    email = "readonly-" + suffix().toLowerCase() + "@fixture.local",
     password = "Synthetic-only-" + suffix();
   await admin.query(
     "INSERT INTO eoms.users(id,email,display_name,password_hash) VALUES($1,$2,'Read-only manager',$3)",
