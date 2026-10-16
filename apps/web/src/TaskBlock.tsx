@@ -92,7 +92,12 @@ export function TaskBlockFields({
             <>
               <label>
                 Configured block
-                <select name="blockId" required defaultValue="">
+                <select
+                  aria-label="Configured block"
+                  name="blockId"
+                  required
+                  defaultValue=""
+                >
                   <option value="">Choose a block in this estate</option>
                   {blocks.map((block) => (
                     <option key={block.id} value={block.id}>
@@ -236,7 +241,12 @@ export function TaskBlockLink({
       <fieldset disabled={busy || committed}>
         <label>
           Matching configured block
-          <select name="blockId" required defaultValue="">
+          <select
+            aria-label="Matching configured block"
+            name="blockId"
+            required
+            defaultValue=""
+          >
             <option value="">Choose the reviewed block</option>
             {matches.map((block) => (
               <option key={block.id} value={block.id}>
