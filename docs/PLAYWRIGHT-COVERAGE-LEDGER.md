@@ -63,3 +63,8 @@ Evidence stores allowlisted IDs, statuses and static named-step titles, not requ
 Add a stable inventory ID, accepted journey ID, screen/category, precise control assertion and real case/step binding. Keep missing field boundaries and navigation/error paths as explicit unmapped rows. Run the case independently, then the full regression gate. Avoid broad entries that imply every field is covered by a single successful click.
 
 `packages/testing/coverage.ts` contains reusable schema/status/rendering logic. `scripts/coverage-files.ts` supplies the EOMS source/inventory adapter; `scripts/coverage-reporter.ts` supplies Playwright events. A versioned shared package and second-project adapter remain future work. The reviewed-recording workflow, source-linked control discovery and project-aware execution dashboard remain queued in CURRENT-HANDOFF.md.
+
+
+## Executed evidence
+
+[CI run 38957729942](https://github.com/kunal1274/ssjns-eoms/actions/runs/38957729942) passed on `85d8ec16b6aa9b74a0ad9966f50c7e03dcf0b45a`. Six real journey executions produced 38 passed/40 untested ledger rows; regeneration matched. The separate browser check verified status filtering, combined screen/status selection, known gaps, restored rows and no page errors. The first candidate exposed ambiguous filter labels; explicit label associations fixed the UI and the same browser assertion then passed. 52 unit/API tests, existing browser/PWA, build/formatting, dependency audit (zero known vulnerabilities in that run), actual Docker/persistence and final gate also passed. A later documentation-only update records this proof. Local interactive desktop observation and full inventory/workbench acceptance remain open.
