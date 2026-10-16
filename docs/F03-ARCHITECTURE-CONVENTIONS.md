@@ -4,6 +4,7 @@
 **Status:** In progress; conventions below are the proposed technical baseline for owner review.  
 **Started:** 16 October 2026, after F02 owner acceptance and CI pass  
 **F02 acceptance:** [Owner acceptance record](F02-OWNER-ACCEPTANCE.md) · [verification run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680)  
+**F03 documentation CI:** [Run #38850005346](https://github.com/kunal1274/ssjns-eoms/actions/runs/38850005346) passed on the initial conventions commit.  
 **Repository:** [kunal1274/ssjns-eoms](https://github.com/kunal1274/ssjns-eoms)
 
 ## Purpose and guardrails
@@ -121,6 +122,19 @@ Tests must use synthetic data and deterministic fixtures. Do not weaken or skip 
 | ADR-F03-08 | Treat production identity, secrets, monitoring, backup/restore and numeric recovery targets as release gates. | Derived from accepted DEC-02/08; numeric values require owner/customer approval. |
 | ADR-F03-09 | Resolve Node runtime-version mismatch before containerizing. | Open: package engine says Node >=22.13 while README requires Node 24+. Confirm and align in F04. |
 
+## Existing-code reconciliation and required follow-up
+
+These are observed current-state deltas, not claims that the target conventions are already implemented:
+
+- `apps/api/src/app.ts` defines an `ApiError` with status/message only. The error middleware returns a flat error response and logs `error.message`; the target stable error code/correlation ID/redaction policy needs a backward-compatible contract change and tests.
+- API routes and SQL are still substantially co-located in `apps/api/src/app.ts`, `maintenance.ts` and `workflow.ts`. The module/application/domain separation above is a target for incremental refactoring, not a description of the current layering.
+- `apps/api/src/server.ts` deliberately blocks `NODE_ENV=production` and binds to `127.0.0.1`. Keep the production gate; make container binding and readiness explicit in F04 rather than enabling production startup prematurely.
+- `package.json` permits Node `>=22.13.0`, while README prerequisites say Node 24+. Align engine, CI and container runtime before F04.
+- Migration 001 sets restrictive attributes when it creates `eoms_app`, but does not reconcile every attribute for an existing role. Startup checks superuser and `BYPASSRLS`, not `CREATEDB`/`CREATEROLE`. Add role-drift checks and tests in the security/data-access phases.
+- The current audit route verifies estate membership but does not yet enforce a dedicated auditor/authorized-management permission. DEC-03's designated audit-read default remains unimplemented until its authorization phase.
+- The muster flow writes audit and outbox intent transactionally, but no dispatcher or live partner adapter was found. Do not infer external delivery from outbox persistence.
+- F03 changes are documentation-only. No application code, migration, runtime configuration or production gate was changed by this phase-start commit.
+
 ## F03 acceptance checklist
 
 - [x] F02 requirement/journey baseline accepted and verified by CI.
@@ -128,6 +142,6 @@ Tests must use synthetic data and deterministic fixtures. Do not weaken or skip 
 - [ ] Owner accepts or changes these technical conventions/ADRs.
 - [ ] API error/logging policy and migration/versioning policy are reconciled with current code and tests.
 - [ ] Runtime version is aligned across package metadata, README, CI and Docker image.
-- [ ] Conventions are linked from the canonical progress tracker and roadmap.
+- [x] Conventions are linked from the canonical progress tracker and roadmap.
 
 F03 does not authorize production startup. After the technical conventions are accepted, close F03 and begin F04 Docker environment work.
