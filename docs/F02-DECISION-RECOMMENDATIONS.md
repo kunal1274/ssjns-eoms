@@ -33,7 +33,7 @@ The project owner has explicitly accepted the recommended defaults for DEC-02–
 
 **DEC-02–DEC-09: Accepted by the project owner on 16 October 2026.** The defaults above are now the product baseline. If a future customer contract or mandatory legal/operational requirement needs a different behavior, record a deliberate, scoped exception with an owner and rationale; do not silently weaken security or data-integrity controls.
 
-## What can safely proceed before all decisions are closed?
+## What remains gated after default acceptance?
 
 - Requirement and journey traceability can continue, using these proposals as clearly labelled candidates.
 - Repository evidence mapping and negative-test planning can continue without enabling missing capabilities.
