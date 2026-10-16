@@ -1,10 +1,10 @@
 # F02 — Source-to-test map for the current EOMS slice
 
-**Status:** Working evidence map; not a complete approved requirements baseline.  
+**Status:** Supporting source-to-test evidence map for the owner-accepted F02 planning baseline; implementation coverage remains partial.  
 **Branch:** `planning/production-roadmap-data-security`  
-**Full F02 documentation verification:** [GitHub Actions run #38841851439](https://github.com/kunal1274/ssjns-eoms/actions/runs/38841851439) passed on the previous accepted-defaults documentation state, including dependency install, migrations/DB tests, unit/integration tests, build, browser verification and dependency audit. The subsequent journey evidence map and consistency-review edits require a fresh CI run. The earlier [run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797) remains the source-code verification baseline.
+**Full F02 documentation verification:** [GitHub Actions run #38844324023](https://github.com/kunal1274/ssjns-eoms/actions/runs/38844324023) passed on the immediately preceding head, including dependency install, migrations/DB tests, unit/integration tests, build, browser verification and dependency audit. This owner-acceptance commit requires a fresh CI run. The earlier [run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797) remains the source-code verification baseline.
 
-This map names current source locations and test cases so later work can distinguish implemented behavior from missing requirements. The proposed requirement IDs and acceptance statements are in [F02-REQUIREMENT-CATALOGUE.md](F02-REQUIREMENT-CATALOGUE.md), the proposed persona/journey inventory is in [F02-PERSONA-JOURNEYS.md](F02-PERSONA-JOURNEYS.md), and accepted product defaults plus implementation/production guards for DEC-02–DEC-09 are in [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md). REQ-* and JRN-* keys are draft trace keys pending owner review. A passing test proves only the scenario it asserts. The `CAP-*` trace keys below are analyst-assigned inventory identifiers, not owner-approved business requirement IDs; the canonical owner-defined phase IDs remain F01–F25.
+This map names current source locations and test cases so later work can distinguish implemented behavior from missing requirements. The owner-accepted planning requirement IDs and acceptance statements are in [F02-REQUIREMENT-CATALOGUE.md](F02-REQUIREMENT-CATALOGUE.md), the accepted-baseline persona/journey inventory is in [F02-PERSONA-JOURNEYS.md](F02-PERSONA-JOURNEYS.md), and accepted product defaults plus implementation/production guards for DEC-02–DEC-09 are in [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md). The current 34 REQ-* and 16 JRN-* keys are accepted planning/traceability keys; this does not imply implementation or customer-specific approval. A passing test proves only the scenario it asserts. The `CAP-*` trace keys below are analyst-assigned inventory identifiers, not owner-approved business requirement IDs; the canonical owner-defined phase IDs remain F01–F25.
 
 ## Route and capability mapping
 
@@ -77,14 +77,16 @@ These browser scripts provide end-to-end evidence for the repository build and s
 
 ## Verification baseline
 
-Run #9 passed the existing source-code workflow: clean `npm ci`, migrations and seed, isolated database tests, 5 domain/sync tests, 18 API/workflow integration tests, build, browser/PWA verification and `npm audit --audit-level=high` (0 vulnerabilities). The tests use synthetic data and a restricted runtime role for application behavior. Latest branch run #11 also passed after the traceability documentation update; it does not add new application-code coverage.
+Run #9 passed the existing source-code workflow: clean `npm ci`, migrations and seed, isolated database tests, 5 domain/sync tests, 18 API/workflow integration tests, build, browser/PWA verification and `npm audit --audit-level=high` (0 vulnerabilities). The tests use synthetic data and a restricted runtime role for application behavior. Run #38844324023 passed after the journey evidence map and crosswalk updates; it does not add new application-code coverage. The owner-acceptance commit requires a fresh run.
 
 This does not cover all F02 requirements, prove production capacity, certify the security design, or establish exact parity with the ChatGPT-hosted rendered artifact.
 
 ## Next traceability actions
 
-1. Review and accept/change the proposed requirement catalogue in [F02-REQUIREMENT-CATALOGUE.md](F02-REQUIREMENT-CATALOGUE.md) and journey inventory in [F02-PERSONA-JOURNEYS.md](F02-PERSONA-JOURNEYS.md); add any missing in-scope or specifically identified hosted-demo-only journey.
-2. Map draft `REQ-*`, `JRN-*` and analyst-assigned `CAP-*` keys to the owner-approved requirement baseline; retain draft IDs only where the owner accepts them.
-3. Add exact UI/browser-test line anchors for every approved journey through API, schema, UI and test evidence; the current anchors cover only implemented repository journeys.
-4. Add automated positive, negative, boundary, concurrency, pooled-connection and recovery cases for the uncovered requirements.
-5. DEC-02–DEC-09 product defaults are accepted; capture any customer-specific variations and complete required configuration/evidence. Obtain owner review of the REQ-* / JRN-* baseline before F02 is accepted and F03 begins.
+The owner accepted the F02 planning/traceability baseline; see [F02-OWNER-ACCEPTANCE.md](F02-OWNER-ACCEPTANCE.md). After CI passes on that acceptance commit:
+
+1. Start F03 architecture conventions in a separate phase/commit.
+2. Preserve the current present/partial/missing status for every requirement and journey; add exact source/test anchors as each feature is implemented.
+3. Add positive, negative, boundary, concurrency, pooled-connection and recovery tests for uncovered security/data paths in their assigned phases.
+4. Capture customer-specific hierarchy, identity, licensing, payroll, integration and operations decisions before the corresponding release gates.
+5. Add any specifically identified hosted-demo-only journey through change control; do not invent unobserved behavior.

@@ -5,7 +5,7 @@
 
 ## Decision protocol
 
-- The F01–F25 phase list remains canonical. This register supports F02 and does not authorize starting F03.
+- The F01–F25 phase list remains canonical. The owner has now accepted the F02 planning/traceability baseline; F03 starts only after CI passes on the commit recording that acceptance.
 - The project owner has accepted the documented defaults for DEC-01–DEC-09 as product-design decisions. This does not substitute for customer-specific configuration, signed commercial terms, payroll examples, integration contracts, operational targets or production acceptance evidence.
 - If an item cannot be decided now, record the owner, rationale, interim constraint and the phase it blocks.
 - Production access, payroll/financial posting and customer data exposure must remain gated until their applicable decisions and tests are accepted.
@@ -145,8 +145,8 @@
 **Accepted default:** Treat the repository plus supplied screenshots as the current inspectable implementation baseline. Do not assume an external deployment/export is required. If the hosted rendering contains a requirement that must be retained, identify the specific persona, screen, action and expected outcome so it can be added to the traceability matrix and tested in the repository build.
 
 **Owner:** Product owner/requester.  
-**Blocks:** F02 baseline acceptance only for any specifically identified missing journey.
+**Blocks:** No additional journey blocks baseline acceptance unless a specific hosted-demo-only behavior is identified through traceability change control.
 
 ## Review record
 
-Review record: **DEC-01–DEC-09 — Accepted by the project owner on 16 October 2026** as product defaults. Customer-specific hierarchy mapping, identity-provider settings, role assignments, contractual license terms, payroll rates/calculation examples, integration mappings, retention and numeric RPO/RTO/SLO targets remain subject to explicit configuration or customer-owner approval as applicable. Acceptance of these defaults does not certify implementation or authorize production release. F02 remains in progress until the draft requirements/journeys are reviewed, mapped to evidence and the traceability baseline is accepted.
+Review record: **DEC-01–DEC-09 — Accepted as product defaults on 16 October 2026; F02 REQ/JRN planning baseline accepted on 16 October 2026.** The separate [F02 owner acceptance record](F02-OWNER-ACCEPTANCE.md) captures acceptance of 34 REQ-* statements, 16 JRN-* journeys and their traceability maps. Customer-specific hierarchy mapping, identity-provider settings, role assignments, contractual license terms, payroll rates/calculation examples, integration mappings, retention and numeric RPO/RTO/SLO targets remain subject to explicit configuration or customer-owner approval as applicable. Acceptance of the baseline does not certify implementation or authorize production release. F02 remains in progress only until CI passes on the acceptance commit.

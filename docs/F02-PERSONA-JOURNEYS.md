@@ -1,17 +1,17 @@
-# F02 — Persona Journey Register (review draft)
+# F02 — Persona Journey Register (accepted planning baseline)
 
-**Status:** Proposed journey inventory for owner review; not yet an approved business requirements baseline.  
+**Status:** Owner-accepted planning/traceability baseline on 16 October 2026; feature implementation and customer-specific acceptance remain phase-gated.  
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  
 **Canonical phase tracker:** [PROGRESS.md](PROGRESS.md)  
-**Related evidence:** [TRACEABILITY-F02.md](TRACEABILITY-F02.md), [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md), [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md), [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md), [F02-REQ-JOURNEY-CROSSWALK.md](F02-REQ-JOURNEY-CROSSWALK.md), [F02-JOURNEY-EVIDENCE-MAP.md](F02-JOURNEY-EVIDENCE-MAP.md)  
-**CI evidence:** [GitHub Actions run #38841851439](https://github.com/kunal1274/ssjns-eoms/actions/runs/38841851439) passed on the previous accepted-defaults documentation state. The per-journey evidence-map and consistency-review updates made afterward require a fresh CI run. CI confirms repository checks only; it does not approve these proposed personas or journeys.
+**Related evidence:** [Owner acceptance record](F02-OWNER-ACCEPTANCE.md), [TRACEABILITY-F02.md](TRACEABILITY-F02.md), [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md), [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md), [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md), [F02-REQ-JOURNEY-CROSSWALK.md](F02-REQ-JOURNEY-CROSSWALK.md), [F02-JOURNEY-EVIDENCE-MAP.md](F02-JOURNEY-EVIDENCE-MAP.md)  
+**CI evidence:** [GitHub Actions run #38844324023](https://github.com/kunal1274/ssjns-eoms/actions/runs/38844324023) passed on the preceding head. The owner acceptance record is being added in this commit; run CI on this exact commit before F02 closes. CI verifies repository checks, not implementation of every journey.
 
 ## Purpose and interpretation
 
 This register turns the F01–F25 foundation/access/role/licensing/journey scope into testable candidate journeys. It is derived from the owner-defined [production roadmap](PRODUCTION-ROADMAP.md), current source/test inventory, and selected DEC-01 hierarchy baseline. It does **not** silently convert undecided proposals into approved rules.
 
-- Journey IDs `JRN-*` are traceability keys assigned for this draft, not pre-existing owner-issued requirement IDs.
+- Journey IDs `JRN-*` are analyst-assigned traceability keys accepted for the current planning baseline; they are not pre-existing owner-issued IDs from a signed customer specification.
 - “Expected allow/deny” is a proposed acceptance boundary based on the product's stated security goals; where customer-specific configuration or release evidence is still required, that dependency is called out. Accepted product defaults and implementation/production guards are in [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md).
 - “Current evidence” describes only tested behavior in the repository build. “Not implemented” means no implementation/evidence was found in the reviewed source; it does not claim that no related idea exists elsewhere.
 - Persona names are functional archetypes, not a final job-title catalogue. A customer may combine roles, but effective permissions and data scope must remain separately enforced.
@@ -71,13 +71,13 @@ Every test case should identify the requirement/journey ID, actor, tenant and sc
 
 - Confirm, rename, combine or remove the candidate personas and journeys.
 - Identify any required hosted-demo-only screen/action/outcome not represented here.
-- Review/accept or change the proposed REQ-* and JRN-* allow/deny boundaries against the accepted DEC-02–DEC-09 defaults and any mandatory customer-specific requirements.
+- Implement and test the accepted baseline boundaries against the accepted DEC-02–DEC-09 defaults; record any customer-specific change through traceability change control.
 - Supply/approve business requirement IDs if there is a separate signed requirements source; until then, F01–F25 plus JRN-* are trace keys, not a substitute for a signed specification.
 - DEC-02–DEC-09 defaults are accepted; record any customer-specific variation as a scoped exception with owner and rationale.
-- Accept this baseline before F03 starts. F02 remains **In progress** until the owner baseline and relevant blockers are accepted/deferred.
+- The owner accepted the current 16-journey inventory as the planning baseline; F03 begins after CI passes on the F02 acceptance commit. Customer-specific policies and missing journey implementations remain assigned to their applicable phases.
 
 ## Evidence boundaries
 
-The [journey-to-evidence map](F02-JOURNEY-EVIDENCE-MAP.md) expands current evidence and gaps across all 16 candidate JRN-* journeys. It is a draft evidence inventory, not an assertion that all journey behavior is implemented or accepted.
+The [journey-to-evidence map](F02-JOURNEY-EVIDENCE-MAP.md) expands current evidence and gaps across all 16 accepted-baseline JRN-* journeys. Acceptance is for traceability and planning; it is not an assertion that all journey behavior is implemented.
 
-The current source-map and CI links prove only the tested repository build with synthetic data. They do not establish exact parity with the ChatGPT-hosted rendered demo, production security certification, load capacity, or behavior for missing features. No implementation, client sign-off, or production readiness is implied by this draft register.
+The current source-map and CI links prove only the tested repository build with synthetic data. They do not establish exact parity with the ChatGPT-hosted rendered demo, production security certification, load capacity, or behavior for missing features. No implementation, customer-specific sign-off, or production readiness is implied by acceptance of this planning register.

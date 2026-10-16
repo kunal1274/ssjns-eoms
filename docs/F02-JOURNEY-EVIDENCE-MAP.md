@@ -36,8 +36,10 @@
 
 ## Completion actions
 
-1. Owner confirms, changes or defers each candidate journey and identifies any required hosted-demo-only journey.
-2. Each accepted journey receives a stable requirement link, actor/scope fixture, preconditions, positive and negative expected results, persisted-state/audit expectations, and exact source/test/CI evidence—or is explicitly marked not implemented and assigned to a later phase.
-3. Close evidence gaps without conflating a product default with an implemented control.
-4. Refresh CI evidence for the latest documentation state.
-5. Keep F02 **In progress** until the requirement/journey baseline and traceability evidence are accepted. F03 must not start before that gate.
+The owner accepted the current 16-journey inventory as the planning/traceability baseline on 16 October 2026; see [F02-OWNER-ACCEPTANCE.md](F02-OWNER-ACCEPTANCE.md). This acceptance does not change any journey's present/partial/missing implementation status.
+
+1. Keep each journey linked to its stable REQ-* requirement, actor/scope fixture, preconditions, positive and negative expected results, persisted-state/audit expectations and evidence/gap status.
+2. Close implementation and evidence gaps in their assigned phases; do not conflate an accepted product default with an implemented control.
+3. Refresh CI evidence for the owner-acceptance commit before closing F02.
+4. Add any later-identified specific hosted-demo-only journey through traceability change control.
+5. Keep production startup, payroll/financial posting and external integrations gated until their separate acceptance criteria pass.

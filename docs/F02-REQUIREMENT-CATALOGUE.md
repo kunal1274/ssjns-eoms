@@ -1,23 +1,23 @@
-# F02 — Draft Requirement Catalogue
+# F02 — Requirement Catalogue
 
-**Status:** Draft derived from the owner-defined phase tracker and production roadmap; owner approval required.  
+**Status:** Owner-accepted planning/traceability baseline on 16 October 2026; implementation evidence and customer-specific requirements remain phase-gated.  
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  
 **Related artifacts:** [Traceability matrix](TRACEABILITY-F02.md) · [Source-to-test map](SOURCE-MAP-F02.md) · [Persona journey register](F02-PERSONA-JOURNEYS.md) · [Owner decision register](F02-OWNER-DECISIONS.md) · [Decision recommendations](F02-DECISION-RECOMMENDATIONS.md) · [Requirement-to-journey crosswalk](F02-REQ-JOURNEY-CROSSWALK.md) · [Journey-to-evidence map](F02-JOURNEY-EVIDENCE-MAP.md)  
-**CI evidence:** [Run #38841851439](https://github.com/kunal1274/ssjns-eoms/actions/runs/38841851439) passed on the previous accepted-defaults documentation state, including this catalogue, the persona journey register, decision defaults and crosswalk. The subsequent journey-evidence-map and consistency-review edits require a fresh CI run. CI verifies repository checks, not owner approval or implementation of missing requirements.
+**CI evidence:** [Run #38844324023](https://github.com/kunal1274/ssjns-eoms/actions/runs/38844324023) passed on the preceding head. The owner acceptance record is being added in this commit; rerun CI on this exact commit before F02 closure. CI validates repository checks, not implementation of missing requirements.
 
 ## How to use this catalogue
 
-The project owner supplied the canonical F01–F25 phase IDs and the [production roadmap](PRODUCTION-ROADMAP.md). This catalogue assigns draft `REQ-*` identifiers to make individual acceptance obligations easier to trace. These identifiers and acceptance statements are **analyst-proposed**, not a signed client requirements specification. They must be accepted, changed or removed by the owner before F02 closes.
+The project owner supplied the canonical F01–F25 phase IDs and the [production roadmap](PRODUCTION-ROADMAP.md). This catalogue assigns `REQ-*` identifiers to make individual acceptance obligations traceable. On 16 October 2026 the owner accepted the current 34 identifiers and acceptance statements as the planning baseline; see [F02 owner acceptance](F02-OWNER-ACCEPTANCE.md). These analyst-authored traceability statements are not a substitute for a signed customer requirements specification.
 
-“Current evidence” points to the implementation map where possible. Existing code or a passing test proves only the behavior described; it does not satisfy an entire requirement by implication. All draft requirements remain **Owner review pending**. Accepted product defaults and safe implementation/production guards are summarized in [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md).
+“Current evidence” points to the implementation map where possible. Existing code or a passing test proves only the behavior described; it does not satisfy an entire requirement by implication. The planning baseline is accepted, but each requirement's present/partial/missing status remains authoritative. Accepted product defaults and implementation/production guards are summarized in [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md).
 
 ## Foundation and delivery requirements
 
 | Draft requirement ID | Source / phase | Testable acceptance statement | Current evidence / status |
 |---|---|---|---|
 | REQ-FND-01 | [F01 audit gate](PRODUCTION-ROADMAP.md#canonical-phases-f01f25) | Inventory code, schema, configuration, tests, documentation, limitations and security findings; distinguish verified, partial, missing and decision-dependent behavior. | Audit recorded in [AUDIT-F01.md](AUDIT-F01.md); F01 closed as audit only. |
-| REQ-FND-02 | [F02 traceability gate](TRACEABILITY-F02.md#f02-completion-gate) | Every owner-approved requirement and in-scope journey links to acceptance criteria, implementation/schema, tests, evidence and unresolved decisions. | Partial; this catalogue and the JRN register are drafts pending owner review. |
+| REQ-FND-02 | [F02 traceability gate](TRACEABILITY-F02.md#f02-completion-gate) | Every accepted planning-baseline requirement and in-scope journey links to acceptance criteria, implementation/schema evidence where present, tests where present, explicit gaps and unresolved decisions. | Baseline accepted; implementation evidence remains partial/missing where indicated in the crosswalk and journey evidence map. |
 | REQ-FND-03 | [F03 architecture conventions](PRODUCTION-ROADMAP.md#canonical-phases-f01f25) | Accepted conventions cover module boundaries, API contracts, validation/errors, migrations, logging, tenancy, tests, background work and integrations. | Missing; F03 has not started. |
 | REQ-FND-04 | [F04 Docker environment](PRODUCTION-ROADMAP.md#canonical-phases-f01f25) | A clean documented setup starts the agreed app/services, waits for health, applies migrations, seeds synthetic data, persists state and explains reset/recovery. | Partial; Compose provisions PostgreSQL only, API/web are host-run per README. |
 | REQ-FND-05 | [F05 automated checks](PRODUCTION-ROADMAP.md#canonical-phases-f01f25) | Required PR checks fail closed on type/build/unit/API/integration/browser/security failures and adopted lint/format checks; evidence and branch protection are documented. | Partial; CI workflow exists and current source-code tests pass, but required-check policy and formal F05 acceptance remain open. |
@@ -68,8 +68,11 @@ These requirements are included in the roadmap but are not declared implemented 
 | REQ-INT-01 | [Enterprise integration](PRODUCTION-ROADMAP.md#work-after-f01f25-complete-eoms-product-scope); DEC-07 | Approved SAP Business One and HR/payroll/finance interfaces use explicit authority/mappings, scoped service identities, versioned contracts, idempotent retries, acknowledgements, reconciliation and correction rules. | Partial; transactional outbox exists; no dispatcher/live adapters found. |
 | REQ-OPS-01 | [Production readiness](PRODUCTION-ROADMAP.md#work-after-f01f25-complete-eoms-product-scope); DEC-08 | Production identity/HTTPS/secrets, monitoring, encrypted backup/restore, load/SLO, cutover/rollback, security review, UAT and support handover meet approved targets. | Partial/not accepted; production startup is gated; the operations-control default is accepted, but customer-approved numeric targets and operational verification are still required. |
 
-## Owner review checklist
+## Baseline acceptance and change control
 
-For each `REQ-*` ID, mark **Accepted**, **Changed**, **Deferred with owner/date**, or **Not applicable**, and record rationale. DEC-01–DEC-09 product defaults have been accepted separately; that does not automatically accept every draft REQ-* acceptance statement. If a requirement is changed, update its acceptance statement and linked journey/tests before implementation. Resolve conflicts in favor of an explicit owner decision, not an inferred default.
+The project owner accepted the current 34 `REQ-*` identifiers and testable acceptance statements as the F02 planning/traceability baseline on 16 October 2026; see [F02-OWNER-ACCEPTANCE.md](F02-OWNER-ACCEPTANCE.md). The baseline is used to plan implementation and verification; it does not claim that missing features are implemented or that customer-specific rules are signed off.
 
-F02 remains **In progress** until the owner confirms the catalogue's coverage, approves or replaces the draft IDs, reviews the persona journeys, and resolves or formally defers the decisions that block acceptance. This document does not authorize F03 or production release.
+- If a later source specification or customer requirement changes scope, record the source/owner/rationale and update the affected REQ statement, JRN links, evidence map, downstream phase and tests.
+- Keep partial/missing implementation statuses explicit. Do not turn an accepted default into proof of implementation.
+- Customer-specific hierarchy, identity, licensing, payroll, integration and operations decisions remain gated where noted.
+- F02 closure requires a passing CI run on the accepted-baseline commit. Production release remains subject to its separate security, UAT and operations gates.
