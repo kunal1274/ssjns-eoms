@@ -9,7 +9,7 @@
 
 ## Purpose and rules
 
-This document starts the trace from each owner-defined F01–F25 phase and the downstream EOMS workstreams to the current code, schema, tests, evidence, gaps and acceptance work. The draft [requirement catalogue](F02-REQUIREMENT-CATALOGUE.md) assigns proposed REQ-* keys and testable acceptance statements from the roadmap, the [persona journey register](F02-PERSONA-JOURNEYS.md) proposes testable journeys and positive/negative boundaries, the [requirement-to-journey crosswalk](F02-REQ-JOURNEY-CROSSWALK.md) connects them to current evidence and gaps, and [accepted decision defaults](F02-DECISION-RECOMMENDATIONS.md) records the project owner's accepted product defaults and implementation guards for DEC-02–DEC-09. The draft REQ-* and JRN-* catalogue still requires baseline review; customer-specific contract, payroll, integration and operations values remain subject to their applicable approvals.
+This document starts the trace from each owner-defined F01–F25 phase and the downstream EOMS workstreams to the current code, schema, tests, evidence, gaps and acceptance work. The draft [requirement catalogue](F02-REQUIREMENT-CATALOGUE.md) assigns proposed REQ-* keys and testable acceptance statements from the roadmap, the [persona journey register](F02-PERSONA-JOURNEYS.md) proposes testable journeys and positive/negative boundaries, the [requirement-to-journey crosswalk](F02-REQ-JOURNEY-CROSSWALK.md) connects them to current evidence and gaps, and [journey-to-evidence map](F02-JOURNEY-EVIDENCE-MAP.md) records current evidence/gaps for all 16 candidate journeys, and [accepted decision defaults](F02-DECISION-RECOMMENDATIONS.md) records the project owner's accepted product defaults and implementation guards for DEC-02–DEC-09. The draft REQ-* and JRN-* catalogue still requires baseline review; customer-specific contract, payroll, integration and operations values remain subject to their applicable approvals.
 
 This is an **initial traceability baseline**, not a claim that all business requirements have been approved. Where a rule depends on client/commercial/operations sign-off, it is marked **Decision required** instead of guessed. A screen, screenshot, source comment or passing test proves only the behavior it actually covers.
 
@@ -128,6 +128,7 @@ F02 can close only when:
 - [x] Ambiguous business/commercial decisions are explicitly recorded rather than guessed.
 - [x] A draft requirement catalogue assigns traceable REQ-* keys and testable acceptance statements for owner review.
 - [x] A candidate persona/journey register with proposed positive and negative boundaries is recorded for owner review.
+- [x] A journey-to-evidence map covers all 16 candidate JRN-* journeys and records current positive/negative evidence boundaries and gaps; owner confirmation and adequate evidence for every in-scope journey remain open.
 - [x] Product defaults for DEC-01–DEC-09 are accepted and recorded with explicit implementation/production guards.
 - [x] A draft REQ-* to JRN-* crosswalk identifies current evidence and known gaps.
 - [x] Crosswalk identifier consistency checked: all 34 draft REQ-* IDs have rows and all 16 candidate JRN-* IDs are referenced; this is coverage consistency, not owner acceptance or proof of implementation.
