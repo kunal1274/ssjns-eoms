@@ -234,6 +234,23 @@ test("division field block rules reject cycles invalid types and cross-estate pa
     field = await createUnit("field", division.id),
     block = await createUnit("block", field.id),
     other = await createUnit("division", null, otherEstate);
+  assert.equal(
+    (await supervisor.agent.get(`/api/estates/${otherEstate}/units`)).status,
+    404,
+  );
+  const scopedHistory = await supervisor.agent.get(
+    `/api/customers/${customer}/hierarchy/history`,
+  );
+  assert.equal(scopedHistory.status, 200);
+  assert.ok(
+    scopedHistory.body.items.some((event: any) => event.record_id === block.id),
+  );
+  assert.ok(
+    scopedHistory.body.items.every(
+      (event: any) =>
+        event.record_type === "unit" && event.record_id !== other.id,
+    ),
+  );
   for (const body of [
     { kind: "field", parentId: block.id },
     { kind: "block", parentId: other.id },
