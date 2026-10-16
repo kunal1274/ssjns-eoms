@@ -3,8 +3,8 @@
 **Status:** Draft derived from the owner-defined phase tracker and production roadmap; owner approval required.  
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  
-**Related artifacts:** [Traceability matrix](TRACEABILITY-F02.md) · [Source-to-test map](SOURCE-MAP-F02.md) · [Persona journey register](F02-PERSONA-JOURNEYS.md) · [Owner decision register](F02-OWNER-DECISIONS.md) · [Decision recommendations](F02-DECISION-RECOMMENDATIONS.md) · [Requirement-to-journey crosswalk](F02-REQ-JOURNEY-CROSSWALK.md)  
-**CI evidence:** [Run #47](https://github.com/kunal1274/ssjns-eoms/actions/runs/38839251289) passed on commit `cddd761b9c7aba0b93563c96a42de2c1f28a4682`, including this catalogue, the persona journey register, decision recommendations and requirement-to-journey crosswalk. It verifies repository checks, not owner approval or implementation of missing requirements.
+**Related artifacts:** [Traceability matrix](TRACEABILITY-F02.md) · [Source-to-test map](SOURCE-MAP-F02.md) · [Persona journey register](F02-PERSONA-JOURNEYS.md) · [Owner decision register](F02-OWNER-DECISIONS.md) · [Decision recommendations](F02-DECISION-RECOMMENDATIONS.md) · [Requirement-to-journey crosswalk](F02-REQ-JOURNEY-CROSSWALK.md) · [Journey-to-evidence map](F02-JOURNEY-EVIDENCE-MAP.md)  
+**CI evidence:** [Run #38841851439](https://github.com/kunal1274/ssjns-eoms/actions/runs/38841851439) passed on the previous accepted-defaults documentation state, including this catalogue, the persona journey register, decision defaults and crosswalk. The subsequent journey-evidence-map and consistency-review edits require a fresh CI run. CI verifies repository checks, not owner approval or implementation of missing requirements.
 
 ## How to use this catalogue
 
