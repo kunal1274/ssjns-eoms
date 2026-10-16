@@ -104,3 +104,10 @@ This later documentation-only evidence commit does not change the tested applica
 ## Device-sync feedback continuation
 
 Sync failures now preserve safe server guidance and valid request references. Pending drafts retain the original payload/idempotency key; blocked conflicts retain recovery guidance for review. Session expiry is distinguished from service failure. Storage/transport/queue-refresh exceptions are replaced with safe recovery messages, and discard/retry errors are handled. Local verification passed 25 unit/security/configuration/presentation tests, TypeScript/web/PWA build and formatting. Fresh full CI evidence follows after verification. This is a continuation of F05 feedback work; the external branch-policy gate and F06 status are unchanged.
+
+
+### Verified device-sync continuation
+
+[CI run 38925295750](https://github.com/kunal1274/ssjns-eoms/actions/runs/38925295750) passed on `d3b61c3bc9e9ff4ab4085d7d40ccaf062352c36d`: 25 unit/security/configuration/presentation tests plus 18 real PostgreSQL/API tests (43 unique tests), formatting, TypeScript/web/PWA build, browser/workflow/offline/installability checks, dependency audit, actual Docker build/start/container verification and proxy/idempotency/persistence. Both verify and quality-gate succeeded. The PWA browser check now injects a 503 with a private error body and valid support reference, verifies safe display and unchanged pending draft/key, then verifies lost-response recovery without duplicate server creation. Session expiry, retained locked-period guidance, retry, account isolation and logout remain covered.
+
+This follow-up evidence edit is documentation-only. F05 remains Blocked by main protection; F06 has not started.
