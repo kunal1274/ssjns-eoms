@@ -406,3 +406,8 @@ code {
 .auditdetails dd {
   margin: 4px 0 0;
 }
+
+.feedbacktext {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}

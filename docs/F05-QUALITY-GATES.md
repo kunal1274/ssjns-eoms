@@ -99,3 +99,8 @@ The [cross-phase matrix](AUDIT-AND-USER-FEEDBACK.md) records short/detailed audi
 [CI run 38918867500](https://github.com/kunal1274/ssjns-eoms/actions/runs/38918867500) passed on source commit `712c587ade8edd56dcffb62a23d43e5945d77eb3`: 23 unit/security/configuration/presentation tests plus 18 real PostgreSQL/API tests (41 unique tests), formatting, TypeScript/web/PWA build, browser recovery/audit/workflow/offline/installability checks, dependency audit, actual Docker startup and container verification, proxy/idempotency and retained-volume recreation. Both `verify` and `quality-gate` succeeded. The earlier run on `53f8977` caught an obsolete browser assertion expecting the now-collapsed event type; the corrected test opens the details and verifies both the readable summary and original event type.
 
 This later documentation-only evidence commit does not change the tested application source. The main branch was still unprotected during this continuation. F05 remains Blocked and F06 remains Not started.
+
+
+## Device-sync feedback continuation
+
+Sync failures now preserve safe server guidance and valid request references. Pending drafts retain the original payload/idempotency key; blocked conflicts retain recovery guidance for review. Session expiry is distinguished from service failure. Storage/transport/queue-refresh exceptions are replaced with safe recovery messages, and discard/retry errors are handled. Local verification passed 25 unit/security/configuration/presentation tests, TypeScript/web/PWA build and formatting. Fresh full CI evidence follows after verification. This is a continuation of F05 feedback work; the external branch-policy gate and F06 status are unchanged.

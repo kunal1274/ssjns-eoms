@@ -115,6 +115,26 @@ try {
   await page
     .getByRole("heading", { name: "Device drafts (1)", exact: true })
     .waitFor();
+  // Server failures must retain the draft and explain recovery without private bodies.
+  await page.route("**/api/estates/*/musters", (route) =>
+    route.request().method() === "POST"
+      ? route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({
+            error: "PRIVATE-SYNC-DETAIL",
+            requestId: "12345678-1234-1234-1234-123456789abc",
+          }),
+        })
+      : route.continue(),
+  );
+  await page.getByRole("button", { name: "Sync drafts", exact: true }).click();
+  const pause = page.getByRole("status").filter({ hasText: "Sync paused" });
+  await pause.filter({ hasText: "Support reference:" }).waitFor();
+  assert.doesNotMatch(await pause.innerText(), /PRIVATE-SYNC-DETAIL/);
+  assert.equal((await deviceRows())[0].id, key);
+  assert.equal((await deviceRows())[0].status, "pending");
+  await page.unroute("**/api/estates/*/musters");
   let intercepted = false;
   await page.route("**/api/estates/*/musters", async (route) => {
     if (route.request().method() === "POST" && !intercepted) {
@@ -146,8 +166,9 @@ try {
   await context.clearCookies();
   await page.getByRole("button", { name: "Sync drafts", exact: true }).click();
   await page
-    .getByText("Sign in again before syncing. Your drafts are retained.", {
-      exact: true,
+    .getByRole("status")
+    .filter({
+      hasText: "Sign in again before syncing. Your drafts are retained.",
     })
     .waitFor();
   assert.equal((await deviceRows()).length, 1);
@@ -169,12 +190,14 @@ try {
   );
   await page.getByRole("button", { name: "Sync drafts", exact: true }).click();
   await page
-    .getByText("This operational period is locked", { exact: true })
+    .getByRole("alert")
+    .filter({ hasText: "This operational period is locked" })
     .waitFor();
   assert.equal((await deviceRows())[0].status, "blocked");
   await page.reload();
   await page
-    .getByText("This operational period is locked", { exact: true })
+    .getByRole("alert")
+    .filter({ hasText: "This operational period is locked" })
     .waitFor();
   await admin.query(
     "UPDATE eoms.periods SET locked=false WHERE estate_id=$1 AND month=$2",

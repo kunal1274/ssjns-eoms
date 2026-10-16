@@ -19,6 +19,7 @@ An unsuccessful or denied request must not appear as a successful business chang
 | Server-generated request reference and safe failure logs | F05 | Implemented; overall F05 blocked | Existing HTTP tests and CI evidence in F05 document; no raw exceptions, body, tokens or SQL |
 | Readable short event summaries and expandable selected details | F05 continuation | Implemented, verification recorded in F05 document | Current estate audit window, keyboard-native disclosure, device timezone, no arbitrary payload dump; does not implement a new authorization boundary |
 | Main UI recovery advice and support references | F05 continuation | Implemented, verification recorded in F05 document | Main API wrapper preserves safe 4xx messages, hides private 5xx bodies, explains conflicts/session/validation/rate limits and ambiguous connection failures |
+| Device-sync recovery and support references | F05 continuation | Implemented; CI evidence recorded in F05 document | Safe server guidance for stopped/blocked submissions; pending payload/key retained, no raw storage/transport exception; browser verifies service-failure recovery |
 | Permission-controlled summary/detail/export and sensitive-field masking | F09–F12 | Planned | Server permissions and scope enforcement on API and DB; deny unauthorized reads and cross-estate/customer access. Hiding fields in UI is insufficient |
 | Audit role/permission publication, license and administrative changes | F17, F19–F22 | Planned | Record actor, effective version, reason and authorized changes; verify revocation and effective access after publication |
 | Reusable workflow transitions and linked corrections | F23 | Planned | Capture change and audit atomically, immutable approval/reversal links, maker/checker, rejected/returned/reopened paths, configurable reason requirements |
@@ -63,7 +64,7 @@ Each row inherits the summary/detail, permissions, correlation and safe-feedback
 | Offline / pending sync / ambiguous response | Distinguish browser-only draft, pending, saved and blocked; explain reconnect/review; preserve immutable retry key | Server audit only on acknowledged/committed server write, recover without duplicate writes |
 | Loading / no results / storage or service failure | Separate loading, empty and failure states; explain safe recovery; support reference where available | Safe diagnostics; no false success or fabricated history |
 
-The first increment covers the main API wrapper and current audit component. Maintenance/gang local status messages, device storage/sync diagnostics, form focus/field-level validation, persistent notification history and all later journeys still need consistent adoption and acceptance under F24/F25. Existing messages remain, but are not counted as comprehensive coverage.
+The first increment covers the main API wrapper and current audit component. Device-sync recovery now uses safe guidance/support references and sanitized storage/transport messages. Maintenance/gang local status messages, form focus/field-level validation, persistent notification history and all later journeys still need consistent adoption and acceptance under F24/F25. Existing messages remain, but are not counted as comprehensive coverage.
 
 ## Verification
 
