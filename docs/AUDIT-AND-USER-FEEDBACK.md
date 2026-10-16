@@ -76,3 +76,8 @@ The first increment covers the main API wrapper and current audit component. Dev
 2. Proceed F06–F13 in order to establish customer hierarchy, identity, custom permission/scope engine and separation of duties. Add audit access regression cases with each layer.
 3. Deliver role publication/licensing audit coverage in the corresponding phases, then F23/F24 shared workflow and feedback components.
 4. Close F25 only with complete journey evidence and the remaining production security/operations gates satisfied.
+
+
+## Playwright acceptance plan
+
+The [Playwright journey/regression plan](PLAYWRIGHT-JOURNEY-TEST-PLAN.md) defines reusable fixtures, scenario IDs, UI/UX/audit assertions, regression tiers and protected failure evidence for this matrix. Existing scripts are partial evidence; proposed runner migration and full journey coverage remain planned.

@@ -111,3 +111,10 @@ Sync failures now preserve safe server guidance and valid request references. Pe
 [CI run 38925295750](https://github.com/kunal1274/ssjns-eoms/actions/runs/38925295750) passed on `d3b61c3bc9e9ff4ab4085d7d40ccaf062352c36d`: 25 unit/security/configuration/presentation tests plus 18 real PostgreSQL/API tests (43 unique tests), formatting, TypeScript/web/PWA build, browser/workflow/offline/installability checks, dependency audit, actual Docker build/start/container verification and proxy/idempotency/persistence. Both verify and quality-gate succeeded. The PWA browser check now injects a 503 with a private error body and valid support reference, verifies safe display and unchanged pending draft/key, then verifies lost-response recovery without duplicate server creation. Session expiry, retained locked-period guidance, retry, account isolation and logout remain covered.
 
 This follow-up evidence edit is documentation-only. F05 remains Blocked by main protection; F06 has not started.
+
+
+## Latest ruleset and test-plan review
+
+At the latest 16 October 2026 review, main reports protected. Active ruleset 25257228 now includes `~DEFAULT_BRANCH`, no exclusions/bypass actors, and deletion/non-fast-forward restrictions. It still lacks required PR/reviews, required quality-gate/up-to-date status checks, conversation resolution and linear history. Protection existence is partial progress, not completion of the accepted policy. F05 remains Blocked. The connected GitHub tools can read this ruleset but cannot administer it.
+
+The owner-requested [Playwright journey/regression plan](PLAYWRIGHT-JOURNEY-TEST-PLAN.md) records the next test infrastructure increment and full F25 coverage obligations. This documentation-only update does not change the previously tested application source or install the proposed runner.
