@@ -191,18 +191,18 @@ export function renderLedger(ledger: Ledger) {
 <p>${Object.entries(ledger.counts)
     .map(([s, n]) => `${e(s)}: ${n}`)
     .join(" · ")}</p>
-<label>Status <select id="status"><option value="">All statuses</option>${Object.keys(
+<label for="status">Status</label><select id="status" aria-label="Status"><option value="">All statuses</option>${Object.keys(
     ledger.counts,
   )
     .map((s) => `<option>${e(s)}</option>`)
     .join(
       "",
-    )}</select></label><label>Screen <select id="screen"><option value="">All screens</option>${[
+    )}</select><label for="screen">Screen</label><select id="screen" aria-label="Screen"><option value="">All screens</option>${[
     ...new Set(ledger.rows.map((r) => r.screen)),
   ]
     .sort()
     .map((s) => `<option>${e(s)}</option>`)
-    .join("")}</select></label>
+    .join("")}</select>
 <p id="visible" role="status"></p><div class="wrap"><table><thead><tr><th scope="col">Item / scope</th><th scope="col">Control and required assertion</th><th scope="col">Status</th><th scope="col">Mapped evidence</th></tr></thead><tbody>${ledger.rows.map((r) => `<tr data-status="${e(r.status)}" data-screen="${e(r.screen)}"><td>${e(r.id)}<small>${e(r.journey)} · ${e(r.screen)} · ${e(r.category)} · ${e(r.project)}</small></td><td>${e(r.control)}<small>${e(r.assertion)}</small></td><td><strong class="${e(r.status)}">${e(r.status)}</strong>${r.status === "stale" ? `<small>Previous: ${e(r.previousStatus)}</small>` : ""}</td><td>${e(r.binding?.caseId || "No runner assertion mapped")}<small>${e(r.binding?.step || "Requires implementation/mapping; never inferred from clicks")}</small></td></tr>`).join("")}</tbody></table></div>
 <script>const filters=['status','screen'].map(id=>document.getElementById(id));function filter(){let n=0;for(const row of document.querySelectorAll('tbody tr')){row.hidden=filters.some(f=>f.value&&row.dataset[f.id]!==f.value);if(!row.hidden)n++}document.getElementById('visible').textContent=n+' inventory/project rows shown'}filters.forEach(f=>f.addEventListener('change',filter));filter();</script></html>`;
 }
