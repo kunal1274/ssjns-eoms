@@ -1,3 +1,4 @@
+import { browserOptions } from "./browser-options.mjs";
 import pg from "pg";
 import { loadEnvFile } from "node:process";
 import { randomUUID } from "node:crypto";
@@ -17,7 +18,7 @@ await fixtureDb.query(
 import { chromium } from "playwright";
 import { readFile } from "node:fs/promises";
 const accounts = JSON.parse(await readFile(".local/dev-accounts.json", "utf8"));
-const browser = await chromium.launch({ headless: true, channel: "chrome" });
+const browser = await chromium.launch(browserOptions());
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));

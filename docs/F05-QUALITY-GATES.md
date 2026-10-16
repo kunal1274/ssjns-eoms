@@ -118,3 +118,8 @@ This follow-up evidence edit is documentation-only. F05 remains Blocked by main 
 At the latest 16 October 2026 review, main reports protected. Active ruleset 25257228 now includes `~DEFAULT_BRANCH`, no exclusions/bypass actors, and deletion/non-fast-forward restrictions. It still lacks required PR/reviews, required quality-gate/up-to-date status checks, conversation resolution and linear history. Protection existence is partial progress, not completion of the accepted policy. F05 remains Blocked. The connected GitHub tools can read this ruleset but cannot administer it.
 
 The owner-requested [Playwright journey/regression plan](PLAYWRIGHT-JOURNEY-TEST-PLAN.md) records the next test infrastructure increment and full F25 coverage obligations. This documentation-only update does not change the previously tested application source or install the proposed runner.
+
+
+## Visible Playwright replay continuation
+
+Shared browser launch settings now support visible Chrome with bounded action delay while preserving headless defaults. A local wrapper runs the existing browser suite visibly; a codegen command records ignored manual-test drafts for later runner/assertion review. Unit checks cover launch defaults and invalid delay settings. Local unit/build checks passed; CI evidence is recorded after execution. Local desktop observation is still required for headed-mode acceptance. The one-click workbench and reusable cross-project kit are planned separately, not claimed as implemented.

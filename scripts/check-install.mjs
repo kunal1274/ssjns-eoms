@@ -1,3 +1,4 @@
+import { browserOptions } from "./browser-options.mjs";
 import { chromium } from "playwright";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -6,10 +7,7 @@ import assert from "node:assert/strict";
 const dir = await mkdtemp(join(tmpdir(), "eoms-install-"));
 let context;
 try {
-  context = await chromium.launchPersistentContext(dir, {
-    headless: true,
-    channel: "chrome",
-  });
+  context = await chromium.launchPersistentContext(dir, browserOptions());
   const page = await context.newPage();
   await page.goto(process.env.PWA_BASE_URL || "http://localhost:5175");
   await page.waitForFunction(

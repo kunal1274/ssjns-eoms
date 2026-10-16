@@ -95,3 +95,10 @@ GitHub Actions runs unit/sync and PostgreSQL integration tests, the build, all f
 Run `npm run format:check`, `npm test` and `npm run build` locally; database/browser/Docker checks remain mandatory in CI. API error responses preserve the human-readable `error` string and add a stable `code`, server `requestId` and matching `X-Request-ID`. Application failure logs use allowlisted metadata rather than raw exception messages.
 
 The final `quality-gate` CI job fails for failed, cancelled or skipped verification. Enforcing that job on main also requires repository-admin branch protection; it has not been enabled by a source commit. See [F05 quality gates](docs/F05-QUALITY-GATES.md) for evidence, image/dependency promotion and the exact remaining administrator action. Full production security and deployment acceptance remain open.
+
+
+## Watch and record browser journeys
+
+After the host verification prerequisites above are ready, run `npm run test:journeys:visible` to watch the existing regression scenarios in Chrome on your computer. Actions are slowed for observation; the current suite covers selected journeys, not every field in the product.
+
+With the development API/web already running at http://localhost:5174, use `npm run test:journeys:record` to open Playwright's recorder. It writes an ignored draft to `.local/recorded-journey.spec.ts`. Use synthetic accounts/data; review recorded inputs before sharing. The generated draft targets the planned Playwright Test runner and needs fixtures/assertions/review before it becomes a runnable regression case. The single-click dashboard and cross-project kit are planned in [the workbench plan](docs/PLAYWRIGHT-JOURNEY-TEST-PLAN.md#visible-testing-manual-recording-and-reusable-test-workbench).

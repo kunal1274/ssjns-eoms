@@ -1,8 +1,9 @@
+import { browserOptions } from "./browser-options.mjs";
 import { chromium } from "playwright";
 import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 const accounts = JSON.parse(await readFile(".local/dev-accounts.json", "utf8")),
-  browser = await chromium.launch({ headless: true, channel: "chrome" }),
+  browser = await chromium.launch(browserOptions()),
   page = await browser.newPage({ viewport: { width: 1440, height: 1100 } }),
   suffix = String(Date.now()),
   errors = [];

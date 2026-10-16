@@ -113,3 +113,47 @@ Keep retries bounded and visible (proposed one diagnostic retry in CI). A fail-t
 ## Definition of done
 
 A journey closes only when its accepted requirement links, synthetic preconditions, happy path, denied boundaries, recovery states, user guidance, persisted effects and authorized audit evidence pass. Record exact commit/run/project evidence, update the coverage matrix and retain manual acceptance where needed. API/domain tests carry calculation/concurrency/security depth; Playwright verifies the connected user experience and does not replace them.
+
+
+## Visible testing, manual recording and reusable test workbench
+
+Owner refinement: 16 October 2026. The intended experience is a browser visibly navigating, filling fields, submitting forms and checking results like a tester, plus manual recording that can become a repeatable one-click regression journey. The reference to Replit describes the desired ease of use; no parity claim is made about another product's internals.
+
+### Available now: visible replay and recorder launch
+
+`npm run test:journeys:visible` starts the existing combined verifier with visible Chrome windows and a 350 ms delay between Playwright actions. It uses the same current assertions and fixtures as headless regression; it does not add coverage of every field. Chrome opens on the computer executing the command, not inside this chat or on a separate user's desktop. A desktop/display session is required; headless Docker/CI execution cannot display a browser on your desktop without a separately configured display service.
+
+Use the host development/test setup documented in README (Node 24, `npm ci`, configured PostgreSQL, migrations, host synthetic seed/account file, test database and `npm run build`). Chrome must be installed. Do not mix Docker seed credentials with the host account file. The verifier starts its own app/PWA servers and stops them at the end. `E2E_SLOW_MO_MS` may be set from 0 to 2000; visible runs have a 600-second per-script deadline, while ordinary CI retains the 120-second deadline and headless behavior. Local visible replay itself still requires observation on a real desktop; CI headless evidence does not certify that visual experience.
+
+`npm run test:journeys:record` opens Playwright codegen/Inspector against the running development app at `http://localhost:5174`, with Chrome and draft output `.local/recorded-journey.spec.ts`. Start the API/web app first and use only synthetic data. The codegen CLI exists in the installed Playwright package. Its output targets the planned Playwright Test runner; generated files are **drafts**, not executable members of the current script suite or proof of acceptance. That runner is not installed by this increment. `.local` is ignored; the host setup/seed creates it. Do not place credentials, recorded authentication/session state or private captured values in committed test source.
+
+### Workbench delivery sequence
+
+| Stage | Status | User experience and acceptance |
+|---|---|---|
+| Visible current replay | Implemented; verification evidence tracked in F05 | One local npm command shows the current scenarios acting in Chrome; pass/fail remains terminal/CI evidence |
+| Manual recorder entry | CLI launch configured | Record clicks/typing/navigation into an ignored draft; manually add assertions and deterministic fixtures before review |
+| Runner authoring/replay UI | Planned test infrastructure | Adopt matched `@playwright/test`, use its UI mode/Inspector to select a journey, run/debug/pause and inspect each step; confirm synthetic fixture isolation |
+| Manual recording to reviewed scenario | Planned | Assign journey/case ID and persona; replace hard-coded sensitive inputs; add assertions, negative cases, setup/cleanup and persisted/audit expectations; review and run independently |
+| One-click journey dashboard | Planned | Select project/environment/persona/journey; Run/Stop/Replay/Record controls; real queued/running/result states, step timeline, elapsed time and evidence links |
+| Field/action/form/navigation coverage ledger | Planned | Inventory each screen/control, required/optional validation, boundary/format rules, save/cancel/reset, dialog behavior, focus, navigation/back/reload, access and feedback states; map each item to explicit assertions and last run |
+| Regression selection and reuse | Planned | Run one case, affected journey or full suite; share versioned kit across projects through adapters and templates, preserving each project's domain assertions |
+
+Recording actions cannot automatically establish expected business behavior or test every field. For example, typing into an email field does not prove required, invalid-format, length, whitespace, duplicate, permission and keyboard behavior. The coverage ledger must identify these separate assertions and show remaining gaps.
+
+### Status and evidence contract
+
+Show separate statuses: Not authored, Recorded draft, Ready to run, Queued, Running, Passed, Failed, Flaky, Skipped, Cancelled and Stale. Manual acceptance is separately labeled with reviewer/time; it does not turn an automated case green. A Passed badge requires actual assertion results linked to the case/test version, source commit/build, environment, browser, fixture scope and timestamp. An old pass becomes stale for a changed build/test; a prior pass does not hide the latest failure. Untested controls remain visible as gaps. Failed steps expose safe messages, screenshot/trace/report links and support references where available. Never manufacture a successful result from a recording or mock dashboard row.
+
+### Reusable architecture
+
+Keep a shared test-kit boundary for runner/reporting, visible mode, recorder helpers, artifact handling and reusable accessibility/interaction assertions. Project adapters provide base URLs, synthetic fixture providers, authentication, domain page objects and journey metadata. EOMS-specific work allocation, roles/scopes, licensing, audit and calculations stay in its adapter. Define the package/version contract and prove reuse with a second project before claiming a portable platform is complete.
+
+A web button needs a trusted local/CI runner to launch a browser: a normal website cannot directly execute host test commands. The planned local runner binds to loopback, accepts only registered project/suite IDs (no arbitrary shell commands), checks origin/session authorization, serializes incompatible runs and supports cancellation/cleanup. Keep browser profiles and secrets outside reports; use synthetic test environments and restricted artifact access. Do not expose this control surface publicly or add it to the production EOMS user menu by default.
+
+### Immediate sequence and closure
+
+1. Verify the visible launch settings and unchanged headless regressions; record actual tested evidence and limitations.
+2. Complete the existing F05 repository-policy gate, then deliver the planned runner/fixture migration increment with actual UI-mode execution evidence.
+3. Implement the reviewed-recording workflow and run/result metadata, followed by the real one-click dashboard and coverage ledger. No static green completion indicators.
+4. Expand each F06–F25 journey alongside its feature, then extract the versioned shared kit and validate a second project adapter.
