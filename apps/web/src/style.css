@@ -411,3 +411,15 @@ code {
   white-space: pre-line;
   overflow-wrap: anywhere;
 }
+
+textarea {
+  width: 100%;
+  font: inherit;
+  padding: 10px;
+  border: 1px solid #cbd6ce;
+  border-radius: 6px;
+  min-height: 70px;
+}
+.editor form > label {
+  margin: 12px 0;
+}

@@ -95,6 +95,13 @@ export function classifyError(error: unknown): {
     };
   if (detail.type === "entity.parse.failed")
     return { status: 400, code: "BAD_REQUEST", error: "Invalid JSON" };
+  if (detail.code === "23514")
+    return {
+      status: 422,
+      code: "VALIDATION_FAILED",
+      error:
+        "The submitted values violate an allowed data rule. Check the values and relationships.",
+    };
   if (detail.code === "23503")
     return {
       status: 422,

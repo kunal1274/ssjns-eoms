@@ -219,3 +219,14 @@ test("logging sink failure does not expose exception details or break the respon
   contract(r, 500, "INTERNAL_ERROR");
   assert.ok(!JSON.stringify(r.body).includes("private"));
 });
+
+test("database relationship checks return safe validation guidance without SQL detail", () => {
+  const result = classifyError({
+    code: "23514",
+    detail: "PRIVATE-SQL-ROW",
+    constraint: "private_constraint",
+  });
+  assert.equal(result.status, 422);
+  assert.equal(result.code, "VALIDATION_FAILED");
+  assert.doesNotMatch(JSON.stringify(result), /PRIVATE|private_constraint/);
+});

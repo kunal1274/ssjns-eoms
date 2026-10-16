@@ -2,7 +2,7 @@ import type { Express, Response } from "express";
 import type { PoolClient } from "pg";
 import { z } from "zod";
 import { ApiError } from "./http";
-type Transaction = <T>(
+export type Transaction = <T>(
   res: Response,
   fn: (client: PoolClient) => Promise<T>,
 ) => Promise<T>;

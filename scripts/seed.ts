@@ -112,6 +112,11 @@ try {
       id = row.rows[0].id;
       credentials.push({ email: a.email, password, role: a.role });
     }
+    if (a.email === "manager@eoms.local")
+      await c.query(
+        "INSERT INTO eoms.organization_admins(customer_id,user_id) VALUES($1,$2) ON CONFLICT DO NOTHING",
+        [customer, id],
+      );
     for (const estateId of a.estates)
       await c.query(
         "INSERT INTO eoms.memberships(user_id,estate_id,role) VALUES($1,$2,$3) ON CONFLICT DO NOTHING",

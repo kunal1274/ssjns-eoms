@@ -54,25 +54,22 @@ The regular CI runs `npm run test:e2e` in addition to all existing browser scrip
 
 The existing script-based visible replay remains available. A project-aware dashboard, recording-to-case review UI, full field/action/form/navigation inventory, coverage/stale-result engine and a versioned portable kit for other projects remain planned. Playwright UI is the working test runner interface; it is not yet that custom cross-project workbench. No claim is made of manual desktop observation from this remote environment.
 
-
 ## Executed evidence
 
 [CI run 38946761298](https://github.com/kunal1274/ssjns-eoms/actions/runs/38946761298) passed on source `179aae4dde45d834e28cf8644fc48187b11b12e0`: E2E-JRN-07-001 passed in chrome-desktop (1.9 seconds) and chrome-mobile (1.8 seconds), alongside 27 unit/config/security/presentation tests, 18 PostgreSQL/API tests, legacy browser/PWA checks, build/formatting, zero known dependency vulnerabilities in that run, and Docker/proxy/idempotency/persistence verification. The final quality-gate passed. This is headless execution evidence; local interactive UI/desktop observation is still pending. A subsequent documentation-only commit records the result.
-
 
 ## Additional selectable cases
 
 E2E-JRN-03-001 checks required/format sign-in fields, focus, no invalid login request, safe injected service-failure guidance/support reference and successful real authentication retry. E2E-JRN-07-002 checks missing work date/gang/area, nonpositive/invalid area precision, no selected worker, preserved inputs after an injected 422 rejection, then a real save with exactly one record/audit event. These are deliberate partial assertions, not complete per-field coverage. Each appears under both desktop/mobile viewport projects in UI mode. Latest CI evidence is in the tracker.
 
-
 Latest validation/recovery evidence: [CI run 38950026833](https://github.com/kunal1274/ssjns-eoms/actions/runs/38950026833) passed on `76d9f904b853288bb6ae669c19c4ccb3c691aac0`: all three scenarios in both viewport projects (six executions). The no-worker check asserts Save is disabled and re-enabled after selection; it does not attempt to click a disabled control. The full existing quality gate also passed. See CURRENT-HANDOFF.md for the next increment.
-
 
 ## Coverage ledger
 
 The runner now creates `.local/e2e-ledger/index.html` and JSON evidence. Run `npm run test:coverage` to regenerate against current source, then open that file and filter by status/screen. The [coverage guide](PLAYWRIGHT-COVERAGE-LEDGER.md) explains the initial inventory, evidence gates, stale detection and remaining gaps. This is a read-only assertion report; use Playwright UI for test execution.
 
-
 ## Organization scenario
 
 E2E-JRN-02-001 now covers scoped customer/company/estate context, recorded customer display-history disclosure and opening the assigned estate register, at desktop/mobile widths. Both passed in CI 38966302671 on source 8027aad3364576c29d32b7e9a095ab72209f6cec. There are four scenarios/eight viewport executions in total. Full hierarchy creation/moves/inheritance remain unimplemented and are not implied by this read-only journey.
+
+F06.2 adds `E2E-JRN-02-002` using the explicit synthetic setup administrator grant. It configures a legal group/company and division/field/block, edits a block, reloads and inspects history. Run visibly with `npm run test:e2e:headed -- --grep E2E-JRN-02-002` after isolated test setup. The browser opens on the executing computer. Full current suite: five scenarios × two viewport projects; CI evidence is recorded in the F06 tracker.

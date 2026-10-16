@@ -50,6 +50,13 @@ try {
     await c.query(
       await readFile("db/migrations/005_customer_boundary.sql", "utf8"),
     );
+    await c.query(
+      await readFile("db/migrations/006_hierarchy_setup.sql", "utf8"),
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.organization_admins")).rowCount,
+      0,
+    );
     const rows = (
       await c.query(
         "SELECT e.id,e.customer_id,c.customer_id AS company_customer FROM eoms.estates e JOIN eoms.companies c ON c.id=e.company_id WHERE e.id=$1",

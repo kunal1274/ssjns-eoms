@@ -8,6 +8,7 @@ type Work = { taskCode: string; date: string; db: pg.Pool };
 export const estateId = "20000000-0000-4000-8000-000000000001";
 export const test = base.extend<{
   supervisor: Account;
+  setupAdmin: Account;
   muster: MusterPage;
   work: Work;
 }>({
@@ -18,6 +19,14 @@ export const test = base.extend<{
     const account = accounts.find((a) => a.email === "supervisor@eoms.local");
     if (!account)
       throw Error("Seed isolated test accounts with npm run db:test first.");
+    await use(account);
+  },
+  setupAdmin: async ({}, use) => {
+    const accounts = JSON.parse(
+      await readFile(".local/test-accounts.json", "utf8"),
+    ) as Account[];
+    const account = accounts.find((a) => a.email === "manager@eoms.local");
+    if (!account) throw Error("Seed explicit synthetic setup grant first.");
     await use(account);
   },
   muster: async ({ page }, use) => {

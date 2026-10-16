@@ -25,7 +25,7 @@ Deliver the complete Estate Opera EOMS solution end to end against the accepted 
 
 ## Next concrete queue
 
-1. F06.1 is verified. Next: F06.2 controlled legal/operational hierarchy configuration, explicit administrative grants, tenant-local codes, valid parent/type rules, cycles/cross-tenant prevention and change history. Keep the full regression gate and current owner exception.
+1. F06.1 is verified. F06.2 controlled configuration is implemented; finish real PostgreSQL/Playwright/Docker CI verification, record exact source/run, then continue F06.3 model/access completion. Keep the full regression gate and owner exception.
 2. Complete local interactive observation with the owner: `npm run test:e2e:ui` / `npm run test:e2e:headed` after host test setup. The browser opens on the executing computer; remote headless CI does not show it on the owner's desktop.
 3. The initial 39-item coverage ledger is implemented; [coverage guide](PLAYWRIGHT-COVERAGE-LEDGER.md). Next expand the inventory from actual screens and add reviewed-recording conversion/run metadata, preserving precise assertion mappings and visible gaps. Local execution evidence is not fabricated.
 4. Add reviewed-recording conversion and real run/result metadata, then a project-aware local runner-backed one-click dashboard. Keep secrets/session traces private and commands allowlisted. Prove a versioned shared kit against a second project before claiming portability.
@@ -54,3 +54,7 @@ The owner explicitly accepted the current ruleset for continuing development. Se
 ## Latest verified business checkpoint
 
 Source `8027aad3364576c29d32b7e9a095ab72209f6cec`, [CI run 38966302671](https://github.com/kunal1274/ssjns-eoms/actions/runs/38966302671): F06.1 customer boundary/scoped Organization/history/estate-handoff verified; 55 unit/API tests, separate legacy upgrade harness, eight browser-runner executions and full prior/Docker/final gate passed. Current inventory is 42 items (22 mappings, 20 gaps), rendered at two viewport projects: 44 passed/40 untested rows. Later evidence edits are docs only. Continue F06.2; do not re-block on the owner-accepted F05 ruleset exception. F06 remains In progress.
+
+## Active F06.2 checkpoint
+
+Controlled optional groups/company assignment and division/optional-field/block setup are implemented with explicit customer grants (not implied by manager role), RLS, parent/type/scope guards, optimistic versions and reasoned before/after history. Local checks/build/35 unit tests passed; full CI evidence is pending. Six new API/DB tests and E2E-JRN-02-002 preserve the existing regression suite. Inventory: 46 items, 26 mappings and 20 explicit gaps across two projects. Next after verification: F06.3 region/business-unit/effective ownership/move/deactivation/access inheritance and occurrence-block linkage; full permission engine dependencies remain F09–F13. F06 is not complete. Visible owner desktop observation and full test dashboard/recording conversion are still queued.

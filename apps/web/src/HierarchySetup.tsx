@@ -1,0 +1,614 @@
+import { useEffect, useState } from "react";
+type Unit = {
+  id: string;
+  kind: string;
+  code: string;
+  name: string;
+  parent_id: string | null;
+  version: number;
+};
+type Context = {
+  canConfigure: boolean;
+  truncated: boolean;
+  groups: { id: string; code: string; name: string }[];
+  companies: {
+    id: string;
+    name: string;
+    group_id: string | null;
+    hierarchy_version: number;
+  }[];
+  estates: { id: string; name: string }[];
+};
+type Change = {
+  id: string;
+  record_id: string;
+  record_type: string;
+  action: string;
+  actor: string;
+  reason: string;
+  request_id: string | null;
+  created_at: string;
+  before: {
+    code?: string;
+    name?: string;
+    parentId?: string;
+    groupId?: string;
+    version?: number;
+  };
+  after: {
+    code?: string;
+    name?: string;
+    parentId?: string;
+    groupId?: string;
+    version?: number;
+  };
+};
+const empty: Context = {
+  canConfigure: false,
+  truncated: false,
+  groups: [],
+  companies: [],
+  estates: [],
+};
+export function HierarchySetup({
+  api,
+  customerId,
+}: {
+  api: (path: string, body?: unknown) => Promise<any>;
+  customerId: string;
+}) {
+  const [data, setData] = useState(empty),
+    [estate, setEstate] = useState(""),
+    [company, setCompany] = useState(""),
+    [group, setGroup] = useState(""),
+    [units, setUnits] = useState<Unit[]>([]),
+    [changes, setChanges] = useState<Change[]>([]),
+    [loading, setLoading] = useState(true),
+    [unitsLoading, setUnitsLoading] = useState(false),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState(""),
+    [message, setMessage] = useState(""),
+    [truncated, setTruncated] = useState(false);
+  const [editing, setEditing] = useState<Unit | null>(null),
+    [kind, setKind] = useState("division"),
+    [code, setCode] = useState(""),
+    [name, setName] = useState(""),
+    [parent, setParent] = useState(""),
+    [unitReason, setUnitReason] = useState("");
+  const [groupCode, setGroupCode] = useState(""),
+    [groupName, setGroupName] = useState(""),
+    [groupReason, setGroupReason] = useState(""),
+    [assignmentReason, setAssignmentReason] = useState("");
+  const base = `/customers/${customerId}/hierarchy`;
+  function resetUnit() {
+    setEditing(null);
+    setKind("division");
+    setCode("");
+    setName("");
+    setParent("");
+    setUnitReason("");
+  }
+  async function loadContext() {
+    const [context, history] = await Promise.all([
+      api(base),
+      api(base + "/history"),
+    ]);
+    setData(context);
+    setChanges(history.items);
+    setTruncated(history.truncated);
+    setEstate((current) =>
+      context.estates.some((row: any) => row.id === current)
+        ? current
+        : context.estates[0]?.id || "",
+    );
+    setCompany((current) =>
+      context.companies.some((row: any) => row.id === current)
+        ? current
+        : context.companies[0]?.id || "",
+    );
+  }
+  async function loadUnits(id: string) {
+    if (!id) return;
+    const result = await api(`/estates/${id}/units`);
+    setUnits(result.items);
+    if (result.truncated) setTruncated(true);
+  }
+  useEffect(() => {
+    let active = true;
+    Promise.all([api(base), api(base + "/history")])
+      .then(([context, history]) => {
+        if (active) {
+          setData(context);
+          setChanges(history.items);
+          setTruncated(history.truncated);
+          setEstate(context.estates[0]?.id || "");
+          setCompany(context.companies[0]?.id || "");
+        }
+      })
+      .catch((e) => {
+        if (active) setError(e.message);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [customerId]);
+  useEffect(() => {
+    setGroup(data.companies.find((row) => row.id === company)?.group_id || "");
+  }, [company, data.companies]);
+  useEffect(() => {
+    let active = true;
+    setUnits([]);
+    resetUnit();
+    if (estate) {
+      setUnitsLoading(true);
+      api(`/estates/${estate}/units`)
+        .then((result) => {
+          if (active) {
+            setUnits(result.items);
+            if (result.truncated) setTruncated(true);
+          }
+        })
+        .catch((e) => {
+          if (active) setError(e.message);
+        })
+        .finally(() => {
+          if (active) setUnitsLoading(false);
+        });
+    }
+    return () => {
+      active = false;
+    };
+  }, [estate]);
+  async function save(
+    action: () => Promise<unknown>,
+    success: string,
+    reset: () => void,
+  ) {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    let committed = false;
+    try {
+      await action();
+      committed = true;
+      setMessage(success);
+      reset();
+      await loadContext();
+      await loadUnits(estate);
+    } catch (e) {
+      setError(
+        (committed
+          ? "Change saved, but refreshing the lists failed. Check saved records before retrying. "
+          : "") + (e as Error).message,
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function refresh() {
+    setBusy(true);
+    setError("");
+    try {
+      await loadContext();
+      await loadUnits(estate);
+      setMessage(
+        "Lists reloaded. Choose Edit again to load the latest saved version.",
+      );
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  const parents = units.filter((row) =>
+    kind === "field"
+      ? row.kind === "division"
+      : kind === "block"
+        ? ["division", "field"].includes(row.kind)
+        : false,
+  );
+  const selectedCompany = data.companies.find((row) => row.id === company);
+  return (
+    <section className="editor" aria-label="Hierarchy setup">
+      <h3>Hierarchy setup</h3>
+      <p>
+        Optional legal group → company. Within each assigned estate: division →
+        optional field → block. Structure does not grant operational access.
+        Every saved change needs a reason.
+      </p>
+      {loading && <p role="status">Loading hierarchy setup…</p>}
+      {error && (
+        <p role="alert" className="error">
+          {error}
+        </p>
+      )}
+      {message && <p role="status">{message}</p>}
+      {truncated || data.truncated ? (
+        <p>
+          Only a bounded portion of the hierarchy/history is shown. Complete
+          large-data navigation remains pending.
+        </p>
+      ) : null}
+      {!loading && (
+        <>
+          <button
+            className="secondary"
+            disabled={busy}
+            onClick={() => void refresh()}
+          >
+            Refresh hierarchy lists
+          </button>
+          {!data.canConfigure && (
+            <p>
+              View only. Ask your administrator for explicit hierarchy setup
+              access; an estate role alone does not permit changes.
+            </p>
+          )}
+          {data.canConfigure && (
+            <div className="grid">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void save(
+                    () =>
+                      api(`/customers/${customerId}/groups`, {
+                        code: groupCode,
+                        name: groupName,
+                        reason: groupReason,
+                      }),
+                    "Group saved.",
+                    () => {
+                      setGroupCode("");
+                      setGroupName("");
+                      setGroupReason("");
+                    },
+                  );
+                }}
+              >
+                <h4>1. Create an optional legal group</h4>
+                <label>
+                  Group code
+                  <input
+                    required
+                    maxLength={30}
+                    value={groupCode}
+                    onChange={(e) => setGroupCode(e.target.value)}
+                  />
+                </label>
+                <label>
+                  Group name
+                  <input
+                    required
+                    maxLength={160}
+                    value={groupName}
+                    onChange={(e) => setGroupName(e.target.value)}
+                  />
+                </label>
+                <label>
+                  Group reason
+                  <textarea
+                    required
+                    minLength={3}
+                    maxLength={500}
+                    value={groupReason}
+                    onChange={(e) => setGroupReason(e.target.value)}
+                  />
+                </label>
+                <button disabled={busy}>Save group</button>
+              </form>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (selectedCompany)
+                    void save(
+                      () =>
+                        api(
+                          `/customers/${customerId}/companies/${company}/group`,
+                          {
+                            groupId: group || null,
+                            version: selectedCompany.hierarchy_version,
+                            reason: assignmentReason,
+                          },
+                        ),
+                      "Company group saved.",
+                      () => setAssignmentReason(""),
+                    );
+                }}
+              >
+                <h4>2. Assign a company</h4>
+                <label>
+                  Hierarchy company
+                  <select
+                    aria-label="Hierarchy company"
+                    value={company}
+                    disabled={busy}
+                    onChange={(e) => setCompany(e.target.value)}
+                  >
+                    {data.companies.map((row) => (
+                      <option key={row.id} value={row.id}>
+                        {row.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Group assignment
+                  <select
+                    aria-label="Group assignment"
+                    value={group}
+                    disabled={busy}
+                    onChange={(e) => setGroup(e.target.value)}
+                  >
+                    <option value="">No group</option>
+                    {data.groups.map((row) => (
+                      <option key={row.id} value={row.id}>
+                        {row.code} · {row.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Assignment reason
+                  <textarea
+                    required
+                    minLength={3}
+                    maxLength={500}
+                    value={assignmentReason}
+                    onChange={(e) => setAssignmentReason(e.target.value)}
+                  />
+                </label>
+                <button disabled={busy || !selectedCompany}>
+                  Save company group
+                </button>
+              </form>
+            </div>
+          )}
+          <h4>3. Review or configure operating units</h4>
+          <label>
+            Hierarchy estate
+            <select
+              aria-label="Hierarchy estate"
+              value={estate}
+              disabled={busy}
+              onChange={(e) => setEstate(e.target.value)}
+            >
+              {data.estates.map((row) => (
+                <option key={row.id} value={row.id}>
+                  {row.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          {unitsLoading && <p role="status">Loading operating units…</p>}
+          {!unitsLoading && !error && !units.length && (
+            <p>
+              No units are configured for this estate. An authorized setup
+              administrator can add a division, optional field and block.
+            </p>
+          )}
+          {data.canConfigure && estate && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void save(
+                  () =>
+                    api(
+                      `/estates/${estate}/units` +
+                        (editing ? "/" + editing.id : ""),
+                      {
+                        kind,
+                        code,
+                        name,
+                        parentId: parent || null,
+                        reason: unitReason,
+                        ...(editing ? { version: editing.version } : {}),
+                      },
+                    ),
+                  "Unit saved.",
+                  resetUnit,
+                );
+              }}
+            >
+              <p>
+                {editing
+                  ? "Editing " +
+                    editing.code +
+                    " · saved version " +
+                    editing.version
+                  : "Create a new unit"}
+                . After a conflict, refresh lists and choose Edit again.
+              </p>
+              <div className="grid">
+                <label>
+                  Unit type
+                  <select
+                    aria-label="Unit type"
+                    value={kind}
+                    disabled={busy || !!editing}
+                    onChange={(e) => {
+                      setKind(e.target.value);
+                      setParent("");
+                    }}
+                  >
+                    <option value="division">Division</option>
+                    <option value="field">Field</option>
+                    <option value="block">Block</option>
+                  </select>
+                </label>
+                <label>
+                  Unit parent
+                  <select
+                    aria-label="Unit parent"
+                    value={parent}
+                    required={kind !== "division"}
+                    disabled={busy || kind === "division"}
+                    onChange={(e) => setParent(e.target.value)}
+                  >
+                    <option value="">
+                      {kind === "division"
+                        ? "Estate root"
+                        : "Choose an allowed parent"}
+                    </option>
+                    {parents.map((row) => (
+                      <option key={row.id} value={row.id}>
+                        {row.code} · {row.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Unit code
+                  <input
+                    required
+                    maxLength={30}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                  />
+                </label>
+                <label>
+                  Unit name
+                  <input
+                    required
+                    maxLength={160}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </label>
+              </div>
+              <label>
+                Unit reason
+                <textarea
+                  required
+                  minLength={3}
+                  maxLength={500}
+                  value={unitReason}
+                  onChange={(e) => setUnitReason(e.target.value)}
+                />
+              </label>
+              <div className="actions">
+                <button disabled={busy || unitsLoading}>Save unit</button>
+                <button
+                  type="button"
+                  className="secondary"
+                  disabled={busy}
+                  onClick={resetUnit}
+                >
+                  Clear unit form
+                </button>
+              </div>
+            </form>
+          )}
+          {!!units.length && (
+            <div className="tablewrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Type/code</th>
+                    <th>Name</th>
+                    <th>Parent</th>
+                    <th>Version/action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {units.map((row) => (
+                    <tr key={row.id} data-unit-code={row.code}>
+                      <td>
+                        {row.kind} · {row.code}
+                      </td>
+                      <td>{row.name}</td>
+                      <td>
+                        {units.find((p) => p.id === row.parent_id)?.code ||
+                          "Estate root"}
+                      </td>
+                      <td>
+                        {row.version}{" "}
+                        {data.canConfigure && (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => {
+                              setEditing(row);
+                              setKind(row.kind);
+                              setCode(row.code);
+                              setName(row.name);
+                              setParent(row.parent_id || "");
+                              setUnitReason("");
+                            }}
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <h4>Recent hierarchy changes</h4>
+          <p>
+            Only permitted display/relationship changes are shown. Times use
+            your device timezone.
+          </p>
+          {!changes.length && <p>No permitted hierarchy changes recorded.</p>}
+          {changes.map((change) => (
+            <article
+              className="event"
+              key={change.id}
+              data-hierarchy-record-id={change.record_id}
+            >
+              <div className="eventbody">
+                <strong>
+                  {change.record_type === "unit"
+                    ? "Unit"
+                    : change.record_type === "company"
+                      ? "Company"
+                      : change.record_type === "setup-grant"
+                        ? "Setup grant"
+                        : "Group"}{" "}
+                  {change.action} · {change.after.code || change.after.name}
+                </strong>
+                <small>
+                  {change.actor} ·{" "}
+                  {new Date(change.created_at).toLocaleString()}
+                </small>
+                <p>{change.reason}</p>
+                <details>
+                  <summary>View hierarchy change details</summary>
+                  <dl className="auditdetails">
+                    <dt>Before name / version</dt>
+                    <dd>
+                      {change.before.name || "No previous name"} ·{" "}
+                      {change.before.version || "—"}
+                    </dd>
+                    <dt>After name / version</dt>
+                    <dd>
+                      {change.after.name} · {change.after.version}
+                    </dd>
+                    <dt>Parent / group reference</dt>
+                    <dd>
+                      {change.before.parentId ||
+                        change.before.groupId ||
+                        "None"}{" "}
+                      →{" "}
+                      {change.after.parentId || change.after.groupId || "None"}
+                    </dd>
+                    {change.request_id && (
+                      <>
+                        <dt>Support reference</dt>
+                        <dd>{change.request_id}</dd>
+                      </>
+                    )}
+                  </dl>
+                </details>
+              </div>
+            </article>
+          ))}
+        </>
+      )}
+    </section>
+  );
+}

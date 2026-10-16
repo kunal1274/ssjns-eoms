@@ -6,12 +6,12 @@
 
 Customer tenant remains a distinct boundary from legal/financial company/group structure and the plantation operating hierarchy. Preserve the accepted DEC-01 flexibility: optional region/business unit, estate, division/afdeling, optional field, block; explicit legal responsibility/effective dates and downward scope grants. Parent visibility never implies sibling/upward/global record access.
 
-| Increment | Scope | Status |
-|---|---|---|
-| F06.1 Customer boundary and scoped context | Explicit customer roots, company/estate tenant keys, conservative legacy migration, safe read API, history and guided organization-to-estate handoff | Verified; see executed evidence below |
-| F06.2 Hierarchy configuration | Separate group/legal relationships and operational nodes; valid parent/type rules, no cycles/cross-tenant links, approved ownership/effective relationships, controlled administration UI/API | Next |
-| F06.3 Access and history completion | Explicit inheritance/scoped grants, hierarchy-change lineage, move/deactivation/conflict rules and larger-data navigation; align with F09–F13 permission engine | Planned, dependencies explicit |
-| F06.4 Phase acceptance | Positive/negative tenant/hierarchy cases, safe upgrade, persisted UI journeys, audit evidence and reconciled requirements | Pending |
+| Increment                                  | Scope                                                                                                                                                                | Status                                    |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| F06.1 Customer boundary and scoped context | Explicit customer roots, company/estate tenant keys, conservative legacy migration, safe read API, history and guided organization-to-estate handoff                 | Verified; see executed evidence below     |
+| F06.2 Controlled configuration             | Optional legal groups/company assignment and estate division/field/block configuration, explicit setup grants, parent/type/scope guards and versioned history        | Implemented; full CI verification pending |
+| F06.3 Model/access completion              | Region/business-unit nodes, ownership/effective dates, inheritance/scoped grants, moves/deactivation and large-data navigation; align with F09–F13 permission engine | Planned, dependencies explicit            |
+| F06.4 Phase acceptance                     | Positive/negative tenant/hierarchy cases, safe upgrade, persisted UI journeys, audit evidence and reconciled requirements                                            | Pending                                   |
 
 ## F06.1 behavior
 
@@ -34,9 +34,26 @@ The Organization navigation screen guides: choose accessible customer → inspec
 
 No customer/group provisioning UI, division/field/block hierarchy CRUD, cycle/move/effective-date model or general inherited authorization is claimed yet. Estate codes still have their legacy global uniqueness constraint; tenant-local business codes and their negative cases must be addressed with controlled hierarchy configuration. Existing operational records still enforce estate membership; full customer/record/field permission enforcement and production identity remain downstream gates. Production startup remains blocked. F06 completion requires the full roadmap acceptance, not just this working read slice.
 
-
 ## Executed F06.1 evidence — 17 October 2026 (India)
 
 [CI run 38966302671](https://github.com/kunal1274/ssjns-eoms/actions/runs/38966302671) passed on source `8027aad3364576c29d32b7e9a095ab72209f6cec`: 34 unit/config/security/presentation/ledger tests, 21 PostgreSQL/API tests and the separate legacy-schema upgrade harness, through both host CI and Docker verification. The upgrade harness preserved original company/estate/membership IDs, created correct customer mappings/history and verified runtime RLS in a separate temporary database. All eight Playwright executions passed, including the new organization/history/estate-handoff scenario at desktop/mobile viewport widths. Existing browser/PWA/installability, coverage-ledger filters, formatting/build, dependency audit (zero known vulnerabilities), Docker/proxy/idempotency/persistence and final quality-gate passed. The generated ledger reported 44 passed/40 untested item/project rows (42 inventory items total).
 
 The later evidence commit is documentation-only. F06.1 is verified; F06 remains In progress. Local interactive observation, complete hierarchy configuration/inheritance, production identity/permission enforcement and full phase acceptance are still open.
+
+## F06.2 controlled configuration
+
+Migration 006 introduces optional customer-local legal groups and company assignment separately from estate-local operating units. A division attaches to its estate; a field requires a division; a block requires a division or field. Composite foreign keys, RLS and trigger checks prevent foreign tenant/estate parents, invalid parent types, self-links and cycles. Per-estate advisory locks serialize hierarchy edits. Unit kind, tenant and estate are immutable; optimistic versions prevent stale overwrites. Estate codes are customer-local, group codes customer-local and unit codes unique within estate and kind.
+
+Setup authority requires an explicit customer grant in organization_admins. An existing manager role alone grants no setup rights. The synthetic manager account receives an explicit development seed grant; legacy upgrade grants nobody automatically. Grant bootstrap/revocation is recorded with honest system provenance. Runtime cannot self-grant, delete hierarchy records or mutate history. Operational writes require both setup authority and estate membership. Legal group visibility does not grant access to sibling estate records. Grant administration UI and the complete permission engine are future work.
+
+Organization → Hierarchy setup guides group creation, company assignment, estate selection and division/optional-field/block creation or editing. A reason is required for every save. Errors preserve entered values and expose safe recovery/reference guidance; version conflicts require refresh and choosing Edit again. A saved write followed by a failed refresh is explicitly identified so users do not blindly resubmit. Lists are bounded with visible truncation notices. Group rename/edit is not exposed in this increment.
+
+Append-only hierarchy events contain projected before/after display/relationship fields, version, actor, reason, timestamp and server request ID. The UI offers a short summary and expandable details. Estate members see only unit history in their estates; legal/setup history requires explicit setup authority. This is provisional display-history scope, not completion of sensitive audit permissions.
+
+### Remaining F06 scope
+
+Region/business-unit nodes; business effective dates and legal ownership lineage; move/deactivation rules and consequences; downward scope inheritance/full permission engine; canonical linkage from existing occurrence block_code to unit IDs; full search/pagination; grant lifecycle administration; group editing and final client requirement/journey acceptance remain open. F06 remains In progress. F07–F25 are not completed by this change.
+
+### Verification for this increment
+
+Local typecheck, 35 unit/config/security/ledger tests and production build passed. Added six PostgreSQL/API tests plus legacy upgrade through migration 006; real execution is pending CI. E2E-JRN-02-002 creates and assigns a group, creates division/field/block, edits a block, reloads persisted relationships and inspects before/after audit with reason/reference. Four precise assertion bindings expand the inventory to 46 items (26 mapped, 20 gaps); five scenarios across two viewport projects are expected. Expected counts are not executed evidence.

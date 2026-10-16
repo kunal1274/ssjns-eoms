@@ -15,18 +15,18 @@ Open `.local/e2e-ledger/index.html` on your computer. Filter by status or screen
 
 Machine-readable outputs:
 
-| File | Meaning |
-|---|---|
-| `tests/e2e/coverage-inventory.json` | Versioned control/assertion inventory, journey, screen, category, case and named-step bindings |
+| File                                | Meaning                                                                                                                                                |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `tests/e2e/coverage-inventory.json` | Versioned control/assertion inventory, journey, screen, category, case and named-step bindings                                                         |
 | `.local/e2e-ledger/latest-run.json` | Latest actual runner attempt: selected case/project IDs, attempts, assertion-bearing completed step names, status, source fingerprint and run metadata |
-| `.local/e2e-ledger/coverage.json` | Derived current status for each inventory item and viewport project |
-| `.local/e2e-ledger/index.html` | Local filterable view of the same derived statuses |
+| `.local/e2e-ledger/coverage.json`   | Derived current status for each inventory item and viewport project                                                                                    |
+| `.local/e2e-ledger/index.html`      | Local filterable view of the same derived statuses                                                                                                     |
 
 Generated evidence/reports are ignored, not committed as sample passes. With no run file, mapped items show not-run and unmapped items show untested. They do not become green from test discovery. Use `npm run test:e2e:ui` to select/replay journeys; this ledger is a read-only report, not the custom one-click execution dashboard.
 
 ## Initial scope and honest gaps
 
-The current inventory has 42 items: 22 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (84 rows). The initial ledger before F06 had 39 items. It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
+The current inventory has 46 items: 26 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (92 rows). The initial ledger before F06 had 39 items. It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
 
 The mapped controls include email/password prevention, safe login recovery, date/gang/area validation, missing-worker disabled Save, retained input after a rejected submission, exactly-once corrected save/audit, confirmation/reload, selected audit disclosure, cross-estate denial, audit-screen overflow and logout navigation. Existing browser/API scripts cover additional behavior; that evidence is separate and is not silently imported as a runner pass. An untested row means no executed assertion mapping in this ledger, not proof that no other test exists.
 
@@ -34,19 +34,19 @@ Mappings reference the actual stable case ID and named `test.step`. The reporter
 
 ## Status contract
 
-| Status | Interpretation |
-|---|---|
-| untested | No runner assertion mapping yet |
-| not-run | Mapping exists, but no current selected execution evidence for this item/project |
-| running | Selected run is still in progress; no early pass |
-| passed | Current fingerprint, successful overall case/run, expected normal success, completed assertion-bearing mapped step, no preceding failed retry/global error |
-| failed | Latest mapped case failed/timed out, or an expected-failure convention cannot establish normal passing evidence |
-| skipped | Latest selected test was skipped; not accepted coverage |
-| cancelled | Selected run/case was interrupted |
-| flaky | A failed/nonpassing attempt was followed by a pass; it remains non-green |
-| blocked | The mapped case passed but the overall run/global error prevents accepting the evidence |
-| mapping-error | A passed case did not complete the required assertion-bearing step |
-| stale | Relevant source fingerprint differs; prior status remains visible, including previous failures |
+| Status        | Interpretation                                                                                                                                             |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| untested      | No runner assertion mapping yet                                                                                                                            |
+| not-run       | Mapping exists, but no current selected execution evidence for this item/project                                                                           |
+| running       | Selected run is still in progress; no early pass                                                                                                           |
+| passed        | Current fingerprint, successful overall case/run, expected normal success, completed assertion-bearing mapped step, no preceding failed retry/global error |
+| failed        | Latest mapped case failed/timed out, or an expected-failure convention cannot establish normal passing evidence                                            |
+| skipped       | Latest selected test was skipped; not accepted coverage                                                                                                    |
+| cancelled     | Selected run/case was interrupted                                                                                                                          |
+| flaky         | A failed/nonpassing attempt was followed by a pass; it remains non-green                                                                                   |
+| blocked       | The mapped case passed but the overall run/global error prevents accepting the evidence                                                                    |
+| mapping-error | A passed case did not complete the required assertion-bearing step                                                                                         |
+| stale         | Relevant source fingerprint differs; prior status remains visible, including previous failures                                                             |
 
 The latest attempt replaces the latest snapshot, even on failure. A filtered run does not inherit passes for unselected cases/projects. Reporter mapping/flaky/stale/global errors fail the runner rather than hiding behind an overall green result. Skips and unimplemented gaps remain visible; this initial phase does not require every planned product feature to pass. F25 acceptance still requires complete agreed coverage/explicit scope decisions.
 
@@ -64,10 +64,10 @@ Add a stable inventory ID, accepted journey ID, screen/category, precise control
 
 `packages/testing/coverage.ts` contains reusable schema/status/rendering logic. `scripts/coverage-files.ts` supplies the EOMS source/inventory adapter; `scripts/coverage-reporter.ts` supplies Playwright events. A versioned shared package and second-project adapter remain future work. The reviewed-recording workflow, source-linked control discovery and project-aware execution dashboard remain queued in CURRENT-HANDOFF.md.
 
-
 ## Executed evidence
 
 [CI run 38957729942](https://github.com/kunal1274/ssjns-eoms/actions/runs/38957729942) passed on `85d8ec16b6aa9b74a0ad9966f50c7e03dcf0b45a`. Six real journey executions produced 38 passed/40 untested ledger rows; regeneration matched. The separate browser check verified status filtering, combined screen/status selection, known gaps, restored rows and no page errors. The first candidate exposed ambiguous filter labels; explicit label associations fixed the UI and the same browser assertion then passed. 52 unit/API tests, existing browser/PWA, build/formatting, dependency audit (zero known vulnerabilities in that run), actual Docker/persistence and final gate also passed. A later documentation-only update records this proof. Local interactive desktop observation and full inventory/workbench acceptance remain open.
 
-
 F06.1 evidence: [CI run 38966302671](https://github.com/kunal1274/ssjns-eoms/actions/runs/38966302671), source `8027aad3364576c29d32b7e9a095ab72209f6cec`, includes three new organization/history/estate-handoff mappings. Actual generated counts: 44 passed and 40 untested rows; filters passed. These remain partial product assertions, not complete hierarchy coverage.
+
+F06.2 adds four assertion bindings for E2E-JRN-02-002: group/company setup, division/field setup, block create/edit, and persisted relationships/history. Expected full-run rows are 52 passed/40 untested; actual execution evidence must be recorded after CI. This does not close the full JRN-02 gap.

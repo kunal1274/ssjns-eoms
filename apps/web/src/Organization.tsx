@@ -1,3 +1,4 @@
+import { HierarchySetup } from "./HierarchySetup";
 import { useEffect, useState } from "react";
 type Node = {
   customer_id: string;
@@ -24,7 +25,7 @@ export function Organization({
   api,
   onOpenEstate,
 }: {
-  api: (path: string) => Promise<any>;
+  api: (path: string, body?: unknown) => Promise<any>;
   onOpenEstate: (id: string) => void;
 }) {
   const [rows, setRows] = useState<Node[]>([]),
@@ -98,8 +99,8 @@ export function Organization({
       </ol>
       <p>
         Only your assigned estates are shown. Seeing a customer or company does
-        not grant access to its other estates. This first setup view is
-        read-only; group, division and block configuration will follow.
+        not grant access to its other estates. Use the hierarchy setup below to
+        review or configure permitted groups, divisions, fields and blocks.
       </p>
       {loading && <p role="status">Loading your organization…</p>}
       {error && (
@@ -171,6 +172,9 @@ export function Organization({
             ))}
         </section>
       ))}
+      {customer && (
+        <HierarchySetup key={customer} api={api} customerId={customer} />
+      )}
       {customer && (
         <section aria-label="Customer name and code history">
           <h3>Customer name and code history</h3>

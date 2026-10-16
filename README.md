@@ -89,13 +89,11 @@ Sign out requires connectivity and prompts before discarding unsynced device dat
 
 GitHub Actions runs unit/sync and PostgreSQL integration tests, the build, all four browser workflows, Chrome manifest/installability diagnostics and the dependency audit on pushes to main and pull requests. Actions are pinned to immutable revisions; the job has read-only repository permissions. CI databases/accounts are disposable and independent of local credentials. See `docs/MILESTONE-CLOSEOUT.md` for the delivered checkpoint and explicit future work.
 
-
 ## F05 quality and safe API errors
 
 Run `npm run format:check`, `npm test` and `npm run build` locally; database/browser/Docker checks remain mandatory in CI. API error responses preserve the human-readable `error` string and add a stable `code`, server `requestId` and matching `X-Request-ID`. Application failure logs use allowlisted metadata rather than raw exception messages.
 
 The final `quality-gate` CI job fails for failed, cancelled or skipped verification. Enforcing that job on main also requires repository-admin branch protection; it has not been enabled by a source commit. See [F05 quality gates](docs/F05-QUALITY-GATES.md) for evidence, image/dependency promotion and the exact remaining administrator action. Full production security and deployment acceptance remain open.
-
 
 ## Watch and record browser journeys
 
@@ -103,22 +101,18 @@ After the host verification prerequisites above are ready, run `npm run test:jou
 
 With the development API/web already running at http://localhost:5174, use `npm run test:journeys:record` to open Playwright's recorder. It writes an ignored draft to `.local/recorded-journey.spec.ts`. Use synthetic accounts/data; review recorded inputs before sharing. The generated draft targets the installed Playwright Test runner and needs fixtures/assertions/review before it becomes a regression case. The single-click dashboard and cross-project kit are planned in [the workbench plan](docs/PLAYWRIGHT-JOURNEY-TEST-PLAN.md#visible-testing-manual-recording-and-reusable-test-workbench).
 
-
 ## Interactive Playwright test UI
 
 The first journey is available in Playwright UI mode. After host test setup and `npm run db:test`, run `npm run test:e2e:ui`, select E2E-JRN-07-001 and press Run. Use `npm run test:e2e:headed` for a visible browser, `npm run test:e2e` for headless regression, or `npm run test:e2e:report` for the latest generated HTML report. See [setup, recording review and current limits](docs/PLAYWRIGHT-WORKBENCH-QUICKSTART.md).
-
 
 ## Continuing this project
 
 Start with [the current handoff](docs/CURRENT-HANDOFF.md) and [phase tracker](docs/PROGRESS.md). Repository instructions in AGENTS.md preserve the full EOMS goal, audit/feedback requirements, testing workstream, remaining gates and next action across sessions.
 
-
 ## Field/action coverage ledger
 
 After a journey run, use `npm run test:coverage` and open `.local/e2e-ledger/index.html`. The local view filters actual assertion evidence and open gaps by status/screen, with stale-source detection. No run means no passing evidence. See [scope, status rules and how to extend it](docs/PLAYWRIGHT-COVERAGE-LEDGER.md).
 
-
 ## Organization context — F06 first increment
 
-Open Organization to choose an accessible customer, review its legal company and your assigned estates, inspect recorded customer display changes, then open an estate register. This first view is read-only; it does not grant sibling-estate access or implement complete hierarchy configuration. Migration 005 preserves legacy IDs and adds explicit customer/company/estate boundaries. [F06 scope and remaining steps](docs/F06-CUSTOMER-HIERARCHY.md).
+Open Organization to choose an accessible customer, review its legal company and your assigned estates, inspect recorded customer display changes, then open an estate register. Hierarchy setup also supports optional legal groups/company assignment and division/optional-field/block creation and editing for explicitly granted setup administrators. A manager role alone is insufficient. Saves require a reason and reject stale versions; recent changes offer short and detailed history. It does not grant sibling-estate access or complete the hierarchy phase. Migration 005 preserves legacy IDs and adds explicit customer/company/estate boundaries. [F06 scope and remaining steps](docs/F06-CUSTOMER-HIERARCHY.md).

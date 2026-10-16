@@ -426,6 +426,54 @@
         "caseId": "E2E-JRN-02-001",
         "step": "Open assigned estate and continue in muster register"
       }
+    },
+    {
+      "id": "COV-GROUP-SETUP",
+      "journey": "JRN-02",
+      "screen": "Hierarchy setup",
+      "category": "form",
+      "control": "Group and company",
+      "assertion": "Create legal group and persist company assignment",
+      "binding": {
+        "caseId": "E2E-JRN-02-002",
+        "step": "Create legal group and assign company"
+      }
+    },
+    {
+      "id": "COV-DIVISION-FIELD",
+      "journey": "JRN-02",
+      "screen": "Hierarchy setup",
+      "category": "form",
+      "control": "Division and field",
+      "assertion": "Create division and field with persisted parent relationship",
+      "binding": {
+        "caseId": "E2E-JRN-02-002",
+        "step": "Create division and optional field"
+      }
+    },
+    {
+      "id": "COV-BLOCK-EDIT",
+      "journey": "JRN-02",
+      "screen": "Hierarchy setup",
+      "category": "action",
+      "control": "Block create and edit",
+      "assertion": "Create block under field and update display name with version increment",
+      "binding": {
+        "caseId": "E2E-JRN-02-002",
+        "step": "Create block and edit its display name"
+      }
+    },
+    {
+      "id": "COV-HIERARCHY-HISTORY",
+      "journey": "JRN-02",
+      "screen": "Hierarchy setup",
+      "category": "audit",
+      "control": "Hierarchy history",
+      "assertion": "Reload persisted hierarchy and inspect recorded before/after, reason and request reference",
+      "binding": {
+        "caseId": "E2E-JRN-02-002",
+        "step": "Review persisted hierarchy and recorded changes"
+      }
     }
   ]
 }
