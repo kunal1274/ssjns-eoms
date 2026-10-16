@@ -98,7 +98,7 @@
 
 **Question:** Which modules/features are contracted, are seats named or concurrent, and what happens at expiry, grace and suspension?
 
-**Accepted default:** Keep licensing separate from role permissions. Use named-user seats as the starting proposal because they provide clear actor accountability; choose concurrent or mixed seats only if the commercial agreement requires it. Enforce modules, features and seat capacity on the server. Never delete customer data on expiry. Agree the precise grace, read/export, write-suspension, renewal and restoration policy contractually before implementing it; do not invent a grace period.
+**Accepted default:** Keep licensing separate from role permissions. Use named-user seats as the product default because they provide clear actor accountability; choose concurrent or mixed seats only if a signed commercial agreement explicitly requires it. Enforce modules, features and seat capacity on the server. Never delete customer data on expiry. Agree the precise grace, read/export, write-suspension, renewal and restoration policy contractually before implementing it; do not invent a grace period.
 
 **Owner:** Commercial/product owner and client contract owner.  
 **Blocks:** F19–F22 and entitlement-related journey acceptance.
