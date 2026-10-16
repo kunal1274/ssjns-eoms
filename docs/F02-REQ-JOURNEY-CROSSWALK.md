@@ -3,7 +3,8 @@
 **Status:** Draft traceability aid; REQ-* and JRN-* identifiers are proposed and require owner review.  
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  
-**Related documents:** [Requirement catalogue](F02-REQUIREMENT-CATALOGUE.md) · [Persona journey register](F02-PERSONA-JOURNEYS.md) · [Source-to-test map](SOURCE-MAP-F02.md) · [Traceability matrix](TRACEABILITY-F02.md) · [Decision recommendations](F02-DECISION-RECOMMENDATIONS.md)
+**Related documents:** [Requirement catalogue](F02-REQUIREMENT-CATALOGUE.md) · [Persona journey register](F02-PERSONA-JOURNEYS.md) · [Source-to-test map](SOURCE-MAP-F02.md) · [Traceability matrix](TRACEABILITY-F02.md) · [Decision recommendations](F02-DECISION-RECOMMENDATIONS.md)  
+**CI evidence:** [Run #47](https://github.com/kunal1274/ssjns-eoms/actions/runs/38839251289) passed on commit `cddd761b9c7aba0b93563c96a42de2c1f28a4682`; this run includes the crosswalk and linked F02 documentation. It does not imply owner acceptance.
 
 ## Purpose
 
