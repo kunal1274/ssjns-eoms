@@ -1,7 +1,7 @@
 # F02 — Owner decision register and proposed defaults
 
 **Status:** Proposal for review only; none of these defaults is accepted until the accountable owner confirms it.  
-**Purpose:** Make F02 decisions explicit so later architecture and implementation do not encode unapproved assumptions. DEC-01's flexible hierarchy/security design is selected as the product baseline; all other proposed defaults remain unapproved until explicitly accepted.
+**Purpose:** Make F02 decisions explicit so later architecture and implementation do not encode unapproved assumptions. DEC-01's flexible hierarchy/security design is selected as the product baseline; all other proposed defaults remain unapproved until explicitly accepted. The companion [recommended disposition proposal](F02-DECISION-RECOMMENDATIONS.md) explains a safe interim guard and accountable-owner input for DEC-02–DEC-09.
 
 ## Decision protocol
 
