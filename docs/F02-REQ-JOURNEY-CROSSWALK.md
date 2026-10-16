@@ -4,7 +4,7 @@
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  
 **Related documents:** [Requirement catalogue](F02-REQUIREMENT-CATALOGUE.md) · [Persona journey register](F02-PERSONA-JOURNEYS.md) · [Source-to-test map](SOURCE-MAP-F02.md) · [Journey-to-evidence map](F02-JOURNEY-EVIDENCE-MAP.md) · [Traceability matrix](TRACEABILITY-F02.md) · [Decision recommendations](F02-DECISION-RECOMMENDATIONS.md)  
-**CI evidence:** [Run #47](https://github.com/kunal1274/ssjns-eoms/actions/runs/38839251289) passed on commit `cddd761b9c7aba0b93563c96a42de2c1f28a4682`; this run includes the crosswalk and linked F02 documentation. It does not imply owner acceptance.
+**CI evidence:** [Run #38841851439](https://github.com/kunal1274/ssjns-eoms/actions/runs/38841851439) passed on the previous accepted-defaults documentation state. The subsequent crosswalk consistency review and journey evidence map require a fresh CI run. A passing run does not imply owner acceptance.
 
 ## Purpose
 
