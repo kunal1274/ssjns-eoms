@@ -380,3 +380,29 @@ code {
 .editor .actions {
   margin-top: 20px;
 }
+
+.error {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.eventbody {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.event summary {
+  cursor: pointer;
+  padding: 12px 0;
+  font-weight: 600;
+}
+.auditdetails {
+  margin: 0 0 14px;
+}
+.auditdetails dt {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+.auditdetails dd {
+  margin: 4px 0 0;
+}

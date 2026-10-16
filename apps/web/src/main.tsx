@@ -1,3 +1,5 @@
+import { AuditTrail } from "./AuditTrail";
+import { requestFailure, connectionFailure } from "./feedback";
 import React, { useEffect, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
@@ -111,21 +113,29 @@ function App() {
       throw Error(
         "Reconnect for this action. You can save a device draft using references already loaded.",
       );
-    const r = await fetch("/api" + path, {
-      method: body === undefined ? "GET" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": csrf,
-        ...(key ? { "Idempotency-Key": key } : {}),
-      },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
+    let r: Response;
+    try {
+      r = await fetch("/api" + path, {
+        method: body === undefined ? "GET" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrf,
+          ...(key ? { "Idempotency-Key": key } : {}),
+        },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+    } catch {
+      throw new Error(connectionFailure);
+    }
     if (r.status === 204) return null;
-    const value = await r.json();
+    const value = await r.json().catch(() => null);
     if (!r.ok) {
       if (r.status === 401) setUser(null);
-      throw new Error(value.error || "Request failed");
+      throw new Error(
+        requestFailure(r.status, value, r.headers.get("X-Request-ID")),
+      );
     }
+    if (value === null) throw new Error(connectionFailure);
     return value;
   }
   async function act(fn: () => Promise<void>) {
@@ -910,25 +920,7 @@ function App() {
             />
           )}
           {tab === "Audit trail" && (
-            <section className="card">
-              <h2>Latest 50 estate events</h2>
-              {!audit.length && (
-                <p className="empty">Events appear when work is recorded.</p>
-              )}
-              {audit.map((a) => (
-                <div className="event" key={a.id}>
-                  <span className="dot" />
-                  <div>
-                    <strong>{a.action}</strong>
-                    <small>
-                      {a.actor} · {new Date(a.created_at).toLocaleString()}
-                    </small>
-                    <code>{a.record_id || a.detail?.month}</code>
-                    {a.detail?.reason && <p>{a.detail.reason}</p>}
-                  </div>
-                </div>
-              ))}
-            </section>
+            <AuditTrail events={audit as import("./AuditTrail").AuditEvent[]} />
           )}
         </main>
       </div>

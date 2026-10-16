@@ -59,3 +59,7 @@ F01 can be marked **Complete** only after all of these are evidenced:
 - [x] Audit findings and follow-up phases documented; F01 is closed as an audit, not as a claim of production readiness.
 
 F01 closure does not imply that recorded security findings are fixed or that production readiness or exact hosted-demo/repository UI parity has been established.
+
+## Audit and user feedback addition — 16 October 2026
+
+The owner requested short and detailed audit trails plus user-friendly error/info messages across every process. The [delivery matrix and journey acceptance criteria](AUDIT-AND-USER-FEEDBACK.md) assign implementation to existing phases. The F05 continuation adds readable expandable current events and safe main API recovery guidance; full audit authorization, history navigation, all-screen feedback and complete journey coverage remain planned. F05 is still blocked by main branch enforcement; F06 has not started.
