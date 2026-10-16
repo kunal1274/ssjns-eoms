@@ -17,7 +17,7 @@
     "test:integration": "node --import tsx --test --test-concurrency=1 tests/api.test.ts tests/workflow.test.ts",
     "db:test": "node --import tsx scripts/test-db.ts",
     "test:browser": "node scripts/browser-check.mjs",
-    "format": "prettier --write apps packages scripts tests .github package.json compose.yaml",
+    "format": "prettier --write apps packages scripts tests .github package.json compose.yaml playwright.config.ts",
     "test:maintenance-browser": "node scripts/maintenance-browser.mjs",
     "test:workflow-browser": "node scripts/workflow-browser.mjs",
     "preview:pwa": "vite preview --config apps/web/vite.config.ts",
@@ -25,10 +25,14 @@
     "verify:browser": "node scripts/verify-browser.mjs",
     "check:install": "node scripts/check-install.mjs",
     "dev:pwa-api": "node --import tsx scripts/pwa-server.ts",
-    "format:check": "prettier --check apps packages scripts tests .github package.json compose.yaml",
+    "format:check": "prettier --check apps packages scripts tests .github package.json compose.yaml playwright.config.ts",
     "check:repository-gates": "node --import tsx scripts/repository-gates.ts",
     "test:journeys:visible": "node scripts/run-visible-journeys.mjs",
-    "test:journeys:record": "playwright codegen --channel=chrome --target=playwright-test --output=.local/recorded-journey.spec.ts http://localhost:5174"
+    "test:journeys:record": "playwright codegen --channel=chrome --target=playwright-test --output=.local/recorded-journey.spec.ts http://localhost:5174",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui --ui-host=127.0.0.1",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report .local/e2e-report --host 127.0.0.1"
   },
   "dependencies": {
     "express": "5.2.1",
@@ -41,6 +45,7 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
+    "@playwright/test": "1.58.2",
     "@types/express": "5.0.6",
     "@types/node": "22.19.19",
     "@types/pg": "8.15.6",

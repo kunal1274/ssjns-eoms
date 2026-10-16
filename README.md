@@ -101,4 +101,9 @@ The final `quality-gate` CI job fails for failed, cancelled or skipped verificat
 
 After the host verification prerequisites above are ready, run `npm run test:journeys:visible` to watch the existing regression scenarios in Chrome on your computer. Actions are slowed for observation; the current suite covers selected journeys, not every field in the product.
 
-With the development API/web already running at http://localhost:5174, use `npm run test:journeys:record` to open Playwright's recorder. It writes an ignored draft to `.local/recorded-journey.spec.ts`. Use synthetic accounts/data; review recorded inputs before sharing. The generated draft targets the planned Playwright Test runner and needs fixtures/assertions/review before it becomes a runnable regression case. The single-click dashboard and cross-project kit are planned in [the workbench plan](docs/PLAYWRIGHT-JOURNEY-TEST-PLAN.md#visible-testing-manual-recording-and-reusable-test-workbench).
+With the development API/web already running at http://localhost:5174, use `npm run test:journeys:record` to open Playwright's recorder. It writes an ignored draft to `.local/recorded-journey.spec.ts`. Use synthetic accounts/data; review recorded inputs before sharing. The generated draft targets the installed Playwright Test runner and needs fixtures/assertions/review before it becomes a regression case. The single-click dashboard and cross-project kit are planned in [the workbench plan](docs/PLAYWRIGHT-JOURNEY-TEST-PLAN.md#visible-testing-manual-recording-and-reusable-test-workbench).
+
+
+## Interactive Playwright test UI
+
+The first journey is available in Playwright UI mode. After host test setup and `npm run db:test`, run `npm run test:e2e:ui`, select E2E-JRN-07-001 and press Run. Use `npm run test:e2e:headed` for a visible browser, `npm run test:e2e` for headless regression, or `npm run test:e2e:report` for the latest generated HTML report. See [setup, recording review and current limits](docs/PLAYWRIGHT-WORKBENCH-QUICKSTART.md).

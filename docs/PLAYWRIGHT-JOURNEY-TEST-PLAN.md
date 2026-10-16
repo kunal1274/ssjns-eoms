@@ -157,3 +157,8 @@ A web button needs a trusted local/CI runner to launch a browser: a normal websi
 2. Complete the existing F05 repository-policy gate, then deliver the planned runner/fixture migration increment with actual UI-mode execution evidence.
 3. Implement the reviewed-recording workflow and run/result metadata, followed by the real one-click dashboard and coverage ledger. No static green completion indicators.
 4. Expand each F06–F25 journey alongside its feature, then extract the versioned shared kit and validate a second project adapter.
+
+
+## Runner implementation update
+
+The first Playwright Test runner/UI increment is now implemented as continued F05 test tooling in response to the owner's instruction to proceed. See [the executable quickstart](PLAYWRIGHT-WORKBENCH-QUICKSTART.md): matching locked @playwright/test dependency, local web servers against isolated eoms_test, reusable fixture/page object, named capture/confirm/audit/logout steps, desktop/mobile Chrome viewport projects, HTML/JUnit results and an additional CI command. Earlier references to an uninstalled runner describe the initial planning state and are superseded by this update. Full legacy-script migration, local interactive observation, custom dashboard and shared-kit extraction remain open. The F05 external policy gate remains open; F06 has not started.

@@ -128,3 +128,8 @@ Shared browser launch settings now support visible Chrome with bounded action de
 ### Verified visible-launch infrastructure
 
 [CI run 38945388469](https://github.com/kunal1274/ssjns-eoms/actions/runs/38945388469) passed on `712da585601306a77f9e4de472da12bcdf708e4d`: 27 unit/security/configuration/presentation/launch-policy tests plus 18 PostgreSQL/API tests (45 unique tests), formatting, TypeScript/web/PWA build, all existing browser/PWA/installability checks, dependency audit and actual Docker build/start/container/proxy/idempotency/persistence verification. Verify and quality-gate both succeeded. CI used headless defaults; launch-policy tests verify the headed options, but the visible desktop experience and interactive recording have not been observed here. The recorder CLI syntax was checked against installed Playwright help. The later evidence commit changes documentation only.
+
+
+## Interactive test runner continuation
+
+Matched Playwright Test dependency/config, reusable isolated eoms_test fixtures/page object, one named capture/confirm/audit/logout scenario in desktop/mobile viewport projects, HTML/JUnit reports and UI/headed/headless/report commands now exist. CI adds runner execution while retaining every legacy script. Trace/video capture is off; no automatic artifact upload is introduced. Local TypeScript checks, scenario discovery and formatting passed. Record actual full CI execution below; local interactive observation and full journey coverage remain separate. [Quickstart](PLAYWRIGHT-WORKBENCH-QUICKSTART.md).
