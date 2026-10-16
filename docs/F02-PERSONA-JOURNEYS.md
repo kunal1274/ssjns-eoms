@@ -4,7 +4,7 @@
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  
 **Canonical phase tracker:** [PROGRESS.md](PROGRESS.md)  
-**Related evidence:** [TRACEABILITY-F02.md](TRACEABILITY-F02.md), [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md), [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md)  
+**Related evidence:** [TRACEABILITY-F02.md](TRACEABILITY-F02.md), [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md), [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md), [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md)  
 **CI evidence:** [GitHub Actions run #31](https://github.com/kunal1274/ssjns-eoms/actions/runs/38793118636) passed on commit `7e022cc32ca4f3e21d7f0cf4fb622e2a4154f473` after this register and the draft requirement catalogue were added. CI confirms repository checks only; it does not approve these proposed personas or journeys.
 
 ## Purpose and interpretation
@@ -12,7 +12,7 @@
 This register turns the F01–F25 foundation/access/role/licensing/journey scope into testable candidate journeys. It is derived from the owner-defined [production roadmap](PRODUCTION-ROADMAP.md), current source/test inventory, and selected DEC-01 hierarchy baseline. It does **not** silently convert undecided proposals into approved rules.
 
 - Journey IDs `JRN-*` are traceability keys assigned for this draft, not pre-existing owner-issued requirement IDs.
-- “Expected allow/deny” is a proposed acceptance boundary based on the product's stated security goals; where policy depends on a decision, that dependency is called out.
+- “Expected allow/deny” is a proposed acceptance boundary based on the product's stated security goals; where policy depends on a decision, that dependency is called out. Proposed safe interim guards for unresolved decisions are in [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md).
 - “Current evidence” describes only tested behavior in the repository build. “Not implemented” means no implementation/evidence was found in the reviewed source; it does not claim that no related idea exists elsewhere.
 - Persona names are functional archetypes, not a final job-title catalogue. A customer may combine roles, but effective permissions and data scope must remain separately enforced.
 - Hosted-demo-only journeys are not inferred. Add them only when a specific screen/action/outcome is identified.
