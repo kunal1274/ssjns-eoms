@@ -1,0 +1,395 @@
+{
+  "schemaVersion": 1,
+  "scope": "Initial EOMS assertion inventory: selected controls plus explicit journey gaps. This is not a complete product/control inventory; legacy-script and manual evidence is not imported.",
+  "projects": ["chrome-desktop", "chrome-mobile"],
+  "items": [
+    {
+      "id": "COV-EMAIL-REQUIRED",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "field",
+      "control": "Email",
+      "assertion": "Empty email prevents login and receives focus",
+      "binding": {
+        "caseId": "E2E-JRN-03-001",
+        "step": "Required email and password prevent submission and receive focus"
+      }
+    },
+    {
+      "id": "COV-EMAIL-FORMAT",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "field",
+      "control": "Email",
+      "assertion": "Invalid email format prevents login",
+      "binding": {
+        "caseId": "E2E-JRN-03-001",
+        "step": "Required email and password prevent submission and receive focus"
+      }
+    },
+    {
+      "id": "COV-PASSWORD-REQUIRED",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "field",
+      "control": "Password",
+      "assertion": "Empty password prevents login and receives focus",
+      "binding": {
+        "caseId": "E2E-JRN-03-001",
+        "step": "Required email and password prevent submission and receive focus"
+      }
+    },
+    {
+      "id": "COV-LOGIN-PREVENT",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "form",
+      "control": "Sign-in form",
+      "assertion": "Invalid input sends no login POST",
+      "binding": {
+        "caseId": "E2E-JRN-03-001",
+        "step": "Required email and password prevent submission and receive focus"
+      }
+    },
+    {
+      "id": "COV-LOGIN-RECOVERY",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "form",
+      "control": "Service error",
+      "assertion": "Safe support reference, hidden private error, preserved email and enabled retry",
+      "binding": {
+        "caseId": "E2E-JRN-03-001",
+        "step": "Show safe service guidance and support reference, preserving the form"
+      }
+    },
+    {
+      "id": "COV-LOGIN-NAV",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "navigation",
+      "control": "Sign in \u2192 register",
+      "assertion": "Real authentication retry reaches register and clears alert",
+      "binding": {
+        "caseId": "E2E-JRN-03-001",
+        "step": "Retry against real authentication and navigate to the register"
+      }
+    },
+    {
+      "id": "COV-DATE-REQUIRED",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "field",
+      "control": "Work date",
+      "assertion": "Missing date prevents POST and receives focus",
+      "binding": {
+        "caseId": "E2E-JRN-07-002",
+        "step": "Missing date, gang and area focus the invalid field without posting"
+      }
+    },
+    {
+      "id": "COV-GANG-REQUIRED",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "field",
+      "control": "Gang",
+      "assertion": "Missing gang prevents POST and receives focus",
+      "binding": {
+        "caseId": "E2E-JRN-07-002",
+        "step": "Missing date, gang and area focus the invalid field without posting"
+      }
+    },
+    {
+      "id": "COV-AREA-REQUIRED",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "field",
+      "control": "Area",
+      "assertion": "Missing area prevents POST and receives focus",
+      "binding": {
+        "caseId": "E2E-JRN-07-002",
+        "step": "Missing date, gang and area focus the invalid field without posting"
+      }
+    },
+    {
+      "id": "COV-AREA-BOUNDS",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "field",
+      "control": "Area",
+      "assertion": "Zero and invalid precision fail native validity; no POST",
+      "binding": {
+        "caseId": "E2E-JRN-07-002",
+        "step": "Missing date, gang and area focus the invalid field without posting"
+      }
+    },
+    {
+      "id": "COV-WORKER-REQUIRED",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "field",
+      "control": "Workers",
+      "assertion": "No worker disables Save; selecting a worker re-enables it and retains area",
+      "binding": {
+        "caseId": "E2E-JRN-07-002",
+        "step": "Missing worker selection disables saving and keeps entered values"
+      }
+    },
+    {
+      "id": "COV-WORK-REJECTION",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "form",
+      "control": "Rejected submission",
+      "assertion": "Injected 422 shows guidance/reference, retains date/area and creates no record",
+      "binding": {
+        "caseId": "E2E-JRN-07-002",
+        "step": "Server validation rejection supplies guidance without saving a record"
+      }
+    },
+    {
+      "id": "COV-WORK-RETRY",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "action",
+      "control": "Corrected retry",
+      "assertion": "Real retry saves one record and one creation audit; success feedback and no alert",
+      "binding": {
+        "caseId": "E2E-JRN-07-002",
+        "step": "Corrected retry saves exactly one draft and one audit event"
+      }
+    },
+    {
+      "id": "COV-DRAFT-SAVE",
+      "journey": "JRN-07",
+      "screen": "Muster register",
+      "category": "action",
+      "control": "Save draft",
+      "assertion": "201 response, success status and visible persisted record/detail",
+      "binding": {
+        "caseId": "E2E-JRN-07-001",
+        "step": "Save once and verify a persisted draft plus success feedback"
+      }
+    },
+    {
+      "id": "COV-CONFIRM-RELOAD",
+      "journey": "JRN-07",
+      "screen": "Muster detail",
+      "category": "action",
+      "control": "Confirm and reload",
+      "assertion": "Confirmed heading and persisted record/quantity survive reload",
+      "binding": {
+        "caseId": "E2E-JRN-07-001",
+        "step": "Confirm and verify the saved state after reload"
+      }
+    },
+    {
+      "id": "COV-AUDIT-SUMMARY-DETAIL",
+      "journey": "JRN-07",
+      "screen": "Audit trail",
+      "category": "audit",
+      "control": "Audit disclosure",
+      "assertion": "Readable confirmation, expandable reference and exactly creation/confirmation events",
+      "binding": {
+        "caseId": "E2E-JRN-07-001",
+        "step": "Check scope denial, short audit and expandable details"
+      }
+    },
+    {
+      "id": "COV-SCOPE-DENIAL",
+      "journey": "JRN-07",
+      "screen": "Muster register",
+      "category": "action",
+      "control": "Cross-estate access",
+      "assertion": "Other-estate API returns 403",
+      "binding": {
+        "caseId": "E2E-JRN-07-001",
+        "step": "Check scope denial, short audit and expandable details"
+      }
+    },
+    {
+      "id": "COV-VIEWPORT-OVERFLOW",
+      "journey": "JRN-07",
+      "screen": "Audit trail",
+      "category": "navigation",
+      "control": "Viewport layout",
+      "assertion": "Audit screen has no horizontal overflow at the selected viewport",
+      "binding": {
+        "caseId": "E2E-JRN-07-001",
+        "step": "Check scope denial, short audit and expandable details"
+      }
+    },
+    {
+      "id": "COV-LOGOUT-NAV",
+      "journey": "JRN-07",
+      "screen": "Muster register",
+      "category": "navigation",
+      "control": "Sign out",
+      "assertion": "Sign-out returns to sign-in form",
+      "binding": {
+        "caseId": "E2E-JRN-07-001",
+        "step": "Sign out and return to the sign-in form"
+      }
+    },
+    {
+      "id": "COV-TASK-REQUIRED",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "field",
+      "control": "Task selector",
+      "assertion": "Explicit empty/invalid task validation"
+    },
+    {
+      "id": "COV-AREA-LIMIT",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "field",
+      "control": "Area limit",
+      "assertion": "Maximum permitted area boundary and contextual error"
+    },
+    {
+      "id": "COV-FORM-CANCEL",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "action",
+      "control": "Cancel/reset",
+      "assertion": "Unsaved-change handling and reset semantics"
+    },
+    {
+      "id": "COV-AUDIT-SEARCH",
+      "journey": "JRN-11",
+      "screen": "Audit trail",
+      "category": "navigation",
+      "control": "History/search",
+      "assertion": "Authorized history filters, pagination and record links"
+    },
+    {
+      "id": "COV-AUDIT-PERMISSIONS",
+      "journey": "JRN-11",
+      "screen": "Audit trail",
+      "category": "audit",
+      "control": "Detail permissions",
+      "assertion": "Server audit/detail/field permissions; UI hiding is insufficient"
+    },
+    {
+      "id": "COV-SESSION-REVOKE",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "action",
+      "control": "Revoked session",
+      "assertion": "Protected action denied after revocation"
+    },
+    {
+      "id": "COV-KEYBOARD-FORM",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "form",
+      "control": "Keyboard journey",
+      "assertion": "Full keyboard flow and error-summary focus/associations"
+    },
+    {
+      "id": "COV-JOURNEY-01",
+      "journey": "JRN-01",
+      "screen": "Tenant provisioning",
+      "category": "journey",
+      "control": "Tenant provisioning",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-02",
+      "journey": "JRN-02",
+      "screen": "Hierarchy",
+      "category": "journey",
+      "control": "Hierarchy",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-04",
+      "journey": "JRN-04",
+      "screen": "Custom roles",
+      "category": "journey",
+      "control": "Custom roles",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-05",
+      "journey": "JRN-05",
+      "screen": "Licensing",
+      "category": "journey",
+      "control": "Licensing",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-06",
+      "journey": "JRN-06",
+      "screen": "Master maintenance",
+      "category": "journey",
+      "control": "Master maintenance",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-08",
+      "journey": "JRN-08",
+      "screen": "Independent review/reversal",
+      "category": "journey",
+      "control": "Independent review/reversal",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-09",
+      "journey": "JRN-09",
+      "screen": "Correction lineage",
+      "category": "journey",
+      "control": "Correction lineage",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-10",
+      "journey": "JRN-10",
+      "screen": "Offline queue",
+      "category": "journey",
+      "control": "Offline queue",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-12",
+      "journey": "JRN-12",
+      "screen": "Consolidated reports",
+      "category": "journey",
+      "control": "Consolidated reports",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-13",
+      "journey": "JRN-13",
+      "screen": "Integration reconciliation",
+      "category": "journey",
+      "control": "Integration reconciliation",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-14",
+      "journey": "JRN-14",
+      "screen": "Task queues",
+      "category": "journey",
+      "control": "Task queues",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-15",
+      "journey": "JRN-15",
+      "screen": "Payroll/finance",
+      "category": "journey",
+      "control": "Payroll/finance",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-16",
+      "journey": "JRN-16",
+      "screen": "Wider field operations",
+      "category": "journey",
+      "control": "Wider field operations",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    }
+  ]
+}

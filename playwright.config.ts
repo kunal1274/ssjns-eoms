@@ -22,6 +22,7 @@ export default defineConfig({
   outputDir: ".local/e2e-results",
   reporter: [
     ["list"],
+    ["./scripts/coverage-reporter.ts"],
     ["html", { outputFolder: ".local/e2e-report", open: "never" }],
     ["junit", { outputFile: ".local/e2e-results/results.xml" }],
   ],

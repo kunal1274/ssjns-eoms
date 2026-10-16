@@ -43,6 +43,7 @@ jobs:
       - run: npx playwright install --with-deps chrome
       - run: npm run verify:browser
       - run: npm run test:e2e
+      - run: npm run test:coverage && npm run test:coverage-ui
       - run: npm audit --audit-level=high
       - name: Build and start the shared Docker environment
         run: |

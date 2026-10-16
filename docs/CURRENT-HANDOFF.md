@@ -25,9 +25,9 @@ Deliver the complete Estate Opera EOMS solution end to end against the accepted 
 
 ## Next concrete queue
 
-1. Current validation/recovery increment is verified. Next implementation: the machine-readable coverage ledger in item 3, with explicit assertions and actual run evidence. Keep the full regression gate active.
+1. Current increment implements the assertion coverage inventory/reporter/JSON/HTML view. Verify real CI-generated evidence and filters, then record the tested source/run before closing this increment. Keep the full regression gate active.
 2. Complete local interactive observation with the owner: `npm run test:e2e:ui` / `npm run test:e2e:headed` after host test setup. The browser opens on the executing computer; remote headless CI does not show it on the owner's desktop.
-3. Add a machine-readable field/action/form/navigation coverage ledger mapped to case assertions and real latest-run evidence. Not tested, draft, skipped, failed and stale must remain visible; no static green indicators.
+3. The initial 39-item coverage ledger is implemented; [coverage guide](PLAYWRIGHT-COVERAGE-LEDGER.md). Next expand the inventory from actual screens and add reviewed-recording conversion/run metadata, preserving precise assertion mappings and visible gaps. Local execution evidence is not fabricated.
 4. Add reviewed-recording conversion and real run/result metadata, then a project-aware local runner-backed one-click dashboard. Keep secrets/session traces private and commands allowlisted. Prove a versioned shared kit against a second project before claiming portability.
 5. As soon as the policy gate is genuinely satisfied, close F05 with proof and proceed F06–F25 in order, adding tests/audit/feedback alongside each business module. The testing workbench does not replace customer hierarchy, identity, permissions, licensing or the remaining client process flows.
 
@@ -38,3 +38,7 @@ Use synthetic data and isolated eoms_test for runner scenarios; keep serial work
 ## Last checkpoint
 
 17 October 2026 (India): [CI run 38950026833](https://github.com/kunal1274/ssjns-eoms/actions/runs/38950026833) passed on 76d9f904b853288bb6ae669c19c4ccb3c691aac0. The subsequent evidence update is documentation-only. No local interactive desktop observation or F05 policy closure is claimed.
+
+## Current coverage-ledger increment
+
+Initial inventory: 39 items (19 mapped assertions, 20 explicit gaps) × 2 viewport projects. Reporter captures actual assertion-bearing completed steps and run metadata; stale source, filtered/failed/skipped/flaky/interrupted runs remain non-green. HTML/JSON outputs are local and ignored. Status/schema/fingerprint/binding tests and generated-report browser checks are added; actual CI execution is recorded after verification. This does not complete every control/journey or the planned custom execution dashboard.

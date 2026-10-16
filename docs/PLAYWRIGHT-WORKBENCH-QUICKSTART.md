@@ -66,3 +66,8 @@ E2E-JRN-03-001 checks required/format sign-in fields, focus, no invalid login re
 
 
 Latest validation/recovery evidence: [CI run 38950026833](https://github.com/kunal1274/ssjns-eoms/actions/runs/38950026833) passed on `76d9f904b853288bb6ae669c19c4ccb3c691aac0`: all three scenarios in both viewport projects (six executions). The no-worker check asserts Save is disabled and re-enabled after selection; it does not attempt to click a disabled control. The full existing quality gate also passed. See CURRENT-HANDOFF.md for the next increment.
+
+
+## Coverage ledger
+
+The runner now creates `.local/e2e-ledger/index.html` and JSON evidence. Run `npm run test:coverage` to regenerate against current source, then open that file and filter by status/screen. The [coverage guide](PLAYWRIGHT-COVERAGE-LEDGER.md) explains the initial inventory, evidence gates, stale detection and remaining gaps. This is a read-only assertion report; use Playwright UI for test execution.

@@ -1,0 +1,65 @@
+# Assertion coverage ledger
+
+The initial ledger connects specific field, action, form, navigation and audit checks to real Playwright results. It is part of the reusable testing workstream inside EOMS, not completion of the full product or F05 repository-policy gate.
+
+## Use it
+
+After the test environment setup in PLAYWRIGHT-WORKBENCH-QUICKSTART.md:
+
+```sh
+npm run test:e2e
+npm run test:coverage
+```
+
+Open `.local/e2e-ledger/index.html` on your computer. Filter by status or screen. The Playwright reporter creates this view automatically after a run; the second command regenerates it and checks source freshness. `npm run test:coverage-ui` verifies the generated HTML filters against actual successful run evidence and known open gaps; CI runs this after the journey tests.
+
+Machine-readable outputs:
+
+| File | Meaning |
+|---|---|
+| `tests/e2e/coverage-inventory.json` | Versioned control/assertion inventory, journey, screen, category, case and named-step bindings |
+| `.local/e2e-ledger/latest-run.json` | Latest actual runner attempt: selected case/project IDs, attempts, assertion-bearing completed step names, status, source fingerprint and run metadata |
+| `.local/e2e-ledger/coverage.json` | Derived current status for each inventory item and viewport project |
+| `.local/e2e-ledger/index.html` | Local filterable view of the same derived statuses |
+
+Generated evidence/reports are ignored, not committed as sample passes. With no run file, mapped items show not-run and unmapped items show untested. They do not become green from test discovery. Use `npm run test:e2e:ui` to select/replay journeys; this ledger is a read-only report, not the custom one-click execution dashboard.
+
+## Initial scope and honest gaps
+
+The first inventory has 39 items: 19 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (78 rows). It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
+
+The mapped controls include email/password prevention, safe login recovery, date/gang/area validation, missing-worker disabled Save, retained input after a rejected submission, exactly-once corrected save/audit, confirmation/reload, selected audit disclosure, cross-estate denial, audit-screen overflow and logout navigation. Existing browser/API scripts cover additional behavior; that evidence is separate and is not silently imported as a runner pass. An untested row means no executed assertion mapping in this ledger, not proof that no other test exists.
+
+Mappings reference the actual stable case ID and named `test.step`. The reporter accepts a completed step only when it contains an executed Playwright assertion. Merely clicking/filling or having the step title in source does not count. Unit checks validate that inventory bindings resolve to named steps in their real test source. Grouped assertions are conservative: if a scenario/group fails, earlier individual field checks are not promoted to independent passes. A failed evidence row does not by itself prove that every associated control is defective.
+
+## Status contract
+
+| Status | Interpretation |
+|---|---|
+| untested | No runner assertion mapping yet |
+| not-run | Mapping exists, but no current selected execution evidence for this item/project |
+| running | Selected run is still in progress; no early pass |
+| passed | Current fingerprint, successful overall case/run, expected normal success, completed assertion-bearing mapped step, no preceding failed retry/global error |
+| failed | Latest mapped case failed/timed out, or an expected-failure convention cannot establish normal passing evidence |
+| skipped | Latest selected test was skipped; not accepted coverage |
+| cancelled | Selected run/case was interrupted |
+| flaky | A failed/nonpassing attempt was followed by a pass; it remains non-green |
+| blocked | The mapped case passed but the overall run/global error prevents accepting the evidence |
+| mapping-error | A passed case did not complete the required assertion-bearing step |
+| stale | Relevant source fingerprint differs; prior status remains visible, including previous failures |
+
+The latest attempt replaces the latest snapshot, even on failure. A filtered run does not inherit passes for unselected cases/projects. Reporter mapping/flaky/stale/global errors fail the runner rather than hiding behind an overall green result. Skips and unimplemented gaps remain visible; this initial phase does not require every planned product feature to pass. F25 acceptance still requires complete agreed coverage/explicit scope decisions.
+
+## Freshness and safety
+
+A SHA-256 fingerprint covers source under apps/packages/db/tests/e2e/scripts plus package/lock, TypeScript and Playwright config files. Inventory and test versions are included. Generated dist/node_modules/hidden files, environment secrets and local reports are excluded. Documentation-only commits do not invalidate unchanged application/test evidence; the original run commit and timestamp remain visible.
+
+Run evidence is a snapshot of the named synthetic environment at execution time. Fingerprints do not detect later database contents, external service changes or every runtime environment change; rerun after those changes. An old report already open in a browser does not auto-refresh: rerun `test:coverage` and reload it before assessing current freshness. Interrupted processes that cannot write a final event can remain marked running/incomplete; they never create a new pass.
+
+Evidence stores allowlisted IDs, statuses and static named-step titles, not request bodies, passwords, cookies, SQL exceptions or screenshots/traces. Do not put secrets/private values in test/step names. Outputs use private local file permissions and atomic replacement; malformed evidence fails validation and removes derived reports instead of displaying the old green report as newly generated. HTML escapes dynamic labels/metadata. Trace/video/public artifact upload remains off under the existing plan.
+
+## Extend and reuse
+
+Add a stable inventory ID, accepted journey ID, screen/category, precise control assertion and real case/step binding. Keep missing field boundaries and navigation/error paths as explicit unmapped rows. Run the case independently, then the full regression gate. Avoid broad entries that imply every field is covered by a single successful click.
+
+`packages/testing/coverage.ts` contains reusable schema/status/rendering logic. `scripts/coverage-files.ts` supplies the EOMS source/inventory adapter; `scripts/coverage-reporter.ts` supplies Playwright events. A versioned shared package and second-project adapter remain future work. The reviewed-recording workflow, source-linked control discovery and project-aware execution dashboard remain queued in CURRENT-HANDOFF.md.

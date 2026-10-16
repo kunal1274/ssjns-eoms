@@ -93,3 +93,7 @@ AGENTS.md and [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) now record the full deliv
 ## Verified checkpoint — 17 October 2026 (India)
 
 [CI run 38950026833](https://github.com/kunal1274/ssjns-eoms/actions/runs/38950026833) passed on `76d9f904b853288bb6ae669c19c4ccb3c691aac0`: 27 unit/config/security/presentation tests, 18 PostgreSQL/API tests, and all three runner scenarios in desktop/mobile viewport projects (six executions), plus existing browser/PWA/installability, formatting/build, dependency audit, Docker/proxy/idempotency/persistence and quality-gate. The no-worker test was corrected to assert the existing disabled Save behavior; no product behavior was weakened. [Current handoff](CURRENT-HANDOFF.md) now identifies the coverage ledger as the next implementation. F05 remains blocked by policy; F06 not started. This evidence update is documentation-only.
+
+## Assertion coverage ledger increment
+
+Implemented a versioned 39-item field/action/form/navigation/audit/journey-gap inventory, Playwright evidence reporter, source fingerprint, JSON/HTML report and screen/status filters. Completed assertion-bearing steps plus a passing current case/run are required; stale, missing, skipped, cancelled, flaky and failed evidence stays visible. CI now validates the generated ledger UI after real journey execution. [Guide](PLAYWRIGHT-COVERAGE-LEDGER.md). Local status/schema/fingerprint/binding tests, build and formatting passed; full CI evidence follows. F05 remains blocked on repository policy; F06 not started.

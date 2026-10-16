@@ -162,3 +162,8 @@ A web button needs a trusted local/CI runner to launch a browser: a normal websi
 ## Runner implementation update
 
 The first Playwright Test runner/UI increment is now implemented as continued F05 test tooling in response to the owner's instruction to proceed. See [the executable quickstart](PLAYWRIGHT-WORKBENCH-QUICKSTART.md): matching locked @playwright/test dependency, local web servers against isolated eoms_test, reusable fixture/page object, named capture/confirm/audit/logout steps, desktop/mobile Chrome viewport projects, HTML/JUnit results and an additional CI command. Earlier references to an uninstalled runner describe the initial planning state and are superseded by this update. Full legacy-script migration, local interactive observation, custom dashboard and shared-kit extraction remain open. The F05 external policy gate remains open; F06 has not started.
+
+
+## Initial coverage ledger implementation
+
+The first machine-readable inventory/reporter and filterable local report are implemented: 39 items across two viewport projects, explicit case/step bindings, current-source fingerprint, actual runner outcomes, visible gaps and stale/failure states. See [the coverage guide](PLAYWRIGHT-COVERAGE-LEDGER.md) and PROGRESS.md for executed CI evidence. This supersedes the planned-only status for the initial ledger, not for complete control discovery, the custom execution dashboard, recording review or portable package extraction.
