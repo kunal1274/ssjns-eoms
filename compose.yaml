@@ -85,7 +85,7 @@ services:
     profiles: [tools]
     # Preserve the existing test scripts' loopback-only database safeguard.
     network_mode: service:postgres
-    command: [sh, -ec, "npm run db:test && npm test && npm run test:integration && npm run build"]
+    command: [sh, -ec, "npm run db:test && npm test && npm run test:integration && NODE_ENV=production npm run build"]
     environment:
       NODE_ENV: test
       ADMIN_DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@127.0.0.1:5432/eoms

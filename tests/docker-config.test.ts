@@ -15,6 +15,6 @@ test('Docker secrets and local artifacts are excluded from the build context',()
 });
 test('startup requires successful migration and actual dependency health; seed is explicit',()=>{
  const c=text('compose.yaml');assert.match(c,/migrate: \{condition: service_completed_successfully\}/);assert.match(c,/api: \{condition: service_healthy\}/);assert.match(c,/profiles: \[tools\]/);assert.match(c,/eoms_pg:\/var\/lib\/postgresql/);
- const api=c.slice(c.indexOf('  api:'),c.indexOf('  web:'));assert.doesNotMatch(api,/db:seed/);assert.match(c,/network_mode: service:postgres/);
+ const api=c.slice(c.indexOf('  api:'),c.indexOf('  web:'));assert.doesNotMatch(api,/db:seed/);assert.match(c,/network_mode: service:postgres/);assert.match(c,/NODE_ENV=production npm run build/);
  assert.match(text('apps/api/src/server.ts'),/Production deployment is gated/);
 });
