@@ -24,10 +24,10 @@ A journey link does not imply that every related requirement is implemented. The
 | REQ-FND-02 | JRN-01–JRN-16 | [Traceability matrix](TRACEABILITY-F02.md); this crosswalk | Owner must approve the requirement IDs, journey inventory and coverage; signed external requirement source not yet mapped. |
 | REQ-FND-03 | JRN-01–JRN-16 | Repository structure and README, summarized in [source map](SOURCE-MAP-F02.md) | Accepted architecture conventions/ADRs are missing; F03 must wait for F02 acceptance. |
 | REQ-FND-04 | JRN-10, JRN-13, JRN-16 | [Deployment trace CAP-DEPLOY-01](SOURCE-MAP-F02.md#anchored-implementation-to-test-trace) | Compose provisions PostgreSQL only; full application Docker setup, health/readiness, migration sequencing and recovery docs are missing. |
-| REQ-FND-05 | JRN-01–JRN-16 | [CI/source map](SOURCE-MAP-F02.md); [latest verified run #38](https://github.com/kunal1274/ssjns-eoms/actions/runs/38794452660) for the previous docs baseline | Latest decision-recommendation docs need CI verification; formal required-check/branch-protection policy remains open. |
+| REQ-FND-05 | JRN-01–JRN-16 | [CI/source map](SOURCE-MAP-F02.md); [latest full F02 documentation run #38841851439](https://github.com/kunal1274/ssjns-eoms/actions/runs/38841851439) passed the previous accepted-defaults documentation state | The documentation updates in this commit require a fresh CI run; formal required-check/branch-protection policy remains open. |
 | REQ-TEN-01 | JRN-02, JRN-12, JRN-16 | DEC-01 in [owner decisions](F02-OWNER-DECISIONS.md); [CAP-SCOPE-01](SOURCE-MAP-F02.md#anchored-implementation-to-test-trace) | Full customer/group/legal-company/division/field/block model and effective-dated attribution are not implemented. |
 | REQ-TEN-02 | JRN-01, JRN-02, JRN-06, JRN-07, JRN-10, JRN-12, JRN-13, JRN-14, JRN-16 | [CAP-SCOPE-01](SOURCE-MAP-F02.md#anchored-implementation-to-test-trace); RLS integration tests | Current isolation is mainly estate membership; hierarchy inheritance, pooled-connection actor switching and every data path need coverage. |
-| REQ-IAM-01 | JRN-03, JRN-10 | [CAP-AUTH-01](SOURCE-MAP-F02.md#anchored-implementation-to-test-trace) | Basic local login/session controls exist; SSO/MFA/recovery/admin revocation and production policy remain undecided. |
+| REQ-IAM-01 | JRN-03, JRN-10 | [CAP-AUTH-01](SOURCE-MAP-F02.md#anchored-implementation-to-test-trace) | Basic local login/session controls exist; OIDC/MFA/session product defaults are accepted, while customer identity-provider configuration, recovery and admin revocation implementation/verification remain outstanding. |
 | REQ-IAM-02 | JRN-01, JRN-03 | [CAP-AUTH-01](SOURCE-MAP-F02.md#anchored-implementation-to-test-trace) | Full invitation, provisioning, suspension/reactivation and administrative lifecycle are missing. |
 | REQ-PERM-01 | JRN-04, JRN-11, JRN-14 | Current route-level role checks in [source map](SOURCE-MAP-F02.md#route-and-capability-mapping) | Stable permission catalogue and dedicated audit-read permission are missing; DEC-03 default is accepted but not implemented. |
 | REQ-ROLE-01 | JRN-02, JRN-03, JRN-04, JRN-06 | Fixed manager/supervisor/clerk roles; [CAP-SCOPE-01](SOURCE-MAP-F02.md#anchored-implementation-to-test-trace) | Custom roles, multiple scoped assignments and effective dates are missing. |
@@ -41,7 +41,7 @@ A journey link does not imply that every related requirement is implemented. The
 | REQ-ROLE-05 | JRN-04, JRN-11 | Operational audit exists; no role publication/version model found | Draft/publish/history/rollback and approved audit readership are missing. |
 | REQ-ROLE-06 | JRN-04, JRN-14 | No role simulation/preview found | Preview must call the same policy evaluator as live requests and prove parity in tests. |
 | REQ-LIC-01 | JRN-05, JRN-12, JRN-14, JRN-15 | No license/entitlement model found | Named-user seat default is accepted under DEC-05; contracted modules/features/limits/effective dates and expiry behavior require customer contract configuration. |
-| REQ-LIC-02 | JRN-05 | No seat allocation/enforcement found | Named/concurrent/mixed seat model and concurrency rules require commercial decision. |
+| REQ-LIC-02 | JRN-05 | No seat allocation/enforcement found | Named-user seats are the accepted default; seat allocation, release and concurrency enforcement are unimplemented. Use another model only if a signed commercial agreement explicitly requires it. |
 | REQ-LIC-03 | JRN-04, JRN-05, JRN-14, JRN-15 | No entitlement enforcement found | Server-side checks must cover direct API/service calls, not only menus. |
 | REQ-LIC-04 | JRN-05 | No expiry/renewal lifecycle found | Grace, suspension, read/export, renewal and restoration behavior must be contractually approved; no grace duration is assumed. |
 | REQ-WF-01 | JRN-07, JRN-08, JRN-09, JRN-13, JRN-15 | [CAP-WORKFLOW-01](SOURCE-MAP-F02.md#anchored-implementation-to-test-trace) | Muster-specific state transitions exist; generic workflow, correction lineage and integration compensation are missing. |
@@ -55,13 +55,22 @@ A journey link does not imply that every related requirement is implemented. The
 | REQ-INT-01 | JRN-13, JRN-15 | [CAP-MUSTER-01](SOURCE-MAP-F02.md#anchored-implementation-to-test-trace) includes outbox; [CAP-DEPLOY-01](SOURCE-MAP-F02.md#anchored-implementation-to-test-trace) for runtime boundary | No dispatcher, partner adapters, acknowledgements or reconciliation; DEC-07 integration pattern is accepted, while customer mappings/contracts remain required before live posting. |
 | REQ-OPS-01 | JRN-10, JRN-13, JRN-16 | Production startup guard and CI; [CAP-DEPLOY-01](SOURCE-MAP-F02.md#anchored-implementation-to-test-trace) | Production identity, HTTPS/secrets, monitoring, restore rehearsal, load/SLO, cutover, UAT and support acceptance remain open under accepted DEC-02/08 defaults; customer-specific settings and evidence are still required. |
 
+## Crosswalk integrity review — 16 October 2026
+
+A consistency check across the current draft catalogue, journey register and crosswalk found:
+
+- **34/34 draft REQ-* identifiers** in the requirement catalogue have corresponding crosswalk rows.
+- **16/16 candidate JRN-* identifiers** in the journey register are referenced by the crosswalk.
+- The crosswalk currently maps each requirement to one or more candidate journeys and records current evidence/gaps where applicable.
+- This is an identifier/coverage consistency check, **not** owner approval, proof that every requirement has complete test anchors, or evidence that missing functionality is implemented. Several rows deliberately record partial/missing evidence; exact acceptance-test anchors and owner approval remain F02 gates.
+
 ## Acceptance workflow
 
 1. Owner reviews each draft REQ-* and JRN-* key against the actual product scope and any signed requirements source.
 2. Replace or map draft keys to approved IDs; preserve trace links if IDs change.
 3. For each accepted requirement, add exact implementation/schema/API/browser/test anchors, or mark **not implemented** with a phase owner and acceptance test plan.
 4. For each journey, confirm actor, scope fixture, preconditions, action, expected allow/deny result, persisted effect, audit result and recovery/conflict behavior.
-5. Resolve or explicitly defer the related decision in [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md), using the proposal in [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md) only as a recommendation.
+5. Apply the accepted DEC-01–DEC-09 product defaults; record any customer-specific variation as a scoped exception with an accountable owner and rationale in [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md).
 6. Obtain owner acceptance before closing F02 or starting F03.
 
 **Current status: F02 remains in progress.** DEC-01–DEC-09 product defaults are accepted. This crosswalk remains a draft traceability aid; it is not implementation proof for missing capabilities or production certification.
