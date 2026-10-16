@@ -49,17 +49,15 @@ test("E2E-JRN-07-002 @regression @negative work form validation and safe retry",
     await area.fill("0.10");
     expect(posts).toBe(0);
   });
-  await test.step("Missing worker selection shows an error and keeps entered values", async () => {
+  await test.step("Missing worker selection disables saving and keeps entered values", async () => {
     await page.getByRole("checkbox").first().uncheck();
-    await save.click();
-    await expect(page.getByRole("alert")).toContainText(
-      "Select unique workers.",
-    );
+    await expect(save).toBeDisabled();
     await expect(page.getByLabel("Area (Ha)", { exact: true })).toHaveValue(
       "0.10",
     );
     expect(posts).toBe(0);
     await page.getByRole("checkbox").first().check();
+    await expect(save).toBeEnabled();
   });
   await test.step("Server validation rejection supplies guidance without saving a record", async () => {
     await page.route("**/api/estates/*/musters", (route) =>
