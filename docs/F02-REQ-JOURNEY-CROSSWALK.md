@@ -4,7 +4,7 @@
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  
 **Related documents:** [Requirement catalogue](F02-REQUIREMENT-CATALOGUE.md) · [Persona journey register](F02-PERSONA-JOURNEYS.md) · [Source-to-test map](SOURCE-MAP-F02.md) · [Journey-to-evidence map](F02-JOURNEY-EVIDENCE-MAP.md) · [Traceability matrix](TRACEABILITY-F02.md) · [Decision recommendations](F02-DECISION-RECOMMENDATIONS.md)  
-**CI evidence:** [Run #38844324023](https://github.com/kunal1274/ssjns-eoms/actions/runs/38844324023) passed on the preceding head. The owner acceptance record is being added in this commit, so CI must pass on this exact commit before F02 closes. CI verifies repository checks, not implementation of missing journeys.
+**CI evidence:** [Run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680) passed on the F02 owner-acceptance commit. CI verifies repository checks, not implementation of missing journeys.
 
 ## Purpose
 
@@ -22,7 +22,7 @@ A journey link does not imply that every related requirement is implemented. The
 |---|---|---|---|
 | REQ-FND-01 | JRN-06–JRN-16 (where implemented) | [F01 audit](AUDIT-F01.md); [source-to-test map](SOURCE-MAP-F02.md) | Audit phase is complete, not production certification; findings remain assigned to later phases. |
 | REQ-FND-02 | JRN-01–JRN-16 | [Traceability matrix](TRACEABILITY-F02.md); this crosswalk; [owner acceptance record](F02-OWNER-ACCEPTANCE.md) | The planning baseline is accepted. No separate signed customer requirements source was supplied; any later source or customer-specific change must be reconciled through traceability change control. |
-| REQ-FND-03 | JRN-01–JRN-16 | Repository structure and README, summarized in [source map](SOURCE-MAP-F02.md) | Architecture conventions/ADRs are missing and are the next phase deliverable; begin F03 only after CI passes on the accepted F02 baseline commit. |
+| REQ-FND-03 | JRN-01–JRN-16 | Repository structure and README, summarized in [source map](SOURCE-MAP-F02.md); [F03 conventions](F03-ARCHITECTURE-CONVENTIONS.md) | F03 is in progress; the technical conventions are drafted for owner review and still need the listed open items resolved before F03 closes. |
 | REQ-FND-04 | JRN-10, JRN-13, JRN-16 | [Deployment trace CAP-DEPLOY-01](SOURCE-MAP-F02.md#anchored-implementation-to-test-trace) | Compose provisions PostgreSQL only; full application Docker setup, health/readiness, migration sequencing and recovery docs are missing. |
 | REQ-FND-05 | JRN-01–JRN-16 | [CI/source map](SOURCE-MAP-F02.md); [latest full F02 documentation run #38844324023](https://github.com/kunal1274/ssjns-eoms/actions/runs/38844324023) passed on the preceding head; this acceptance commit requires its own CI run | The documentation updates in this commit require a fresh CI run; formal required-check/branch-protection policy remains open. |
 | REQ-TEN-01 | JRN-02, JRN-12, JRN-16 | DEC-01 in [owner decisions](F02-OWNER-DECISIONS.md); [CAP-SCOPE-01](SOURCE-MAP-F02.md#anchored-implementation-to-test-trace) | Full customer/group/legal-company/division/field/block model and effective-dated attribution are not implemented. |

@@ -5,7 +5,7 @@
 
 ## Decision protocol
 
-- The F01–F25 phase list remains canonical. The owner has now accepted the F02 planning/traceability baseline; F03 starts only after CI passes on the commit recording that acceptance.
+- The F01–F25 phase list remains canonical. The owner accepted the F02 planning/traceability baseline, and CI run #38849671680 passed on its acceptance commit; F02 is closed and F03 architecture conventions is in progress.
 - The project owner has accepted the documented defaults for DEC-01–DEC-09 as product-design decisions. This does not substitute for customer-specific configuration, signed commercial terms, payroll examples, integration contracts, operational targets or production acceptance evidence.
 - If an item cannot be decided now, record the owner, rationale, interim constraint and the phase it blocks.
 - Production access, payroll/financial posting and customer data exposure must remain gated until their applicable decisions and tests are accepted.
@@ -149,4 +149,4 @@
 
 ## Review record
 
-Review record: **DEC-01–DEC-09 — Accepted as product defaults on 16 October 2026; F02 REQ/JRN planning baseline accepted on 16 October 2026.** The separate [F02 owner acceptance record](F02-OWNER-ACCEPTANCE.md) captures acceptance of 34 REQ-* statements, 16 JRN-* journeys and their traceability maps. Customer-specific hierarchy mapping, identity-provider settings, role assignments, contractual license terms, payroll rates/calculation examples, integration mappings, retention and numeric RPO/RTO/SLO targets remain subject to explicit configuration or customer-owner approval as applicable. Acceptance of the baseline does not certify implementation or authorize production release. F02 remains in progress only until CI passes on the acceptance commit.
+Review record: **DEC-01–DEC-09 — Accepted as product defaults on 16 October 2026; F02 REQ/JRN planning baseline accepted on 16 October 2026.** The separate [F02 owner acceptance record](F02-OWNER-ACCEPTANCE.md) captures acceptance of 34 REQ-* statements, 16 JRN-* journeys and their traceability maps. Customer-specific hierarchy mapping, identity-provider settings, role assignments, contractual license terms, payroll rates/calculation examples, integration mappings, retention and numeric RPO/RTO/SLO targets remain subject to explicit configuration or customer-owner approval as applicable. Acceptance of the baseline does not certify implementation or authorize production release. F02 is complete after [CI run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680) passed on the acceptance commit; F03 architecture conventions is now in progress.

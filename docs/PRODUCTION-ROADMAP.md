@@ -127,6 +127,6 @@ A feature is not complete merely because a screen renders. Its evidence must inc
 
 ## Current next action
 
-**F01 is Complete as a source-audit phase** with CI evidence; this does not close its recorded security findings or establish production readiness. The owner has accepted the F02 planning/traceability baseline recorded in [F02-OWNER-ACCEPTANCE.md](F02-OWNER-ACCEPTANCE.md), covering 34 REQ-* statements, 16 JRN-* journeys and the evidence/gap maps. F02 remains in progress only until CI passes on the acceptance commit; then close F02 and start F03 architecture conventions. Customer-specific configuration and production gates remain. Do not claim exact hosted-demo/repository parity where the rendered artifact has not been independently inspected.
+**F01 is Complete as a source-audit phase** with CI evidence; this does not close its recorded security findings or establish production readiness. **F02 is Complete as an accepted traceability baseline**: the owner accepted the 34 REQ-* statements and 16 JRN-* journeys, and [CI run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680) passed on the acceptance commit. **F03 — Architecture conventions is now in progress**; its active deliverable is [F03-ARCHITECTURE-CONVENTIONS.md](F03-ARCHITECTURE-CONVENTIONS.md). Customer-specific configuration and production gates remain. Do not claim exact hosted-demo/repository parity where the rendered artifact has not been independently inspected.
 
 No phase is marked complete by this plan alone.

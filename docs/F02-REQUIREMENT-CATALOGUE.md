@@ -4,7 +4,7 @@
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  
 **Related artifacts:** [Traceability matrix](TRACEABILITY-F02.md) · [Source-to-test map](SOURCE-MAP-F02.md) · [Persona journey register](F02-PERSONA-JOURNEYS.md) · [Owner decision register](F02-OWNER-DECISIONS.md) · [Decision recommendations](F02-DECISION-RECOMMENDATIONS.md) · [Requirement-to-journey crosswalk](F02-REQ-JOURNEY-CROSSWALK.md) · [Journey-to-evidence map](F02-JOURNEY-EVIDENCE-MAP.md)  
-**CI evidence:** [Run #38844324023](https://github.com/kunal1274/ssjns-eoms/actions/runs/38844324023) passed on the preceding head. The owner acceptance record is being added in this commit; rerun CI on this exact commit before F02 closure. CI validates repository checks, not implementation of missing requirements.
+**CI evidence:** [Run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680) passed on the F02 owner-acceptance commit. CI validates repository checks, not implementation of missing requirements.
 
 ## How to use this catalogue
 
@@ -75,4 +75,4 @@ The project owner accepted the current 34 `REQ-*` identifiers and testable accep
 - If a later source specification or customer requirement changes scope, record the source/owner/rationale and update the affected REQ statement, JRN links, evidence map, downstream phase and tests.
 - Keep partial/missing implementation statuses explicit. Do not turn an accepted default into proof of implementation.
 - Customer-specific hierarchy, identity, licensing, payroll, integration and operations decisions remain gated where noted.
-- F02 closure requires a passing CI run on the accepted-baseline commit. Production release remains subject to its separate security, UAT and operations gates.
+- F02 closed after [CI run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680) passed on the accepted-baseline commit. Production release remains subject to its separate security, UAT and operations gates.

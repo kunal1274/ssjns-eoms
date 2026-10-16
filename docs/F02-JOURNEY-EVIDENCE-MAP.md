@@ -36,10 +36,9 @@
 
 ## Completion actions
 
-The owner accepted the current 16-journey inventory as the planning/traceability baseline on 16 October 2026; see [F02-OWNER-ACCEPTANCE.md](F02-OWNER-ACCEPTANCE.md). This acceptance does not change any journey's present/partial/missing implementation status.
+The owner accepted the current 16-journey inventory as the planning/traceability baseline on 16 October 2026; see [F02-OWNER-ACCEPTANCE.md](F02-OWNER-ACCEPTANCE.md). [CI run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680) passed on the acceptance commit. This acceptance does not change any journey's present/partial/missing implementation status.
 
 1. Keep each journey linked to its stable REQ-* requirement, actor/scope fixture, preconditions, positive and negative expected results, persisted-state/audit expectations and evidence/gap status.
 2. Close implementation and evidence gaps in their assigned phases; do not conflate an accepted product default with an implemented control.
-3. Refresh CI evidence for the owner-acceptance commit before closing F02.
-4. Add any later-identified specific hosted-demo-only journey through traceability change control.
-5. Keep production startup, payroll/financial posting and external integrations gated until their separate acceptance criteria pass.
+3. Add any later-identified specific hosted-demo-only journey through traceability change control.
+4. Keep production startup, payroll/financial posting and external integrations gated until their separate acceptance criteria pass.

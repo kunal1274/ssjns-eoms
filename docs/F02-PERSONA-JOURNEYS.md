@@ -5,7 +5,7 @@
 **Branch:** `planning/production-roadmap-data-security`  
 **Canonical phase tracker:** [PROGRESS.md](PROGRESS.md)  
 **Related evidence:** [Owner acceptance record](F02-OWNER-ACCEPTANCE.md), [TRACEABILITY-F02.md](TRACEABILITY-F02.md), [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md), [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md), [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md), [F02-REQ-JOURNEY-CROSSWALK.md](F02-REQ-JOURNEY-CROSSWALK.md), [F02-JOURNEY-EVIDENCE-MAP.md](F02-JOURNEY-EVIDENCE-MAP.md)  
-**CI evidence:** [GitHub Actions run #38844324023](https://github.com/kunal1274/ssjns-eoms/actions/runs/38844324023) passed on the preceding head. The owner acceptance record is being added in this commit; run CI on this exact commit before F02 closes. CI verifies repository checks, not implementation of every journey.
+**CI evidence:** [GitHub Actions run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680) passed on the F02 owner-acceptance commit. CI verifies repository checks, not implementation of every journey.
 
 ## Purpose and interpretation
 
@@ -74,7 +74,7 @@ Every test case should identify the requirement/journey ID, actor, tenant and sc
 - Implement and test the accepted baseline boundaries against the accepted DEC-02–DEC-09 defaults; record any customer-specific change through traceability change control.
 - Supply/approve business requirement IDs if there is a separate signed requirements source; until then, F01–F25 plus JRN-* are trace keys, not a substitute for a signed specification.
 - DEC-02–DEC-09 defaults are accepted; record any customer-specific variation as a scoped exception with owner and rationale.
-- The owner accepted the current 16-journey inventory as the planning baseline; F03 begins after CI passes on the F02 acceptance commit. Customer-specific policies and missing journey implementations remain assigned to their applicable phases.
+- The owner accepted the current 16-journey inventory as the planning baseline, and F02 closed after CI passed on its acceptance commit. F03 architecture conventions are now in progress. Customer-specific policies and missing journey implementations remain assigned to their applicable phases.
 
 ## Evidence boundaries
 

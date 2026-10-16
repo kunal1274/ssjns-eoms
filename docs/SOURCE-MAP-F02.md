@@ -2,7 +2,7 @@
 
 **Status:** Supporting source-to-test evidence map for the owner-accepted F02 planning baseline; implementation coverage remains partial.  
 **Branch:** `planning/production-roadmap-data-security`  
-**Full F02 documentation verification:** [GitHub Actions run #38844324023](https://github.com/kunal1274/ssjns-eoms/actions/runs/38844324023) passed on the immediately preceding head, including dependency install, migrations/DB tests, unit/integration tests, build, browser verification and dependency audit. This owner-acceptance commit requires a fresh CI run. The earlier [run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797) remains the source-code verification baseline.
+**Full F02 documentation verification:** [GitHub Actions run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680) passed on the owner-acceptance commit, including dependency install, migrations/DB tests, unit/integration tests, build, browser verification and dependency audit. The earlier [run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797) remains the source-code verification baseline.
 
 This map names current source locations and test cases so later work can distinguish implemented behavior from missing requirements. The owner-accepted planning requirement IDs and acceptance statements are in [F02-REQUIREMENT-CATALOGUE.md](F02-REQUIREMENT-CATALOGUE.md), the accepted-baseline persona/journey inventory is in [F02-PERSONA-JOURNEYS.md](F02-PERSONA-JOURNEYS.md), and accepted product defaults plus implementation/production guards for DEC-02–DEC-09 are in [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md). The current 34 REQ-* and 16 JRN-* keys are accepted planning/traceability keys; this does not imply implementation or customer-specific approval. A passing test proves only the scenario it asserts. The `CAP-*` trace keys below are analyst-assigned inventory identifiers, not owner-approved business requirement IDs; the canonical owner-defined phase IDs remain F01–F25.
 
@@ -77,16 +77,15 @@ These browser scripts provide end-to-end evidence for the repository build and s
 
 ## Verification baseline
 
-Run #9 passed the existing source-code workflow: clean `npm ci`, migrations and seed, isolated database tests, 5 domain/sync tests, 18 API/workflow integration tests, build, browser/PWA verification and `npm audit --audit-level=high` (0 vulnerabilities). The tests use synthetic data and a restricted runtime role for application behavior. Run #38844324023 passed after the journey evidence map and crosswalk updates; it does not add new application-code coverage. The owner-acceptance commit requires a fresh run.
+Run #9 passed the existing source-code workflow: clean `npm ci`, migrations and seed, isolated database tests, 5 domain/sync tests, 18 API/workflow integration tests, build, browser/PWA verification and `npm audit --audit-level=high` (0 vulnerabilities). The tests use synthetic data and a restricted runtime role for application behavior. Run #38849671680 passed on the owner-acceptance commit; it does not add new application-code coverage.
 
 This does not cover all F02 requirements, prove production capacity, certify the security design, or establish exact parity with the ChatGPT-hosted rendered artifact.
 
 ## Next traceability actions
 
-The owner accepted the F02 planning/traceability baseline; see [F02-OWNER-ACCEPTANCE.md](F02-OWNER-ACCEPTANCE.md). After CI passes on that acceptance commit:
+F02 baseline acceptance and its CI gate are complete; see [F02-OWNER-ACCEPTANCE.md](F02-OWNER-ACCEPTANCE.md) and [run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680). F03 architecture conventions is now in progress; use [F03-ARCHITECTURE-CONVENTIONS.md](F03-ARCHITECTURE-CONVENTIONS.md) as the active deliverable.
 
-1. Start F03 architecture conventions in a separate phase/commit.
-2. Preserve the current present/partial/missing status for every requirement and journey; add exact source/test anchors as each feature is implemented.
-3. Add positive, negative, boundary, concurrency, pooled-connection and recovery tests for uncovered security/data paths in their assigned phases.
-4. Capture customer-specific hierarchy, identity, licensing, payroll, integration and operations decisions before the corresponding release gates.
-5. Add any specifically identified hosted-demo-only journey through change control; do not invent unobserved behavior.
+1. Preserve the current present/partial/missing status for every requirement and journey; add exact source/test anchors as each feature is implemented.
+2. Add positive, negative, boundary, concurrency, pooled-connection and recovery tests for uncovered security/data paths in their assigned phases.
+3. Capture customer-specific hierarchy, identity, licensing, payroll, integration and operations decisions before the corresponding release gates.
+4. Add any specifically identified hosted-demo-only journey through change control; do not invent unobserved behavior.

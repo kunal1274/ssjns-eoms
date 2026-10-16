@@ -1,11 +1,11 @@
 # F02 — Requirements Traceability Matrix (owner-accepted planning baseline)
 
-**Status:** F02 baseline accepted; CI revalidation pending on this acceptance commit  
+**Status:** Complete — owner-accepted baseline verified by CI on 16 October 2026  
 **Review date:** 16 October 2026  
 **Repository:** `kunal1274/ssjns-eoms`  
 **Working branch:** `planning/production-roadmap-data-security`  
 **Canonical tracker:** [PROGRESS.md](PROGRESS.md)  
-**F01 evidence:** [AUDIT-F01.md](AUDIT-F01.md), [source-code verification run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797). [Run #38844324023](https://github.com/kunal1274/ssjns-eoms/actions/runs/38844324023) passed on the immediately preceding head, including dependency/DB checks, tests, build, browser verification and dependency audit. This acceptance commit requires a fresh CI run before F02 closes.
+**F01 evidence:** [AUDIT-F01.md](AUDIT-F01.md), [source-code verification run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797). [Run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680) passed on the F02 owner-acceptance commit, including dependency/DB checks, unit/integration tests, build, browser verification and dependency audit.
 
 ## Purpose and rules
 
@@ -51,7 +51,7 @@ The project owner has clarified that the hosted demo was created within ChatGPT 
 | Requirement ID / phase | Requirement intent | Current implementation and evidence | Status | Acceptance / gap to close |
 |---|---|---|---|---|
 | F01 | Audit the source, schema, configuration, tests and documented boundaries. | Source inventory and security findings in [AUDIT-F01.md](AUDIT-F01.md); CI run #9 passed 5 unit/sync tests, 18 integration tests, build, browser/PWA checks and audit. | **Complete — audit only** | Findings remain follow-up work; this status does not certify production readiness. |
-| F02 | Map the accepted planning baseline to current code, acceptance rules, tests and evidence. | The owner-accepted 34 REQ-* / 16 JRN-* baseline, crosswalk, source-to-test map and journey evidence map link present/partial/missing behavior and downstream gaps. | In progress | CI must pass on the owner-acceptance commit; after that, close F02 and start F03 architecture conventions. Customer-specific and production gates remain assigned to later phases. |
+| F02 | Map the accepted planning baseline to current code, acceptance rules, tests and evidence. | The owner-accepted 34 REQ-* / 16 JRN-* baseline, crosswalk, source-to-test map and journey evidence map link present/partial/missing behavior and downstream gaps. | Complete | [CI run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680) passed on the owner-acceptance commit. Customer-specific and production gates remain assigned to later phases. |
 | F03 | Define architecture conventions and decisions. | PERN/TypeScript boundaries are visible in source and README. No complete accepted ADR/convention set was found. | Missing | Record module boundaries, API contracts, validation/errors, migrations, logging, tenancy, jobs, integrations and test conventions. |
 | F04 | Reproducible full Docker environment with health checks, migrations and persistence. | `compose.yaml` provides PostgreSQL only; API/web run as host processes per README. CI separately proves a PostgreSQL-backed test environment. | Partial | Containerize the agreed app stack, define health/readiness and migration sequencing, document secrets, persistence, reset and recovery. |
 | F05 | Required automated checks run on pull requests and failures block acceptance. | CI runs dependency install, migrations/seed/DB tests, unit/integration tests, build, browser/PWA checks and `npm audit`; [run #47](https://github.com/kunal1274/ssjns-eoms/actions/runs/38839251289) passed on the F02 documentation state including the draft requirement catalogue, journey register, decision recommendations and crosswalk. | Partial | Decide/enforce formatting/lint rules if required, verify branch protection/status requirements, handle deprecation warnings and document required check policy. |
@@ -139,6 +139,6 @@ F02 can close only when:
 - [x] DEC-02–DEC-09 product defaults are accepted; their customer-specific configuration and release prerequisites remain recorded separately.
 - [x] The owner accepted the current repository/available-evidence journey inventory under DEC-09; no specific additional hosted-demo-only journey was identified in this baseline. Add any later-identified journey through change control.
 - [x] The owner accepted the traceability planning baseline on 16 October 2026; F03 remains gated on CI passing for this acceptance commit.
-- [ ] CI passes on the F02 owner-acceptance commit (run initiated by this commit).
+- [x] [CI run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680) passes on the F02 owner-acceptance commit.
 
-**Current disposition: F02 baseline accepted; CI revalidation pending.** DEC-01–DEC-09 product defaults and the current 34 REQ-* / 16 JRN-* planning baseline are accepted. F02 closes and F03 begins only after CI passes on the commit that records this acceptance. Implementation gaps and customer-specific approvals remain open.
+**Current disposition: F02 Complete.** DEC-01–DEC-09 product defaults and the current 34 REQ-* / 16 JRN-* planning baseline are accepted; [CI run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680) passed on the acceptance commit. Implementation gaps and customer-specific approvals remain open in their assigned phases.
