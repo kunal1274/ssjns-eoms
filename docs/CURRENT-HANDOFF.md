@@ -21,11 +21,11 @@ Deliver the complete Estate Opera EOMS solution end to end against the accepted 
 - F06 and later phases have not started. Foundation/test-tool improvements do not silently waive their dependencies.
 - Safe server error/correlation logs, expandable audit presentation, main API/device-sync recovery and visible browser replay exist. Raw-audit API authorization and full field/scope controls remain future work.
 - Playwright Test runner/UI/headed/report commands and reusable fixture/page object exist. The first capture/confirm/audit/logout journey passed at desktop/mobile widths in CI 38946761298 on source 179aae4dde45d834e28cf8644fc48187b11b12e0. See the tracker for newer evidence.
-- Current increment adds sign-in validation/service recovery and work-form validation/retry cases. Fresh CI evidence is recorded after verification; discovery alone is not execution.
+- Latest verified source: 76d9f904b853288bb6ae669c19c4ccb3c691aac0, CI run 38950026833. All three scenarios passed at both viewport widths (six executions), plus 45 unit/API tests and the full existing browser/PWA/Docker gate. Sign-in validation/service recovery and work-form validation/retry are now verified partial coverage. An earlier run exposed an incorrect test assumption: no-worker selection disables Save, so the corrected case verifies prevention rather than expecting an error after submitting.
 
 ## Next concrete queue
 
-1. Verify and record the current validation/recovery cases in both viewport projects, retaining the full existing regression gate.
+1. Current validation/recovery increment is verified. Next implementation: the machine-readable coverage ledger in item 3, with explicit assertions and actual run evidence. Keep the full regression gate active.
 2. Complete local interactive observation with the owner: `npm run test:e2e:ui` / `npm run test:e2e:headed` after host test setup. The browser opens on the executing computer; remote headless CI does not show it on the owner's desktop.
 3. Add a machine-readable field/action/form/navigation coverage ledger mapped to case assertions and real latest-run evidence. Not tested, draft, skipped, failed and stale must remain visible; no static green indicators.
 4. Add reviewed-recording conversion and real run/result metadata, then a project-aware local runner-backed one-click dashboard. Keep secrets/session traces private and commands allowlisted. Prove a versioned shared kit against a second project before claiming portability.
@@ -34,3 +34,7 @@ Deliver the complete Estate Opera EOMS solution end to end against the accepted 
 ## Working conventions
 
 Use synthetic data and isolated eoms_test for runner scenarios; keep serial workers until fixtures support isolation. Keep immutable retry keys and append-only business audit. Manual recordings require fixtures, assertions and review before counting as tests. Local desktop observation, manual usability/accessibility acceptance and production readiness are distinct from headless CI success. Record exact tested source and CI run; documentation-only follow-ups must not imply changed code was tested.
+
+## Last checkpoint
+
+17 October 2026 (India): [CI run 38950026833](https://github.com/kunal1274/ssjns-eoms/actions/runs/38950026833) passed on 76d9f904b853288bb6ae669c19c4ccb3c691aac0. The subsequent evidence update is documentation-only. No local interactive desktop observation or F05 policy closure is claimed.

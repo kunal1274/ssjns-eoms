@@ -138,3 +138,10 @@ Matched Playwright Test dependency/config, reusable isolated eoms_test fixtures/
 ### Verified interactive-runner infrastructure
 
 [CI run 38946761298](https://github.com/kunal1274/ssjns-eoms/actions/runs/38946761298) passed on `179aae4dde45d834e28cf8644fc48187b11b12e0`: 27 unit/configuration/security/presentation/launch tests and 18 PostgreSQL/API tests, plus both E2E-JRN-07-001 runner projects (desktop 1.9s, mobile viewport 1.8s). Existing browser/PWA/installability checks, formatting, build, dependency audit (zero known vulnerabilities), actual Docker/container/proxy/idempotency/persistence and final quality-gate passed. Local runner discovery listed both cases and config/types passed. Headless execution does not certify manual UI-mode observation. The evidence follow-up changes documentation only; F05 policy gate and F06 status remain unchanged.
+
+
+## Validation/recovery and continuity checkpoint — 17 October 2026 (India)
+
+[CI run 38950026833](https://github.com/kunal1274/ssjns-eoms/actions/runs/38950026833) passed on `76d9f904b853288bb6ae669c19c4ccb3c691aac0`: 45 unit/API tests, six runner executions covering three scenarios at desktop/mobile widths, all legacy browser/PWA checks, formatting/build, dependency audit, Docker/proxy/idempotency/persistence and quality-gate. The earlier candidate failed because the new test tried to submit a disabled button with no selected worker; the corrected test checks disabled-state prevention and re-enable behavior. No assertion was removed to hide a product failure. Sign-in and work-form recovery assertions now pass against the real app with deliberate mocked error responses and real successful retries.
+
+AGENTS.md and CURRENT-HANDOFF.md preserve the full EOMS plan, current state and next queue. Coverage remains partial, local interactive observation pending and repository-policy enforcement incomplete. Later documentation-only evidence commits do not change tested source.

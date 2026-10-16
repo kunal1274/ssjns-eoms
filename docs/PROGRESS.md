@@ -89,3 +89,7 @@ Interactive runner evidence: [CI run 38946761298](https://github.com/kunal1274/s
 ## Continuity and validation/recovery expansion
 
 AGENTS.md and [CURRENT-HANDOFF.md](CURRENT-HANDOFF.md) now record the full delivery goal, authoritative plans, current gate and concrete next queue. Two additional runner cases cover sign-in required/format fields and safe service retry, plus work date/gang/area/worker validation, preserved input, rejected server submission and exactly one corrected save/audit event. Discovery now lists three scenarios across two viewport projects (six executions); actual fresh CI evidence follows.
+
+## Verified checkpoint — 17 October 2026 (India)
+
+[CI run 38950026833](https://github.com/kunal1274/ssjns-eoms/actions/runs/38950026833) passed on `76d9f904b853288bb6ae669c19c4ccb3c691aac0`: 27 unit/config/security/presentation tests, 18 PostgreSQL/API tests, and all three runner scenarios in desktop/mobile viewport projects (six executions), plus existing browser/PWA/installability, formatting/build, dependency audit, Docker/proxy/idempotency/persistence and quality-gate. The no-worker test was corrected to assert the existing disabled Save behavior; no product behavior was weakened. [Current handoff](CURRENT-HANDOFF.md) now identifies the coverage ledger as the next implementation. F05 remains blocked by policy; F06 not started. This evidence update is documentation-only.

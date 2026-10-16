@@ -63,3 +63,6 @@ The existing script-based visible replay remains available. A project-aware dash
 ## Additional selectable cases
 
 E2E-JRN-03-001 checks required/format sign-in fields, focus, no invalid login request, safe injected service-failure guidance/support reference and successful real authentication retry. E2E-JRN-07-002 checks missing work date/gang/area, nonpositive/invalid area precision, no selected worker, preserved inputs after an injected 422 rejection, then a real save with exactly one record/audit event. These are deliberate partial assertions, not complete per-field coverage. Each appears under both desktop/mobile viewport projects in UI mode. Latest CI evidence is in the tracker.
+
+
+Latest validation/recovery evidence: [CI run 38950026833](https://github.com/kunal1274/ssjns-eoms/actions/runs/38950026833) passed on `76d9f904b853288bb6ae669c19c4ccb3c691aac0`: all three scenarios in both viewport projects (six executions). The no-worker check asserts Save is disabled and re-enabled after selection; it does not attempt to click a disabled control. The full existing quality gate also passed. See CURRENT-HANDOFF.md for the next increment.
