@@ -70,4 +70,6 @@ Add a stable inventory ID, accepted journey ID, screen/category, precise control
 
 F06.1 evidence: [CI run 38966302671](https://github.com/kunal1274/ssjns-eoms/actions/runs/38966302671), source `8027aad3364576c29d32b7e9a095ab72209f6cec`, includes three new organization/history/estate-handoff mappings. Actual generated counts: 44 passed and 40 untested rows; filters passed. These remain partial product assertions, not complete hierarchy coverage.
 
-F06.2 adds four assertion bindings for E2E-JRN-02-002: group/company setup, division/field setup, block create/edit, and persisted relationships/history. Expected full-run rows are 52 passed/40 untested; actual execution evidence must be recorded after CI. This does not close the full JRN-02 gap.
+F06.2 adds four assertion bindings for E2E-JRN-02-002: group/company setup, division/field setup, block create/edit, and persisted relationships/history. Actual full-run rows are 52 passed/40 untested in CI 38977060930 on source 258a03860ed53a3f9cbdbd0b1f3ba80f9661bab4; all ten executions and ledger UI checks passed. This does not close the full JRN-02 gap.
+
+F06.2 executed proof: [CI run 38977060930](https://github.com/kunal1274/ssjns-eoms/actions/runs/38977060930). This later evidence update changes documentation only.
