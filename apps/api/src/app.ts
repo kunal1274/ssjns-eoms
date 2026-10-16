@@ -1,3 +1,4 @@
+import { organizationRoutes } from "./organization";
 import express, { type Request, type Response } from "express";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
@@ -169,6 +170,7 @@ export function createApp(pool: Pool, options: { log?: FailureLogger } = {}) {
       c.release();
     }
   }
+  organizationRoutes(app, tx);
   async function estateTx<T>(
     req: Request,
     res: Response,

@@ -23,14 +23,29 @@ const estates = [
 const credentials: { email: string; password: string; role: string }[] = [];
 try {
   await c.query("BEGIN");
-  await c.query(
-    "INSERT INTO eoms.companies(id,name) VALUES($1,$2) ON CONFLICT DO NOTHING",
-    [company, "STM Development Company"],
-  );
+  let customer = (
+    await c.query("SELECT customer_id FROM eoms.companies WHERE id=$1", [
+      company,
+    ])
+  ).rows[0]?.customer_id;
+  if (!customer) {
+    const code = "MIG-" + company.replaceAll("-", "").toUpperCase();
+    await c.query(
+      "INSERT INTO eoms.customers(code,name) VALUES($1,'STM Development Customer') ON CONFLICT(code) DO NOTHING",
+      [code],
+    );
+    customer = (
+      await c.query("SELECT id FROM eoms.customers WHERE code=$1", [code])
+    ).rows[0].id;
+    await c.query(
+      "INSERT INTO eoms.companies(id,name,customer_id) VALUES($1,$2,$3) ON CONFLICT DO NOTHING",
+      [company, "STM Development Company", customer],
+    );
+  }
   for (const e of estates) {
     await c.query(
-      "INSERT INTO eoms.estates(id,company_id,code,name) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING",
-      [e.id, company, e.code, e.name],
+      "INSERT INTO eoms.estates(id,company_id,code,name,customer_id) VALUES($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING",
+      [e.id, company, e.code, e.name, customer],
     );
     await c.query(
       "INSERT INTO eoms.periods(estate_id,month) VALUES($1,'2026-09-01'),($1,'2026-10-01') ON CONFLICT DO NOTHING",

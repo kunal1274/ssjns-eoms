@@ -130,3 +130,8 @@ A feature is not complete merely because a screen renders. Its evidence must inc
 **F01 is Complete as a source-audit phase** with CI evidence; this does not close its recorded security findings or establish production readiness. **F02 is Complete as an accepted traceability baseline**: the owner accepted the 34 REQ-* statements and 16 JRN-* journeys, and [CI run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680) passed on the acceptance commit. **F03 — Architecture conventions is now in progress**; its active deliverable is [F03-ARCHITECTURE-CONVENTIONS.md](F03-ARCHITECTURE-CONVENTIONS.md). Customer-specific configuration and production gates remain. Do not claim exact hosted-demo/repository parity where the rendered artifact has not been independently inspected.
 
 No phase is marked complete by this plan alone.
+
+
+## Development gate exception — 17 October 2026
+
+The owner explicitly instructed continuing with the existing repository ruleset. F05 is closed for development progression with the documented exception in F05-OWNER-EXCEPTION.md; missing repository-enforcement controls remain a release risk. F06 may proceed. This does not change the phase scopes, functional/security acceptance, or authorize automatic merge/deployment.

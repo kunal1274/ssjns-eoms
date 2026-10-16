@@ -1,6 +1,8 @@
 # F05 — Automated quality and repository acceptance gates
 
-**Status:** Blocked on repository-admin protection enforcement. Implementation and CI verification passed; F05 is not Complete while main remains unprotected.
+> Latest status: **Complete (owner exception) for development progression** as of 17 October 2026, 02:22 IST. The owner instructed proceeding with the existing ruleset. [Exception and remaining release risk](F05-OWNER-EXCEPTION.md). Earlier Blocked/do-not-start-F06 observations are historical and superseded for sequencing.
+
+**Status:** Complete (owner exception) for development sequencing; see F05-OWNER-EXCEPTION.md. Missing repository controls remain a release risk.
 
 F03/F04 are accepted. This phase keeps the production startup block and historical database migrations unchanged. It does not implement customer hierarchy, OIDC/MFA, configurable business roles, licensing or complete field-level RLS; those remain in F06–F25.
 

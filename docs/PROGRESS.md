@@ -1,6 +1,6 @@
 # Estate Opera EOMS — Progress Tracker
 
-**Last updated:** 16 October 2026  
+**Last updated:** 17 October 2026  
 **Repository:** [kunal1274/ssjns-eoms](https://github.com/kunal1274/ssjns-eoms)  
 **Working branch:** `planning/production-roadmap-data-security`
 
@@ -16,6 +16,8 @@ This is the canonical top-level tracker and matches the 25 phases supplied by th
 
 Existing code is evidence for an audit, but does not automatically mean a phase is complete. Each phase must be reviewed against its full scope and acceptance criteria.
 
+- **Complete (owner exception)** — implementation verified and owner explicitly accepts a documented deferred gate for development progression; the unmet control and release risk remain visible.
+
 ## Progress
 
 | ID | Workstream | Phase | Status | Current note |
@@ -24,8 +26,8 @@ Existing code is evidence for an audit, but does not automatically mean a phase 
 | F02 | Foundation | Requirements traceability | **Complete** | Owner accepted the 34 REQ-* acceptance statements and 16 JRN-* journey inventory as the planning/traceability baseline; [acceptance record](F02-OWNER-ACCEPTANCE.md). [CI run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680) passed on the acceptance commit, including DB checks, unit/integration tests, build, browser verification and dependency audit. Implementation gaps and customer-specific/production gates remain open in their assigned phases. |
 | F03 | Foundation | Architecture conventions | **Complete** | Owner accepted ADR-F03-01–09 on 16 October 2026; Node 24.x metadata/CI/image conventions aligned. API error/correlation/redaction deltas remain explicit F05/security implementation work. [Accepted baseline](F03-ARCHITECTURE-CONVENTIONS.md). |
 | F04 | Foundation | Docker environment | **Complete** | Shared PostgreSQL/migration/API/web and explicit seed/verification tools implemented. [CI run 38890867618](https://github.com/kunal1274/ssjns-eoms/actions/runs/38890867618) passed on `9d642cfa79ca9463a36923f8eec55e1ca9e6965c`, including actual container tests, web-proxy login/draft/idempotency and retained-volume recreation. Production release remains gated. [F04 evidence](F04-DOCKER-ENVIRONMENT.md). |
-| F05 | Foundation | Automated quality checks | **Blocked** | Implementation and audit/feedback/device-sync/visible-launch continuation verified by [CI run 38945388469](https://github.com/kunal1274/ssjns-eoms/actions/runs/38945388469) on `712da585601306a77f9e4de472da12bcdf708e4d`: 27 unit/security/configuration/presentation/launch-policy + 18 PostgreSQL/API tests, formatting, build, browser, audit, Docker/persistence and quality-gate pass. Main is now targeted by an active ruleset restricting deletion/force pushes; required PR/review, quality-gate/up-to-date, conversation resolution and linear-history enforcement remain missing. The connector cannot apply administration settings. [F05 remaining gate](F05-QUALITY-GATES.md#repository-administration--remaining-external-gate). |
-| F06 | Access control | Customer hierarchy | Not started | Current schema has companies and estates; customer/group/division/block hierarchy is incomplete. |
+| F05 | Foundation | Automated quality checks | **Complete (owner exception)** | Implementation verified; owner explicitly instructed proceeding with the existing ruleset on 17 October 2026. Required review/status/linear-history controls remain an accepted development exception, not implemented protection. [Decision](F05-OWNER-EXCEPTION.md). |
+| F06 | Access control | Customer hierarchy | **In progress** | F06.1 adds customer/company/estate tenant keys, scoped organization read API and guided estate handoff with display-history evidence. Full hierarchy configuration and acceptance remain open. [F06 plan](F06-CUSTOMER-HIERARCHY.md). |
 | F07 | Access control | Authentication and sessions | Not started | Basic local-development login/session/CSRF controls exist; production identity requirements remain open. |
 | F08 | Access control | User lifecycle | Not started | Full invitation, recovery, provisioning, suspension and revocation lifecycle not accepted or complete. |
 | F09 | Access control | Permission catalogue | Not started | Fixed role strings exist; a stable resource/action permission catalogue is not present. |
@@ -101,3 +103,7 @@ Implemented a versioned 39-item field/action/form/navigation/audit/journey-gap i
 ## Verified assertion ledger — 17 October 2026 (India)
 
 [CI run 38957729942](https://github.com/kunal1274/ssjns-eoms/actions/runs/38957729942) passed on `85d8ec16b6aa9b74a0ad9966f50c7e03dcf0b45a`: 34 unit/config/security/presentation/ledger + 18 PostgreSQL/API tests, all six runner executions, generated-ledger screen/status filtering, existing browser/PWA/installability, formatting/build, dependency audit, Docker/proxy/idempotency/persistence and quality-gate. Reporter and regenerated JSON both reported 38 passed/40 untested rows. This is 19 mapped assertion items and 20 explicit gaps across 2 projects, not whole-product coverage. Explicit accessible filter labels fixed the first UI-check failure. The later evidence commit is documentation-only. Handoff now queues reviewed-recording conversion/run metadata and the execution dashboard; F05 policy gate remains Blocked and F06 Not started.
+
+## Owner-authorized progression to F06 — 17 October 2026
+
+The instruction “continue withe the exsiting rule set and proceed .” supersedes earlier blocked-sequencing notes. [F05 exception](F05-OWNER-EXCEPTION.md) closes the development gate with an explicit residual policy risk; no protection changes, merge or deployment are implied. F06.1 implementation is now ready for PostgreSQL/browser/Docker verification. F06 remains In progress because the complete configurable hierarchy and acceptance are not yet delivered.

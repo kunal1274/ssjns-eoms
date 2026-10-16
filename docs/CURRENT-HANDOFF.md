@@ -17,19 +17,19 @@ Deliver the complete Estate Opera EOMS solution end to end against the accepted 
 ## Current delivery state
 
 - F01–F04 complete for their defined gates.
-- F05 remains Blocked on repository enforcement. The active ruleset targets the default branch but only restricts deletion/force pushes; required PR/reviews, quality-gate/up-to-date checks, conversation resolution and linear history remain missing. The connected GitHub tools cannot administer these settings. Recheck before repeating this observation.
-- F06 and later phases have not started. Foundation/test-tool improvements do not silently waive their dependencies.
+- F05 is Complete (owner exception) for development sequencing: on 17 October 2026, 02:22 IST the owner instructed proceeding with the existing ruleset. Missing repository controls remain a release risk, not a blocker to continued development. See F05-OWNER-EXCEPTION.md; do not ask for the same authorization again.
+- F06 is In progress. First increment: customer roots and company/estate boundary keys, safe organization/history reads and guided estate handoff. F07 and later phases have not started.
 - Safe server error/correlation logs, expandable audit presentation, main API/device-sync recovery and visible browser replay exist. Raw-audit API authorization and full field/scope controls remain future work.
 - Playwright Test runner/UI/headed/report commands and reusable fixture/page object exist. The first capture/confirm/audit/logout journey passed at desktop/mobile widths in CI 38946761298 on source 179aae4dde45d834e28cf8644fc48187b11b12e0. See the tracker for newer evidence.
 - Prior validation/recovery source: 76d9f904b853288bb6ae669c19c4ccb3c691aac0, CI run 38950026833. All three scenarios passed at both viewport widths (six executions), plus 45 unit/API tests and the full existing browser/PWA/Docker gate. Sign-in validation/service recovery and work-form validation/retry are now verified partial coverage. An earlier run exposed an incorrect test assumption: no-worker selection disables Save, so the corrected case verifies prevention rather than expecting an error after submitting.
 
 ## Next concrete queue
 
-1. Initial assertion coverage ledger is verified. Next implementation: reviewed-recording conversion and real run/result metadata for the planned execution dashboard. Expand actual control inventory alongside each journey; keep the full regression gate active.
+1. Deliver F06 in working increments under the accepted F05 exception. Verify F06.1 customer boundary/upgrade/read UI, then implement F06.2 controlled legal/operational hierarchy configuration. Keep audit/feedback/Playwright evidence alongside business features.
 2. Complete local interactive observation with the owner: `npm run test:e2e:ui` / `npm run test:e2e:headed` after host test setup. The browser opens on the executing computer; remote headless CI does not show it on the owner's desktop.
 3. The initial 39-item coverage ledger is implemented; [coverage guide](PLAYWRIGHT-COVERAGE-LEDGER.md). Next expand the inventory from actual screens and add reviewed-recording conversion/run metadata, preserving precise assertion mappings and visible gaps. Local execution evidence is not fabricated.
 4. Add reviewed-recording conversion and real run/result metadata, then a project-aware local runner-backed one-click dashboard. Keep secrets/session traces private and commands allowlisted. Prove a versioned shared kit against a second project before claiming portability.
-5. As soon as the policy gate is genuinely satisfied, close F05 with proof and proceed F06–F25 in order, adding tests/audit/feedback alongside each business module. The testing workbench does not replace customer hierarchy, identity, permissions, licensing or the remaining client process flows.
+5. F05 development progression is accepted by owner exception. Continue F06–F25 in order; carry repository-policy risk into release readiness. The testing workbench remains a parallel workstream and does not replace the business modules.
 
 ## Working conventions
 
@@ -46,3 +46,7 @@ Initial inventory: 39 items (19 mapped assertions, 20 explicit gaps) × 2 viewpo
 ## Verified ledger checkpoint — 17 October 2026 (India)
 
 Latest verified source: `85d8ec16b6aa9b74a0ad9966f50c7e03dcf0b45a`, [CI run 38957729942](https://github.com/kunal1274/ssjns-eoms/actions/runs/38957729942). Passed: 34 unit/config/security/presentation/ledger tests + 18 PostgreSQL/API tests, six journey executions, generated ledger filters, all legacy browser/PWA checks, formatting/build, dependency audit and Docker/proxy/idempotency/persistence/final gate. Actual ledger: 38 passed and 40 untested rows (19 mapped items and 20 gaps × 2 projects). An initial browser check found ambiguous filter labels; explicit associations fixed it and the same check passed. Later evidence commits are documentation-only. Next queue: reviewed-recording conversion/run metadata, expanded control inventory, then a real local runner-backed execution dashboard. F05 repository-policy gate remains open.
+
+## Current F06 progression
+
+The owner explicitly accepted the current ruleset for continuing development. See F05-OWNER-EXCEPTION.md and F06-CUSTOMER-HIERARCHY.md. F06.1 code is implemented; fresh execution evidence is recorded after verification. Historical blocked notes below/above do not override this later authorization. Next business increment: configurable hierarchy; keep the reusable testing workstream queued alongside it.

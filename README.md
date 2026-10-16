@@ -117,3 +117,8 @@ Start with [the current handoff](docs/CURRENT-HANDOFF.md) and [phase tracker](do
 ## Field/action coverage ledger
 
 After a journey run, use `npm run test:coverage` and open `.local/e2e-ledger/index.html`. The local view filters actual assertion evidence and open gaps by status/screen, with stale-source detection. No run means no passing evidence. See [scope, status rules and how to extend it](docs/PLAYWRIGHT-COVERAGE-LEDGER.md).
+
+
+## Organization context — F06 first increment
+
+Open Organization to choose an accessible customer, review its legal company and your assigned estates, inspect recorded customer display changes, then open an estate register. This first view is read-only; it does not grant sibling-estate access or implement complete hierarchy configuration. Migration 005 preserves legacy IDs and adds explicit customer/company/estate boundaries. [F06 scope and remaining steps](docs/F06-CUSTOMER-HIERARCHY.md).

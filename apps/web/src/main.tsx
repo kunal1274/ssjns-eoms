@@ -1,3 +1,4 @@
+import { Organization } from "./Organization";
 import { AuditTrail } from "./AuditTrail";
 import { requestFailure, connectionFailure } from "./feedback";
 import React, { useEffect, useState, useRef } from "react";
@@ -284,6 +285,7 @@ function App() {
         <small>WORKSPACE</small>
         {[
           "Muster register",
+          "Organization",
           "Task capacity",
           "Workers",
           "Gangs",
@@ -400,8 +402,9 @@ function App() {
               <p className="eyebrow">FIELD OPERATIONS</p>
               <h1>{tab}</h1>
               <p>
-                Record work with clear ownership and a traceable approval
-                history.
+                {tab === "Organization"
+                  ? "Review your assigned customer, company and estate, then continue to operations."
+                  : "Record work with clear ownership and a traceable approval history."}
               </p>
             </div>
             {canWrite && tab === "Muster register" && (
@@ -917,6 +920,18 @@ function App() {
               api={api}
               base={base}
               manager={role === "manager"}
+            />
+          )}
+          {tab === "Organization" && (
+            <Organization
+              api={api}
+              onOpenEstate={(id) => {
+                setEstate(id);
+                setTab("Muster register");
+                setDetail(null);
+                setCreating(false);
+                setReviewAction(null);
+              }}
             />
           )}
           {tab === "Audit trail" && (

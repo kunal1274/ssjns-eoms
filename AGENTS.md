@@ -7,3 +7,5 @@ Work on the existing working branch/draft PR unless the owner directs otherwise.
 For each meaningful increment, record changed behavior, actual tested source/CI evidence, remaining gaps and the next concrete action in the tracker/handoff. Keep Playwright journey IDs stable and include error/recovery, scoped authorization and audit evidence alongside UI actions. Existing regression checks stay active until equivalent replacement evidence exists.
 
 The owner wants reusable visible testing, manual recording/review, one-click replay and field/action/form/navigation coverage across projects. These are a workstream inside the full delivery plan. Production identity, access control, full process flows and client acceptance remain required.
+
+Owner update, 17 October 2026: the user explicitly instructed continuing with the existing ruleset. F05 is closed for development sequencing with the exception recorded in docs/F05-OWNER-EXCEPTION.md; F06 is in progress. Do not re-block ordinary development or re-request the same permission for deferred repository administration. Keep the policy risk visible for release readiness; no automatic merge/deploy is authorized.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "scope": "Initial EOMS assertion inventory: selected controls plus explicit journey gaps. This is not a complete product/control inventory; legacy-script and manual evidence is not imported.",
+  "scope": "Initial EOMS assertion inventory: selected organization/work controls plus explicit journey gaps. This is not a complete product/control inventory; legacy-script and manual evidence is not imported.",
   "projects": ["chrome-desktop", "chrome-mobile"],
   "items": [
     {
@@ -390,6 +390,42 @@
       "category": "journey",
       "control": "Wider field operations",
       "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-ORGANIZATION-SCOPE",
+      "journey": "JRN-02",
+      "screen": "Organization",
+      "category": "navigation",
+      "control": "Organization context",
+      "assertion": "Only assigned estate and its customer appear; sibling estate excluded",
+      "binding": {
+        "caseId": "E2E-JRN-02-001",
+        "step": "Read scoped customer/company/estate context"
+      }
+    },
+    {
+      "id": "COV-CUSTOMER-HISTORY",
+      "journey": "JRN-02",
+      "screen": "Organization",
+      "category": "audit",
+      "control": "Customer display history",
+      "assertion": "Recorded creation and expandable before/after display fields",
+      "binding": {
+        "caseId": "E2E-JRN-02-001",
+        "step": "Inspect recorded customer creation details"
+      }
+    },
+    {
+      "id": "COV-ESTATE-HANDOFF",
+      "journey": "JRN-02",
+      "screen": "Organization",
+      "category": "action",
+      "control": "Open assigned estate",
+      "assertion": "Opening the assigned estate returns to its register and capture action",
+      "binding": {
+        "caseId": "E2E-JRN-02-001",
+        "step": "Open assigned estate and continue in muster register"
+      }
     }
   ]
 }
