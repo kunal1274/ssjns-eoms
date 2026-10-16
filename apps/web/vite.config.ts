@@ -4,7 +4,7 @@ export default defineConfig({
   root: "apps/web",
   plugins: [react()],
   server: {
-    host: "127.0.0.1",
+    host: process.env.WEB_HOST || "127.0.0.1",
     port: Number(process.env.WEB_PORT || 5174),
     strictPort: true,
     proxy: { "/api": process.env.API_TARGET || "http://127.0.0.1:4100" },

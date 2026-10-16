@@ -40,3 +40,19 @@ jobs:
       - run: npx playwright install --with-deps chrome
       - run: npm run verify:browser
       - run: npm audit --audit-level=high
+      - name: Build and start the shared Docker environment
+        run: |
+          node scripts/setup-env.mjs
+          docker compose config --quiet
+          docker compose up --build -d --wait api web
+          docker compose --profile tools run --rm seed
+      - name: Verify container database, build, proxy and persistence
+        run: |
+          docker compose --profile tools run --rm verify
+          docker compose --profile tools run --rm smoke
+          docker compose down
+          docker compose up -d --wait api web
+          docker compose --profile tools run --rm smoke node scripts/docker-smoke.mjs verify
+      - name: Stop isolated Docker environment
+        if: always()
+        run: docker compose down --remove-orphans

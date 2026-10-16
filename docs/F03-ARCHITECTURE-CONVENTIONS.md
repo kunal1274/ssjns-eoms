@@ -1,7 +1,7 @@
 # F03 — Architecture Conventions and Decision Register
 
 **Phase:** F03 — Architecture conventions  
-**Status:** In progress; conventions below are the proposed technical baseline for owner review.  
+**Status:** Complete as an accepted architecture/conventions baseline, 16 October 2026. Implementation and production gates remain assigned to their phases.  
 **Started:** 16 October 2026, after F02 owner acceptance and CI pass  
 **F02 acceptance:** [Owner acceptance record](F02-OWNER-ACCEPTANCE.md) · [verification run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680)  
 **F03 documentation CI:** [Run #38850005346](https://github.com/kunal1274/ssjns-eoms/actions/runs/38850005346) passed on the initial conventions commit.  
@@ -112,15 +112,15 @@ Tests must use synthetic data and deterministic fixtures. Do not weaken or skip 
 
 | ID | Decision | Status / follow-up |
 |---|---|---|
-| ADR-F03-01 | Keep a modular monolith in the existing PERN repository; separate modules by dependency boundaries, not deployment units. | Proposed technical default; revisit only with measured operational or ownership need. |
+| ADR-F03-01 | Keep a modular monolith in the existing PERN repository; separate modules by dependency boundaries, not deployment units. | Accepted technical default; revisit only with measured operational or ownership need. |
 | ADR-F03-02 | Keep tenant identity, business scope, permission and license entitlement as distinct authorization inputs. | Derived from accepted DEC-01/03/05; implementation remains in F06–F22. |
-| ADR-F03-03 | Use strict Zod request schemas, centralized safe error mapping and correlation IDs. | Proposed; preserve current API compatibility with contract tests. |
+| ADR-F03-03 | Use strict Zod request schemas, centralized safe error mapping and correlation IDs. | Accepted; preserve current API compatibility with contract tests. |
 | ADR-F03-04 | Use transaction-local actor/scope context, forced RLS and a restricted runtime role. | Required security convention; hardening/tests remain in F07/F11/F12. |
 | ADR-F03-05 | Commit business state, audit and outbox intent atomically; dispatch integrations after commit. | Derived from accepted DEC-04/07; dispatcher and adapters remain future work. |
 | ADR-F03-06 | Use exact fixed-scale arithmetic and effective-dated rules for payroll/financial calculations. | Derived from accepted DEC-06; customer examples and rates remain gated. |
-| ADR-F03-07 | Use layered tests from pure domain to PostgreSQL/API and browser journeys. | Proposed; F05 formalizes required CI and branch protection. |
+| ADR-F03-07 | Use layered tests from pure domain to PostgreSQL/API and browser journeys. | Accepted; F05 formalizes required CI and branch protection. |
 | ADR-F03-08 | Treat production identity, secrets, monitoring, backup/restore and numeric recovery targets as release gates. | Derived from accepted DEC-02/08; numeric values require owner/customer approval. |
-| ADR-F03-09 | Resolve Node runtime-version mismatch before containerizing. | Open: package engine says Node >=22.13 while README requires Node 24+. Confirm and align in F04. |
+| ADR-F03-09 | Resolve Node runtime-version mismatch before containerizing. | Accepted Node 24.x: package/lock engines, README, CI and Dockerfile now agree. F04 owns container execution evidence. |
 
 ## Existing-code reconciliation and required follow-up
 
@@ -139,9 +139,20 @@ These are observed current-state deltas, not claims that the target conventions 
 
 - [x] F02 requirement/journey baseline accepted and verified by CI.
 - [x] Existing repository structure and major security/data boundaries reviewed.
-- [ ] Owner accepts or changes these technical conventions/ADRs.
-- [ ] API error/logging policy and migration/versioning policy are reconciled with current code and tests.
-- [ ] Runtime version is aligned across package metadata, README, CI and Docker image.
+- [x] Owner accepted the technical conventions/ADRs on 16 October 2026 ("accept n continue").
+- [x] Current flat error/status contract, raw error-message logging and schema migration behavior are reconciled as implementation deltas below; safe error-code/correlation/redaction changes and regression tests remain explicit F05/security work. No refactor or security fix is falsely certified by this architecture acceptance.
+- [x] Node 24.x is declared consistently in package/lock metadata, README, existing CI and the new Dockerfile. Container execution is verified in F04.
 - [x] Conventions are linked from the canonical progress tracker and roadmap.
 
 F03 does not authorize production startup. After the technical conventions are accepted, close F03 and begin F04 Docker environment work.
+
+
+## Owner acceptance and implementation reconciliation — 16 October 2026
+
+The owner accepted the current conventions with “accept n continue.” This records acceptance of ADR-F03-01–09 and the engineering baseline, not customer-specific payroll/contract values, completed security controls or permission to enable production startup. DEC-01–09 remain unchanged.
+
+The existing error contract is exercised by `tests/api.test.ts` and `tests/workflow.test.ts` (status, Origin/CSRF, authorization, conflicts). Those tests do not prove stable machine codes, correlation IDs or safe log redaction. These specific deltas are carried into F05/security hardening with required compatibility and non-disclosure tests. Applied migration immutability and transaction/advisory-lock behavior are retained; F04 makes the existing migration step explicit without altering historical SQL.
+
+Historical observations above describe the pre-acceptance source. The Node mismatch and loopback-only container binding have now been reconciled in F04 source: Node 24.x, configurable allowlisted API bind address and container web binding. The production startup block remains in force. Local clean installation, eight unit/sync/configuration tests and TypeScript/web/PWA build pass; PostgreSQL/browser/container acceptance evidence remains attached to its actual CI run rather than inferred from these checks.
+
+F03 is closed as architecture acceptance. F04 is the next implementation phase; no merge into main is performed by this record.

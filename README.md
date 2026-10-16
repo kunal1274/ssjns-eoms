@@ -4,25 +4,19 @@ Connected PERN development foundation for the Estate Opera EOMS project. The rel
 
 ## Start locally
 
-Prerequisites: Node 24+, npm, Docker Compose, and Chrome for browser tests. Run all commands from this repository, not an ancestor directory.
+Prerequisites: Node 24.x, npm, Docker Compose, and Chrome for browser tests. Run all commands from this repository, not an ancestor directory.
 
 ```sh
-npm ci
 node scripts/setup-env.mjs
-docker compose up -d --wait
-npm run db:migrate
-npm run db:seed
-npm run db:test
-npm run dev:api
+docker compose up --build -d --wait api web
+docker compose --profile tools run --rm seed
 ```
 
-In another terminal in the same repository:
+Open http://localhost:5174. Use the same hostname as the configured CSRF origin. The API, web and PostgreSQL now run from the shared repository in containers. The seed is explicit and development-only. Generated credentials are in a private named volume; inspect locally using the command in [F04 Docker environment](docs/F04-DOCKER-ENVIRONMENT.md). Database/account volumes survive `docker compose down`; deleting volumes is destructive.
 
-```sh
-npm run dev:web
-```
+For host-run development instead, install with `npm ci`, run `docker compose up -d --wait postgres`, then `npm run db:migrate`, `npm run db:seed`, `npm run db:test`, `npm run dev:api` and (in another terminal) `npm run dev:web`. Host-run credentials are in the ignored host `.local/dev-accounts.json`; they are separate from Docker tooling's account volume. Do not alternate seed locations against a populated database and expect a new credentials file to be generated. Use one workflow for a given development database.
 
-Open http://localhost:5174 (use localhost, which matches the configured CSRF origin). Development credentials are generated in `.local/dev-accounts.json`; inspect them locally. They are not committed. Manager sees both seeded estates; each supervisor sees their estate; clerk has read access. Database persists in a dedicated Docker volume. Do not delete that volume unless you intend to discard this development data.
+See [F04 Docker environment](docs/F04-DOCKER-ENVIRONMENT.md) for clean setup, integration checks, persistence, reset boundaries and pending execution evidence. This is an implementation environment; production startup remains intentionally blocked.
 
 ## Working flow
 

@@ -4,14 +4,14 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=24.0.0 <25"
   },
   "scripts": {
     "dev:api": "node --watch --import tsx apps/api/src/server.ts",
     "dev:web": "vite --config apps/web/vite.config.ts",
     "build": "tsc --noEmit && vite build --config apps/web/vite.config.ts && node scripts/build-sw.mjs",
     "check": "tsc --noEmit",
-    "test": "node --import tsx --test tests/allocation.test.ts tests/sync.test.ts",
+    "test": "node --import tsx --test tests/allocation.test.ts tests/sync.test.ts tests/docker-config.test.ts",
     "db:migrate": "node --import tsx scripts/migrate.ts",
     "db:seed": "node --import tsx scripts/seed.ts",
     "test:integration": "node --import tsx --test --test-concurrency=1 tests/api.test.ts tests/workflow.test.ts",

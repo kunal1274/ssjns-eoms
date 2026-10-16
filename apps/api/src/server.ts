@@ -16,12 +16,14 @@ const roles = await pool.query(
 );
 if (roles.rows[0].rolsuper || roles.rows[0].rolbypassrls)
   throw Error("Refusing privileged database runtime");
+const host = process.env.API_HOST || "127.0.0.1";
+if (!["127.0.0.1", "0.0.0.0"].includes(host)) throw Error("Unsupported API_HOST");
 const server = createApp(pool).listen(
   Number(process.env.API_PORT || 4100),
-  "127.0.0.1",
+  host,
   () =>
     console.log(
-      "EOMS API ready at http://127.0.0.1:" +
+      "EOMS API listening on " + host + ":" +
         String(process.env.API_PORT || 4100),
     ),
 );

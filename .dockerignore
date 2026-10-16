@@ -1,0 +1,10 @@
+.git
+node_modules
+.env
+.env.*
+.local
+apps/web/dist
+coverage
+*.log
+*.tsbuildinfo
+.DS_Store
