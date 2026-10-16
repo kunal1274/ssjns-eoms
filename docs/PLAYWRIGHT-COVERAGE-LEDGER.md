@@ -74,4 +74,6 @@ F06.2 adds four assertion bindings for E2E-JRN-02-002: group/company setup, divi
 
 F06.2 executed proof: [CI run 38977060930](https://github.com/kunal1274/ssjns-eoms/actions/runs/38977060930). This later evidence update changes documentation only.
 
-F06.3a adds four precise E2E-JRN-06-001 bindings for configured task creation, legacy-link conflict/review, persisted block/task/work identity and link audit/navigation. Expected current full run: twelve viewport executions, 60 passed/40 untested item/project rows. Execution evidence pending; complete JRN-06 remains a gap.
+F06.3a adds four precise E2E-JRN-06-001 bindings for configured task creation, legacy-link conflict/review, persisted block/task/work identity and link audit/navigation. Actual current full run: twelve viewport executions, 60 passed/40 untested item/project rows in CI 38980380357. Complete JRN-06 remains a gap.
+
+F06.3a executed evidence: [CI run 38980380357](https://github.com/kunal1274/ssjns-eoms/actions/runs/38980380357) on `ede87f56bd25b13071162fb494f16bd340ef1c9d`. The configured/matching block selectors gained explicit accessible names after the first browser failure; the unchanged journey assertions passed at both viewports and the ledger UI passed. This evidence follow-up changes documentation only.

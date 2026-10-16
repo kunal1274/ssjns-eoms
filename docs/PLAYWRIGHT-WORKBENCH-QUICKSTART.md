@@ -76,4 +76,6 @@ F06.2 adds `E2E-JRN-02-002` using the explicit synthetic setup administrator gra
 
 Verified: [CI 38977060930](https://github.com/kunal1274/ssjns-eoms/actions/runs/38977060930) passed all ten executions on source `258a03860ed53a3f9cbdbd0b1f3ba80f9661bab4`, plus PostgreSQL/upgrade, ledger UI, legacy browser/PWA and Docker gates. This is headless CI evidence; owner desktop observation remains pending.
 
-F06.3a adds `E2E-JRN-06-001`: configured block/task creation, reviewed legacy linking/conflict recovery, persisted muster association, audit details and hierarchy handoff. Run visibly with `npm run test:e2e:headed -- --grep E2E-JRN-06-001` after host test setup. Six scenarios × two viewport projects are currently selected; new execution evidence pending.
+F06.3a adds `E2E-JRN-06-001`: configured block/task creation, reviewed legacy linking/conflict recovery, persisted muster association, audit details and hierarchy handoff. Run visibly with `npm run test:e2e:headed -- --grep E2E-JRN-06-001` after host test setup. Six scenarios × two viewport projects passed in CI 38980380357.
+
+F06.3a verified: [CI run 38980380357](https://github.com/kunal1274/ssjns-eoms/actions/runs/38980380357), source `ede87f56bd25b13071162fb494f16bd340ef1c9d`; all twelve executions, 66 unit/API tests, upgrade/ledger UI and existing browser/PWA/Docker gates passed. Visible owner-desktop observation is separate and remains pending. The follow-up records evidence only.
