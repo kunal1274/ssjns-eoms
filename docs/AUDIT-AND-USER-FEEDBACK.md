@@ -29,6 +29,29 @@ An unsuccessful or denied request must not appear as a successful business chang
 
 Current API limitation: all existing estate members can read the estate audit endpoint and its raw detail. Presentation filtering reduces what this component displays; it does **not** close the existing API authorization finding. Dedicated audit permissions and response-level field projection remain required in F09/F11/F12 before production acceptance.
 
+## Journey alignment
+
+Each row inherits the summary/detail, permissions, correlation and safe-feedback rules above. These are added acceptance checks, not claims that the whole journey is implemented.
+
+| Journey | Audit evidence | Feedback and guided next action |
+|---|---|---|
+| JRN-01 Tenant provisioning | Customer creation and initial grant, isolated scope | Setup progress, duplicate/invalid setup guidance, initial-admin next step |
+| JRN-02 Hierarchy setup | Effective parent/entity changes and version | Invalid parent/cycle guidance and current hierarchy navigation |
+| JRN-03 User lifecycle | Invitation, activation, suspension and revocation | Delivery/activation state, recovery and session-expiry guidance |
+| JRN-04 Role publishing | Draft/published version, permission/scope difference, rollback link | Preview effective access and explain forbidden grants before publication |
+| JRN-05 Licensing | Seat/module assignment and effective/expiry changes | Capacity, entitlement, renewal and contract-driven grace explanations |
+| JRN-06 Master maintenance | Create/update/deactivation and recorded versions | Saved record, duplicate/stale data/locked-period guidance |
+| JRN-07 Work capture | One committed muster event per idempotent action | Draft versus submitted state, valid references, next permitted confirmation |
+| JRN-08 Review/reversal | Confirmation, approval/reversal reason, version, linked record | Current state, conflict/self-approval denial, next permitted action |
+| JRN-09 Correction | Original evidence and linked correction/resubmission | Returned reason, editable fields and correct review queue |
+| JRN-10 Offline sync | Committed server event correlated to immutable submission | Device-only/pending/saved/blocked distinction and safe reconnect/review |
+| JRN-11 Audit review | Scoped summary/detail and authorized export evidence | Search/filter, timezone, pagination, empty/failure distinction |
+| JRN-12 Consolidated reporting | Report/export scope, parameters and source references | Loading/empty/no-access, reconciliation and permitted drill-down |
+| JRN-13 Integration reconciliation | Dispatch attempts, receipt, retry and reconciliation links | Pending/acknowledged/failed status and authorized exception resolution |
+| JRN-14 Task queues | Assignment and exception-resolution events | Current owner, deadline/state, blocking reason and next permitted task |
+| JRN-15 Payroll/finance | Approved calculation/input version, posting and linked adjustment | Reconciliation errors, approval gates, posting acknowledgement and duplicate prevention |
+| JRN-16 Field operations | Planning/operation/safety evidence at correct scope | Required evidence/PPE, overdue exceptions and permitted corrective actions |
+
 ## Feedback acceptance by journey state
 
 | Trigger | User-facing behavior | Audit/diagnostic expectation |

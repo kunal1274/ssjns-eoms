@@ -88,7 +88,14 @@ try {
   );
   if (denied !== 403) throw Error("Cross-estate access not denied");
   await page.getByRole("button", { name: "Audit trail", exact: true }).click();
-  await page.getByText("muster.confirmed", { exact: true }).first().waitFor();
+  const confirmation = page
+    .getByRole("article")
+    .filter({ hasText: saved.id })
+    .filter({ hasText: "Muster confirmed" })
+    .first();
+  await confirmation.getByText("Muster confirmed", { exact: true }).waitFor();
+  await confirmation.getByText("View event details", { exact: true }).click();
+  await confirmation.getByText("muster.confirmed", { exact: true }).waitFor();
   await page
     .getByRole("button", { name: "Muster register", exact: true })
     .click();
