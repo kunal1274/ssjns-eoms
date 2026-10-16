@@ -92,3 +92,10 @@ The remaining condition is actual protection enforcement on main, rechecked as `
 ## Owner-requested audit and feedback continuation
 
 The [cross-phase matrix](AUDIT-AND-USER-FEEDBACK.md) records short/detailed audit and user-facing error/info requirements. This increment adds an allowlisted audit presentation with expandable recorded metadata and main API error recovery/support references. It deliberately does not claim to fix the existing raw-audit API authorization finding. Local verification: 23 unit/security/configuration/presentation tests and TypeScript/web/PWA build passed. Full CI evidence is recorded below when verified. Overall F05 remains blocked by repository enforcement.
+
+
+### Verified continuation
+
+[CI run 38918867500](https://github.com/kunal1274/ssjns-eoms/actions/runs/38918867500) passed on source commit `712c587ade8edd56dcffb62a23d43e5945d77eb3`: 23 unit/security/configuration/presentation tests plus 18 real PostgreSQL/API tests (41 unique tests), formatting, TypeScript/web/PWA build, browser recovery/audit/workflow/offline/installability checks, dependency audit, actual Docker startup and container verification, proxy/idempotency and retained-volume recreation. Both `verify` and `quality-gate` succeeded. The earlier run on `53f8977` caught an obsolete browser assertion expecting the now-collapsed event type; the corrected test opens the details and verifies both the readable summary and original event type.
+
+This later documentation-only evidence commit does not change the tested application source. The main branch was still unprotected during this continuation. F05 remains Blocked and F06 remains Not started.
