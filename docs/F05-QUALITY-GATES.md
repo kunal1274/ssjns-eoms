@@ -1,6 +1,6 @@
 # F05 — Automated quality and repository acceptance gates
 
-**Status:** In progress. Source implementation and local checks are ready; fresh CI and repository-admin protection enforcement are separate acceptance items.
+**Status:** Blocked on repository-admin protection enforcement. Implementation and CI verification passed; F05 is not Complete while main remains unprotected.
 
 F03/F04 are accepted. This phase keeps the production startup block and historical database migrations unchanged. It does not implement customer hierarchy, OIDC/MFA, configurable business roles, licensing or complete field-level RLS; those remain in F06–F25.
 
@@ -77,7 +77,14 @@ Alternatively, configure the same settings in GitHub → repository Settings →
 - [x] Disclosure/JSON/origin/auth/CSRF/rate-limit/logger tests added; the CI integration suite includes the real-PostgreSQL audit correlation assertion.
 - [x] Formatting check, immutable image references and stable fail-closed aggregate job implemented.
 - [x] Local 20 unit/security/configuration tests, formatting and TypeScript/web/PWA build passed.
-- [ ] Fresh CI passes all required PostgreSQL/browser/Docker stages and the aggregate quality-gate on the tested source commit.
+- [x] [CI run 38892916203](https://github.com/kunal1274/ssjns-eoms/actions/runs/38892916203) passed all PostgreSQL/browser/Docker stages and the aggregate quality-gate on source commit `26b500041178f212edc0e6d108d931a603debc3a`.
 - [ ] An authorized administrator enables and independently verifies the prepared main protection/review policy.
 
 Keep F05 open while either unchecked condition remains. Do not merge the draft PR or begin F06 as though F05 were accepted. Production release remains gated regardless of F05's eventual closure.
+
+
+## Executed evidence — 16 October 2026
+
+The exact source commit above passed twenty unit/security/configuration tests and eighteen PostgreSQL/API tests, both through the host CI harness and the isolated Docker verification path. The PostgreSQL test asserts that the first creation audit retains its HTTP request ID while an idempotent replay produces no duplicate event and receives a new request ID. Formatting, TypeScript/web/PWA build, browser/offline/installability regressions, dependency audit (zero known vulnerabilities in this run), pinned-image startup, proxy/login/capture/replay and retained-volume recreation also passed. The separate `quality-gate` job completed successfully.
+
+The remaining condition is actual protection enforcement on main, rechecked as `protected: false` after this run. Neither the passing gate nor this documentation activates repository settings. Keep F05 Blocked and F06 Not started until an administrator applies and verifies the prepared policy. This documentation-only evidence update does not claim that a later source revision was the commit tested in the referenced run.
