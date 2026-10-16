@@ -11,7 +11,7 @@
 
 F03 defines shared engineering rules for the existing PERN codebase before broad implementation. It is a modular-monolith convention set, not a proposal to split the product into microservices. F03 changes are documentation/architecture decisions only; implementation refactors belong in their assigned phases and must carry tests.
 
-The accepted product defaults DEC-01–DEC-09 remain authoritative. This document proposes technical mechanisms for implementing them; it does not replace customer-specific configuration, signed commercial/payroll/integration decisions, or production acceptance.
+The accepted product defaults DEC-01–DEC-09 remain authoritative. This document records the accepted technical mechanisms for implementing them; it does not replace customer-specific configuration, signed commercial/payroll/integration decisions, or production acceptance.
 
 ## 1. Repository and module boundaries
 
@@ -28,7 +28,7 @@ Target dependency direction: web → API contract; API → application/use-case 
 
 ## 2. Runtime, dependencies and configuration
 
-- Align the Node runtime in `package.json`, README, CI and future Docker images. The current package engine and README state different minimum versions; resolve this before F04. Proposed baseline: a supported Node LTS version, pinned consistently in CI and containers.
+- Use the accepted Node 24.x baseline consistently in `package.json`, lock metadata, README, CI and Docker images. F04 source resolves the former Node minimum-version mismatch; F05/release engineering owns immutable image promotion.
 - Use TypeScript strictness, ESM and the existing React/Express/PostgreSQL stack. Do not add a new framework or runtime dependency without recording its purpose, maintenance/security posture and alternative considered.
 - Validate environment configuration once at startup with a schema. Missing required production settings must fail closed; never silently fall back to development credentials or permissive security settings.
 - Keep secrets out of source, browser bundles, logs, test fixtures and committed environment files. Local development credentials must remain generated/ignored.
@@ -129,7 +129,7 @@ These are observed current-state deltas, not claims that the target conventions 
 - `apps/api/src/app.ts` defines an `ApiError` with status/message only. The error middleware returns a flat error response and logs `error.message`; the target stable error code/correlation ID/redaction policy needs a backward-compatible contract change and tests.
 - API routes and SQL are still substantially co-located in `apps/api/src/app.ts`, `maintenance.ts` and `workflow.ts`. The module/application/domain separation above is a target for incremental refactoring, not a description of the current layering.
 - `apps/api/src/server.ts` deliberately blocks `NODE_ENV=production` and binds to `127.0.0.1`. Keep the production gate; make container binding and readiness explicit in F04 rather than enabling production startup prematurely.
-- `package.json` permits Node `>=22.13.0`, while README prerequisites say Node 24+. Align engine, CI and container runtime before F04.
+- Resolved in F04 source: package and lock engines now require Node 24.x; README, CI and Dockerfile use the same runtime line.
 - Migration 001 sets restrictive attributes when it creates `eoms_app`, but does not reconcile every attribute for an existing role. Startup checks superuser and `BYPASSRLS`, not `CREATEDB`/`CREATEROLE`. Add role-drift checks and tests in the security/data-access phases.
 - The current audit route verifies estate membership but does not yet enforce a dedicated auditor/authorized-management permission. DEC-03's designated audit-read default remains unimplemented until its authorization phase.
 - The muster flow writes audit and outbox intent transactionally, but no dispatcher or live partner adapter was found. Do not infer external delivery from outbox persistence.

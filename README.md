@@ -16,7 +16,7 @@ Open http://localhost:5174. Use the same hostname as the configured CSRF origin.
 
 For host-run development instead, install with `npm ci`, run `docker compose up -d --wait postgres`, then `npm run db:migrate`, `npm run db:seed`, `npm run db:test`, `npm run dev:api` and (in another terminal) `npm run dev:web`. Host-run credentials are in the ignored host `.local/dev-accounts.json`; they are separate from Docker tooling's account volume. Do not alternate seed locations against a populated database and expect a new credentials file to be generated. Use one workflow for a given development database.
 
-See [F04 Docker environment](docs/F04-DOCKER-ENVIRONMENT.md) for clean setup, integration checks, persistence, reset boundaries and pending execution evidence. This is an implementation environment; production startup remains intentionally blocked.
+See [F04 Docker environment](docs/F04-DOCKER-ENVIRONMENT.md) for clean setup, integration checks, persistence, reset boundaries and recorded execution evidence. This is an implementation environment; production startup remains intentionally blocked.
 
 ## Working flow
 

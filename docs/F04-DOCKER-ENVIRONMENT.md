@@ -1,6 +1,6 @@
 # F04 — Shared Docker environment
 
-Status: implementation prepared; clean container execution and retained-volume restart checks must pass before closure.
+Status: Complete for the shared development/integration Docker environment, 16 October 2026. Production acceptance remains separately gated.
 
 ## Boundaries
 
@@ -60,9 +60,16 @@ CI runs the existing PostgreSQL/browser/security checks followed by these contai
 - [x] Architecture/Node target accepted by project owner on 16 October 2026.
 - [x] Compose/image, loopback bindings, credential separation, non-root execution and explicit seed behavior reviewed at source level.
 - [x] Local clean dependency install, eight unit/sync/configuration tests and TypeScript/web/PWA build pass.
-- [ ] Fresh CI clean Docker build, migration, API/web health and seed pass.
-- [ ] Container isolated PostgreSQL/API tests and build pass.
-- [ ] Login/draft/replay smoke passes through the container web proxy.
-- [ ] Container removal/recreation retains the saved record and account credentials.
+- [x] Fresh CI clean Docker build, migration, API/web health and seed pass.
+- [x] Container isolated PostgreSQL/API tests and build pass.
+- [x] Login/draft/replay smoke passes through the container web proxy.
+- [x] Container removal/recreation retains the saved record and account credentials.
 
 CI run URL and exact tested commit must be recorded before marking this phase Complete. Production release and F05 security/quality gates remain separate.
+
+
+## Verified execution record
+
+[GitHub Actions run 38890867618](https://github.com/kunal1274/ssjns-eoms/actions/runs/38890867618) passed on source commit `9d642cfa79ca9463a36923f8eec55e1ca9e6965c` on 16 October 2026. The run completed clean installation, migrations/seed/test DB setup, eight unit/sync/configuration and eighteen PostgreSQL/API tests, build, existing browser/PWA regressions and dependency audit. Docker startup and its separate isolated verification/build also passed. The HTTP smoke passed real proxy/health/login/draft/idempotent replay, and the saved draft plus development account survived `compose down` and recreation with retained volumes.
+
+This closes F04's reproducible shared-environment gate. It does not certify full customer/block/field security, OIDC/MFA, custom roles, licenses, production deployment, live integrations, load or recovery targets. F05 formal quality/branch protections and safe error/logging work are next. The evidence above applies to the exact tested source commit; this documentation-only closeout records it without claiming a later untested source revision was executed.
