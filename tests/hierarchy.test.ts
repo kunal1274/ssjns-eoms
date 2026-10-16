@@ -438,3 +438,323 @@ test("runtime cannot self grant mutate audit or rewrite hierarchy scope", async 
   assert.ok(bootstrap.length >= 1);
   assert.equal(bootstrap[0].actor_id, null);
 });
+
+async function newTask(blockCode: string, blockId?: string) {
+  const result = await post(manager, `/estates/${estate}/occurrences`, {
+    ...(blockId
+      ? { blockId, reason: "Reviewed configured task block" }
+      : { blockCode }),
+    taskCode: "TASK-" + suffix(),
+    activity: "Synthetic block linkage",
+    roundCode: "LINK",
+    capacityHa: 2,
+  });
+  assert.equal(result.status, 201, JSON.stringify(result.body));
+  return result;
+}
+test("configured task creation uses the block identity and records projected link history", async () => {
+  const division = await createUnit("division"),
+    block = await createUnit("block", division.id);
+  const result = await newTask("unused", block.id);
+  assert.equal(result.body.block_unit_id, block.id);
+  assert.equal(result.body.block_code, block.code);
+  const history = (
+    await admin.query(
+      "SELECT * FROM eoms.hierarchy_history WHERE record_id=$1 AND record_type='task-link'",
+      [result.body.id],
+    )
+  ).rows;
+  assert.equal(history.length, 1);
+  assert.equal(history[0].action, "created");
+  assert.equal(history[0].actor_id, manager.id);
+  assert.equal(history[0].request_id, result.headers["x-request-id"]);
+  assert.equal(history[0].after_state.parentId, block.id);
+  const renamed = await post(manager, `/estates/${estate}/units/${block.id}`, {
+    kind: "block",
+    code: "R" + suffix(),
+    name: "Renamed configured block",
+    parentId: division.id,
+    version: 1,
+    reason: "Rename after task creation",
+  });
+  assert.equal(renamed.status, 200);
+  const catalog = await manager.agent
+    .get(`/api/estates/${estate}/catalog/occurrences`)
+    .query({ q: result.body.task_code });
+  assert.equal(catalog.status, 200);
+  assert.equal(catalog.body.items[0].block_code, block.code);
+  assert.equal(catalog.body.items[0].linked_block_code, renamed.body.code);
+  assert.equal(catalog.body.items[0].block_unit_id, block.id);
+});
+test("legacy tasks link only after matching review and retain existing identity and quantities", async () => {
+  const division = await createUnit("division"),
+    block = await createUnit("block", division.id),
+    task = (await newTask(block.code)).body;
+  assert.equal(task.block_unit_id, null);
+  await admin.query(
+    "INSERT INTO eoms.periods(estate_id,month) VALUES($1,'8801-01-01') ON CONFLICT DO NOTHING",
+    [estate],
+  );
+  const worker = (
+    await admin.query(
+      "SELECT id FROM eoms.workers WHERE estate_id=$1 AND active LIMIT 1",
+      [estate],
+    )
+  ).rows[0].id;
+  const work = await manager.agent
+    .post(`/api/estates/${estate}/musters`)
+    .set("Origin", origin)
+    .set("X-CSRF-Token", manager.csrf)
+    .set("Idempotency-Key", randomUUID())
+    .send({
+      occurrenceId: task.id,
+      businessDate: "8801-01-15",
+      gangCode: "G-01",
+      quantityHa: 0.1,
+      workerIds: [worker],
+    });
+  assert.equal(work.status, 201, JSON.stringify(work.body));
+  const priorWork = (
+    await admin.query("SELECT * FROM eoms.musters WHERE id=$1", [work.body.id])
+  ).rows;
+  const priorAllocation = (
+    await admin.query("SELECT * FROM eoms.muster_shares WHERE muster_id=$1", [
+      work.body.id,
+    ])
+  ).rows;
+  const payload = {
+    blockId: block.id,
+    version: task.version,
+    reason: "Review legacy block attribution",
+  };
+  const linked = await post(
+    manager,
+    `/estates/${estate}/occurrences/${task.id}/block-link`,
+    payload,
+  );
+  assert.equal(linked.status, 200, JSON.stringify(linked.body));
+  assert.equal(linked.body.id, task.id);
+  assert.deepEqual(
+    (
+      await admin.query("SELECT * FROM eoms.musters WHERE id=$1", [
+        work.body.id,
+      ])
+    ).rows,
+    priorWork,
+  );
+  assert.deepEqual(
+    (
+      await admin.query("SELECT * FROM eoms.muster_shares WHERE muster_id=$1", [
+        work.body.id,
+      ])
+    ).rows,
+    priorAllocation,
+  );
+  assert.equal(linked.body.capacity_ha, task.capacity_ha);
+  assert.equal(linked.body.block_code, task.block_code);
+  assert.equal(linked.body.version, task.version + 1);
+  assert.equal(
+    (
+      await post(
+        manager,
+        `/estates/${estate}/occurrences/${task.id}/block-link`,
+        payload,
+      )
+    ).status,
+    409,
+  );
+  assert.equal(
+    (
+      await post(
+        manager,
+        `/estates/${estate}/occurrences/${task.id}/block-link`,
+        { ...payload, version: linked.body.version },
+      )
+    ).status,
+    409,
+  );
+  const history = (
+    await admin.query(
+      "SELECT * FROM eoms.hierarchy_history WHERE record_id=$1 AND record_type='task-link'",
+      [task.id],
+    )
+  ).rows;
+  assert.equal(history.length, 1);
+  assert.equal(history[0].before_state.parentId, null);
+  assert.equal(history[0].after_state.parentId, block.id);
+  assert.equal(history[0].reason, payload.reason);
+  assert.equal(history[0].request_id, linked.headers["x-request-id"]);
+  const audit = (
+    await admin.query(
+      "SELECT detail FROM eoms.audit WHERE record_id=$1 AND action='task.block-linked'",
+      [task.id],
+    )
+  ).rows;
+  assert.equal(audit.length, 1);
+  assert.equal(audit[0].detail.blockId, block.id);
+  // A capacity edit after linking does not rewrite or duplicate the recorded relationship.
+  assert.equal(
+    (
+      await post(manager, `/estates/${estate}/occurrences/${task.id}`, {
+        capacityHa: 3,
+        version: linked.body.version,
+      })
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await admin.query(
+        "SELECT * FROM eoms.hierarchy_history WHERE record_id=$1 AND record_type='task-link'",
+        [task.id],
+      )
+    ).rowCount,
+    1,
+  );
+});
+test("block link API rejects foreign wrong-kind mismatched missing-reason and unauthorized requests", async () => {
+  const division = await createUnit("division"),
+    block = await createUnit("block", division.id),
+    task = (await newTask(block.code)).body;
+  const otherDivision = await createUnit("division", null, otherEstate),
+    otherBlock = await createUnit(
+      "block",
+      otherDivision.id,
+      otherEstate,
+      block.code,
+    );
+  const payload = {
+    blockId: block.id,
+    version: task.version,
+    reason: "Reviewed matching block",
+  };
+  assert.equal(
+    (
+      await post(
+        supervisor,
+        `/estates/${estate}/occurrences/${task.id}/block-link`,
+        payload,
+      )
+    ).status,
+    403,
+  );
+  for (const actor of [manager, supervisor])
+    assert.equal(
+      (
+        await post(
+          actor,
+          `/estates/${foreignEstate}/occurrences/${task.id}/block-link`,
+          payload,
+        )
+      ).status,
+      403,
+    );
+  for (const invalid of [
+    { ...payload, blockId: division.id },
+    { ...payload, blockId: otherBlock.id },
+    { ...payload, reason: "" },
+  ])
+    assert.equal(
+      (
+        await post(
+          manager,
+          `/estates/${estate}/occurrences/${task.id}/block-link`,
+          invalid,
+        )
+      ).status,
+      422,
+    );
+  const mismatch = (await newTask("UNMATCHED-" + suffix())).body;
+  assert.equal(
+    (
+      await post(
+        manager,
+        `/estates/${estate}/occurrences/${mismatch.id}/block-link`,
+        { ...payload, version: mismatch.version },
+      )
+    ).status,
+    422,
+  );
+  const create = {
+    taskCode: "BAD-" + suffix(),
+    activity: "Invalid block link",
+    roundCode: "LINK",
+    capacityHa: 1,
+  };
+  for (const invalid of [
+    { blockId: otherBlock.id, reason: "Foreign block" },
+    { blockId: division.id, reason: "Wrong kind" },
+    { blockId: block.id },
+    { blockId: block.id, blockCode: block.code, reason: "Ambiguous source" },
+  ])
+    assert.equal(
+      (
+        await post(manager, `/estates/${estate}/occurrences`, {
+          ...create,
+          ...invalid,
+        })
+      ).status,
+      422,
+    );
+  assert.equal(
+    (
+      await admin.query(
+        "SELECT * FROM eoms.hierarchy_history WHERE record_id=$1 AND record_type='task-link'",
+        [task.id],
+      )
+    ).rowCount,
+    0,
+  );
+});
+test("database enforces block kind estate reason version manager authority and immutable saved links", async () => {
+  const division = await createUnit("division"),
+    block = await createUnit("block", division.id),
+    task = (await newTask(block.code)).body;
+  const c = await pool.connect();
+  async function rejected(
+    sql: string,
+    args: unknown[],
+    code: string,
+    actor = manager.id,
+    reason = "Direct guard test",
+  ) {
+    try {
+      await c.query("BEGIN");
+      await c.query(
+        "SELECT set_config('app.user_id',$1,true),set_config('app.change_reason',$2,true)",
+        [actor, reason],
+      );
+      await assert.rejects(
+        () => c.query(sql, args),
+        (e: any) => e.code === code,
+      );
+    } finally {
+      await c.query("ROLLBACK");
+    }
+  }
+  try {
+    const update =
+      "UPDATE eoms.occurrences SET block_unit_id=$2,version=version+1 WHERE id=$1";
+    await rejected(update, [task.id, division.id], "23514");
+    await rejected(update, [task.id, block.id], "23514", manager.id, "");
+    await rejected(update, [task.id, block.id], "42501", supervisor.id);
+    await rejected(
+      "UPDATE eoms.occurrences SET block_unit_id=$2 WHERE id=$1",
+      [task.id, block.id],
+      "23514",
+    );
+    const linked = await post(
+      manager,
+      `/estates/${estate}/occurrences/${task.id}/block-link`,
+      {
+        blockId: block.id,
+        version: task.version,
+        reason: "Lock reviewed relationship",
+      },
+    );
+    assert.equal(linked.status, 200);
+    await rejected(update, [task.id, null], "23514");
+  } finally {
+    c.release();
+  }
+});

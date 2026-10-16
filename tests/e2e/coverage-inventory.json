@@ -474,6 +474,54 @@
         "caseId": "E2E-JRN-02-002",
         "step": "Review persisted hierarchy and recorded changes"
       }
+    },
+    {
+      "id": "COV-TASK-CONFIGURED-BLOCK",
+      "journey": "JRN-06",
+      "screen": "Task capacity",
+      "category": "form",
+      "control": "Configured block selector",
+      "assertion": "Persist task block ID and display linked status",
+      "binding": {
+        "caseId": "E2E-JRN-06-001",
+        "step": "Create task from configured block and verify stable reference"
+      }
+    },
+    {
+      "id": "COV-TASK-LEGACY-LINK",
+      "journey": "JRN-06",
+      "screen": "Task capacity",
+      "category": "action",
+      "control": "Legacy link review",
+      "assertion": "Explicit legacy mode, conflict support reference, retained fields, no rejected write and real versioned link",
+      "binding": {
+        "caseId": "E2E-JRN-06-001",
+        "step": "Review legacy task linking with recoverable conflict and retained fields"
+      }
+    },
+    {
+      "id": "COV-BLOCK-TASK-WORK",
+      "journey": "JRN-06",
+      "screen": "Task capacity",
+      "category": "journey",
+      "control": "Block to work handoff",
+      "assertion": "Save and reload work tied to the configured task and block IDs",
+      "binding": {
+        "caseId": "E2E-JRN-06-001",
+        "step": "Capture and persist work against the configured task identity"
+      }
+    },
+    {
+      "id": "COV-TASK-LINK-AUDIT",
+      "journey": "JRN-06",
+      "screen": "Task capacity",
+      "category": "audit",
+      "control": "Link audit and hierarchy handoff",
+      "assertion": "Readable summary/reason/block reference, persisted linked status, one before/after event and hierarchy navigation",
+      "binding": {
+        "caseId": "E2E-JRN-06-001",
+        "step": "Inspect recorded block link summary details and persisted task status"
+      }
     }
   ]
 }

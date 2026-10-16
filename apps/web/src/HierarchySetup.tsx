@@ -564,11 +564,13 @@ export function HierarchySetup({
                 <strong>
                   {change.record_type === "unit"
                     ? "Unit"
-                    : change.record_type === "company"
-                      ? "Company"
-                      : change.record_type === "setup-grant"
-                        ? "Setup grant"
-                        : "Group"}{" "}
+                    : change.record_type === "task-link"
+                      ? "Task block link"
+                      : change.record_type === "company"
+                        ? "Company"
+                        : change.record_type === "setup-grant"
+                          ? "Setup grant"
+                          : "Group"}{" "}
                   {change.action} · {change.after.code || change.after.name}
                 </strong>
                 <small>

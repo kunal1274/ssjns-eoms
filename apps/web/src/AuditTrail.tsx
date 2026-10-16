@@ -14,6 +14,7 @@ const labels: Record<string, string> = {
   "worker.created": "Worker added",
   "worker.updated": "Worker updated",
   "task.created": "Task added",
+  "task.block-linked": "Task linked to configured block",
   "task.updated": "Task updated",
   "period.created": "Period added",
   "period.updated": "Period updated",
@@ -23,6 +24,8 @@ const labels: Record<string, string> = {
 // Explicit presentation allowlist. Never dump audit payloads or employee snapshots.
 const fields = {
   month: "Period",
+  blockCode: "Recorded block code",
+  blockId: "Configured block reference",
   reason: "Reason",
   previousVersion: "Previous version",
   version: "Recorded version",

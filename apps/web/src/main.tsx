@@ -901,6 +901,7 @@ function App() {
           {["Task capacity", "Workers", "Operational periods"].includes(tab) &&
             estate && (
               <Maintenance
+                onOpenHierarchy={() => setTab("Organization")}
                 key={estate + tab}
                 base={base}
                 api={api}

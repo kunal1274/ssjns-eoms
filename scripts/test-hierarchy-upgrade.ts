@@ -47,16 +47,37 @@ try {
       "INSERT INTO eoms.memberships(user_id,estate_id,role) VALUES($1,$2,'supervisor')",
       [user, estate],
     );
+    const legacyTask = (
+      await c.query(
+        "INSERT INTO eoms.occurrences(estate_id,block_code,task_code,activity,round_code,capacity_ha) VALUES($1,'OLD-BLOCK','OLD-TASK','Legacy activity','OLD',2) RETURNING id",
+        [estate],
+      )
+    ).rows[0].id;
     await c.query(
       await readFile("db/migrations/005_customer_boundary.sql", "utf8"),
     );
     await c.query(
       await readFile("db/migrations/006_hierarchy_setup.sql", "utf8"),
     );
+    await c.query(
+      await readFile("db/migrations/007_task_block_links.sql", "utf8"),
+    );
     assert.equal(
       (await c.query("SELECT * FROM eoms.organization_admins")).rowCount,
       0,
     );
+    const preservedTask = (
+      await c.query(
+        "SELECT id,block_code,block_unit_id,version FROM eoms.occurrences WHERE id=$1",
+        [legacyTask],
+      )
+    ).rows[0];
+    assert.deepEqual(preservedTask, {
+      id: legacyTask,
+      block_code: "OLD-BLOCK",
+      block_unit_id: null,
+      version: 1,
+    });
     const rows = (
       await c.query(
         "SELECT e.id,e.customer_id,c.customer_id AS company_customer FROM eoms.estates e JOIN eoms.companies c ON c.id=e.company_id WHERE e.id=$1",

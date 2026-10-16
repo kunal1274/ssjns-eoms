@@ -26,7 +26,7 @@ Generated evidence/reports are ignored, not committed as sample passes. With no 
 
 ## Initial scope and honest gaps
 
-The current inventory has 46 items: 26 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (92 rows). The initial ledger before F06 had 39 items. It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
+The current inventory has 50 items: 30 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (100 rows). The initial ledger before F06 had 39 items. It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
 
 The mapped controls include email/password prevention, safe login recovery, date/gang/area validation, missing-worker disabled Save, retained input after a rejected submission, exactly-once corrected save/audit, confirmation/reload, selected audit disclosure, cross-estate denial, audit-screen overflow and logout navigation. Existing browser/API scripts cover additional behavior; that evidence is separate and is not silently imported as a runner pass. An untested row means no executed assertion mapping in this ledger, not proof that no other test exists.
 
@@ -73,3 +73,5 @@ F06.1 evidence: [CI run 38966302671](https://github.com/kunal1274/ssjns-eoms/act
 F06.2 adds four assertion bindings for E2E-JRN-02-002: group/company setup, division/field setup, block create/edit, and persisted relationships/history. Actual full-run rows are 52 passed/40 untested in CI 38977060930 on source 258a03860ed53a3f9cbdbd0b1f3ba80f9661bab4; all ten executions and ledger UI checks passed. This does not close the full JRN-02 gap.
 
 F06.2 executed proof: [CI run 38977060930](https://github.com/kunal1274/ssjns-eoms/actions/runs/38977060930). This later evidence update changes documentation only.
+
+F06.3a adds four precise E2E-JRN-06-001 bindings for configured task creation, legacy-link conflict/review, persisted block/task/work identity and link audit/navigation. Expected current full run: twelve viewport executions, 60 passed/40 untested item/project rows. Execution evidence pending; complete JRN-06 remains a gap.

@@ -1,3 +1,4 @@
+import { TaskBlockFields, TaskBlockLink } from "./TaskBlock";
 import { useEffect, useState } from "react";
 type Row = Record<string, any>;
 type Api = (path: string, body?: unknown) => Promise<any>;
@@ -6,11 +7,13 @@ export function Maintenance({
   api,
   manager,
   kind,
+  onOpenHierarchy,
 }: {
   base: string;
   api: Api;
   manager: boolean;
   kind: "workers" | "occurrences" | "periods";
+  onOpenHierarchy?: () => void;
 }) {
   const [rows, setRows] = useState<Row[]>([]),
     [next, setNext] = useState<string | null>(null),
@@ -20,6 +23,8 @@ export function Maintenance({
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [edit, setEdit] = useState<Row | null>(null),
+    [link, setLink] = useState<Row | null>(null),
+    [blockReady, setBlockReady] = useState(false),
     [create, setCreate] = useState(false),
     [message, setMessage] = useState("");
   const isWorker = kind === "workers",
@@ -69,6 +74,8 @@ export function Maintenance({
             disabled={busy}
             onClick={() => {
               setEdit(null);
+              setLink(null);
+              setBlockReady(false);
               setCreate(true);
             }}
           >
@@ -83,6 +90,11 @@ export function Maintenance({
             ? "Deactivate workers to remove them from new entries. Existing records are retained."
             : "Each task occurrence has its own area budget. Capacity edits preserve confirmed work."}
       </p>
+      {!isWorker && !isPeriod && onOpenHierarchy && (
+        <button type="button" className="secondary" onClick={onOpenHierarchy}>
+          Open hierarchy setup
+        </button>
+      )}
       {!manager && (
         <small>Read access · An estate manager maintains these records.</small>
       )}
@@ -161,7 +173,12 @@ export function Maintenance({
                       version: edit.version,
                     }
                   : {
-                      blockCode: data.get("block"),
+                      ...(data.get("blockId")
+                        ? {
+                            blockId: data.get("blockId"),
+                            reason: data.get("linkReason"),
+                          }
+                        : { blockCode: data.get("block") }),
                       taskCode: data.get("task"),
                       activity: data.get("activity"),
                       roundCode: data.get("round"),
@@ -172,8 +189,8 @@ export function Maintenance({
               await api(base + path, body);
               setEdit(null);
               setCreate(false);
-              await load();
               setMessage("Saved. Audit history updated.");
+              await load();
             });
           }}
         >
@@ -239,10 +256,11 @@ export function Maintenance({
               <>
                 {!edit && (
                   <>
-                    <label>
-                      Block code
-                      <input name="block" required maxLength={100} />
-                    </label>
+                    <TaskBlockFields
+                      base={base}
+                      api={api}
+                      onReady={setBlockReady}
+                    />
                     <label>
                       Task code
                       <input name="task" required maxLength={100} />
@@ -273,7 +291,13 @@ export function Maintenance({
             )}
           </div>
           <div className="actions">
-            <button disabled={busy}>Save changes</button>
+            <button
+              disabled={
+                busy || (create && !isWorker && !isPeriod && !blockReady)
+              }
+            >
+              Save changes
+            </button>
             <button
               type="button"
               disabled={busy}
@@ -287,6 +311,22 @@ export function Maintenance({
             </button>
           </div>
         </form>
+      )}
+      {link && (
+        <TaskBlockLink
+          key={link.id}
+          base={base}
+          api={api}
+          task={link as any}
+          onCancel={() => setLink(null)}
+          onSaved={async () => {
+            await load();
+            setLink(null);
+            setMessage(
+              "Block link saved. Existing work retained; audit history updated.",
+            );
+          }}
+        />
       )}
       <div className="tablewrap">
         <table>
@@ -311,7 +351,7 @@ export function Maintenance({
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id || r.month}>
+              <tr key={r.id || r.month} data-maintenance-id={r.id}>
                 {isWorker ? (
                   <>
                     <td>{r.code}</td>
@@ -333,6 +373,11 @@ export function Maintenance({
                   <>
                     <td>
                       {r.block_code} / {r.task_code}
+                      <small>
+                        {r.block_unit_id
+                          ? `Linked block: ${r.linked_block_code} · ${r.linked_block_name}`
+                          : "Legacy code · unlinked"}
+                      </small>
                     </td>
                     <td>
                       {r.activity}
@@ -355,11 +400,26 @@ export function Maintenance({
                       disabled={busy}
                       onClick={() => {
                         setCreate(false);
+                        setLink(null);
                         setEdit(r);
                       }}
                     >
                       {isPeriod ? (r.locked ? "Reopen" : "Lock") : "Edit"}
                     </button>
+                    {!isWorker && !isPeriod && !r.block_unit_id && (
+                      <button
+                        type="button"
+                        className="secondary"
+                        disabled={busy}
+                        onClick={() => {
+                          setCreate(false);
+                          setEdit(null);
+                          setLink(r);
+                        }}
+                      >
+                        Link block
+                      </button>
+                    )}
                   </td>
                 )}
               </tr>
