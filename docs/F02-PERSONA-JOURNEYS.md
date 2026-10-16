@@ -5,7 +5,7 @@
 **Branch:** `planning/production-roadmap-data-security`  
 **Canonical phase tracker:** [PROGRESS.md](PROGRESS.md)  
 **Related evidence:** [TRACEABILITY-F02.md](TRACEABILITY-F02.md), [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md), [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md), [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md), [F02-REQ-JOURNEY-CROSSWALK.md](F02-REQ-JOURNEY-CROSSWALK.md), [F02-JOURNEY-EVIDENCE-MAP.md](F02-JOURNEY-EVIDENCE-MAP.md)  
-**CI evidence:** [GitHub Actions run #47](https://github.com/kunal1274/ssjns-eoms/actions/runs/38839251289) passed on commit `cddd761b9c7aba0b93563c96a42de2c1f28a4682`, which includes this register, the draft requirement catalogue, decision recommendations and requirement-to-journey crosswalk. CI confirms repository checks only; it does not approve these proposed personas or journeys.
+**CI evidence:** [GitHub Actions run #38841851439](https://github.com/kunal1274/ssjns-eoms/actions/runs/38841851439) passed on the previous accepted-defaults documentation state. The per-journey evidence-map and consistency-review updates made afterward require a fresh CI run. CI confirms repository checks only; it does not approve these proposed personas or journeys.
 
 ## Purpose and interpretation
 
