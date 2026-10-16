@@ -123,3 +123,8 @@ The owner-requested [Playwright journey/regression plan](PLAYWRIGHT-JOURNEY-TEST
 ## Visible Playwright replay continuation
 
 Shared browser launch settings now support visible Chrome with bounded action delay while preserving headless defaults. A local wrapper runs the existing browser suite visibly; a codegen command records ignored manual-test drafts for later runner/assertion review. Unit checks cover launch defaults and invalid delay settings. Local unit/build checks passed; CI evidence is recorded after execution. Local desktop observation is still required for headed-mode acceptance. The one-click workbench and reusable cross-project kit are planned separately, not claimed as implemented.
+
+
+### Verified visible-launch infrastructure
+
+[CI run 38945388469](https://github.com/kunal1274/ssjns-eoms/actions/runs/38945388469) passed on `712da585601306a77f9e4de472da12bcdf708e4d`: 27 unit/security/configuration/presentation/launch-policy tests plus 18 PostgreSQL/API tests (45 unique tests), formatting, TypeScript/web/PWA build, all existing browser/PWA/installability checks, dependency audit and actual Docker build/start/container/proxy/idempotency/persistence verification. Verify and quality-gate both succeeded. CI used headless defaults; launch-policy tests verify the headed options, but the visible desktop experience and interactive recording have not been observed here. The recorder CLI syntax was checked against installed Playwright help. The later evidence commit changes documentation only.
