@@ -4,8 +4,8 @@
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  
 **Canonical phase tracker:** [PROGRESS.md](PROGRESS.md)  
-**Related evidence:** [TRACEABILITY-F02.md](TRACEABILITY-F02.md), [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md), [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md), [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md)  
-**CI evidence:** [GitHub Actions run #31](https://github.com/kunal1274/ssjns-eoms/actions/runs/38793118636) passed on commit `7e022cc32ca4f3e21d7f0cf4fb622e2a4154f473` after this register and the draft requirement catalogue were added. CI confirms repository checks only; it does not approve these proposed personas or journeys.
+**Related evidence:** [TRACEABILITY-F02.md](TRACEABILITY-F02.md), [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md), [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md), [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md), [F02-REQ-JOURNEY-CROSSWALK.md](F02-REQ-JOURNEY-CROSSWALK.md)  
+**CI evidence:** [GitHub Actions run #47](https://github.com/kunal1274/ssjns-eoms/actions/runs/38839251289) passed on commit `cddd761b9c7aba0b93563c96a42de2c1f28a4682`, which includes this register, the draft requirement catalogue, decision recommendations and requirement-to-journey crosswalk. CI confirms repository checks only; it does not approve these proposed personas or journeys.
 
 ## Purpose and interpretation
 
