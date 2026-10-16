@@ -10,7 +10,7 @@ x-application: &application
   tmpfs: [/tmp]
 services:
   postgres:
-    image: postgres:18
+    image: postgres:18@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336
     environment:
       POSTGRES_DB: eoms
       POSTGRES_USER: postgres
@@ -31,7 +31,7 @@ services:
       ADMIN_DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/eoms
       APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Run node scripts/setup-env.mjs first}
     depends_on:
-      postgres: {condition: service_healthy}
+      postgres: { condition: service_healthy }
   api:
     <<: *application
     read_only: true
@@ -45,9 +45,15 @@ services:
       WEB_ORIGIN: http://localhost:5174
     ports: ["127.0.0.1:4100:4100"]
     depends_on:
-      migrate: {condition: service_completed_successfully}
+      migrate: { condition: service_completed_successfully }
     healthcheck:
-      test: [CMD, node, scripts/docker-health.mjs, "http://127.0.0.1:4100/api/health"]
+      test:
+        [
+          CMD,
+          node,
+          scripts/docker-health.mjs,
+          "http://127.0.0.1:4100/api/health",
+        ]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -63,9 +69,15 @@ services:
       API_TARGET: http://api:4100
     ports: ["127.0.0.1:5174:5174"]
     depends_on:
-      api: {condition: service_healthy}
+      api: { condition: service_healthy }
     healthcheck:
-      test: [CMD, node, scripts/docker-health.mjs, "http://127.0.0.1:5174/api/health"]
+      test:
+        [
+          CMD,
+          node,
+          scripts/docker-health.mjs,
+          "http://127.0.0.1:5174/api/health",
+        ]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -79,13 +91,18 @@ services:
       ADMIN_DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/eoms
     volumes: [eoms_local:/app/.local]
     depends_on:
-      migrate: {condition: service_completed_successfully}
+      migrate: { condition: service_completed_successfully }
   verify:
     <<: *application
     profiles: [tools]
     # Preserve the existing test scripts' loopback-only database safeguard.
     network_mode: service:postgres
-    command: [sh, -ec, "npm run db:test && npm test && npm run test:integration && NODE_ENV=production npm run build"]
+    command:
+      [
+        sh,
+        -ec,
+        "npm run db:test && npm test && npm run test:integration && NODE_ENV=production npm run build",
+      ]
     environment:
       NODE_ENV: test
       ADMIN_DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@127.0.0.1:5432/eoms
@@ -94,7 +111,7 @@ services:
       WEB_ORIGIN: http://localhost:5174
     volumes: [eoms_verify_local:/app/.local]
     depends_on:
-      migrate: {condition: service_completed_successfully}
+      migrate: { condition: service_completed_successfully }
   smoke:
     <<: *application
     profiles: [tools]
@@ -104,7 +121,7 @@ services:
       SMOKE_BASE_URL: http://127.0.0.1:5174
     volumes: [eoms_local:/app/.local]
     depends_on:
-      web: {condition: service_healthy}
+      web: { condition: service_healthy }
 volumes:
   eoms_pg:
   eoms_local:

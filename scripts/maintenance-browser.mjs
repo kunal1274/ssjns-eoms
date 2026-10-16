@@ -8,7 +8,7 @@ const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 const suffix = String(Date.now());
 try {
-  await page.goto((process.env.BROWSER_BASE_URL || "http://localhost:5174"));
+  await page.goto(process.env.BROWSER_BASE_URL || "http://localhost:5174");
   const a = accounts.find((x) => x.email === "manager@eoms.local");
   await page.getByLabel("Email", { exact: true }).fill(a.email);
   await page.getByLabel("Password", { exact: true }).fill(a.password);

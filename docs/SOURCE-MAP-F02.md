@@ -89,3 +89,8 @@ F02 baseline acceptance and its CI gate are complete; see [F02-OWNER-ACCEPTANCE.
 2. Add positive, negative, boundary, concurrency, pooled-connection and recovery tests for uncovered security/data paths in their assigned phases.
 3. Capture customer-specific hierarchy, identity, licensing, payroll, integration and operations decisions before the corresponding release gates.
 4. Add any specifically identified hosted-demo-only journey through change control; do not invent unobserved behavior.
+
+
+## Subsequent F05 source evidence — 16 October 2026
+
+Earlier line anchors are the F02 audit snapshot; refactors and formatting can move current lines. The accepted requirement/journey inventory is unchanged. Current safe-error/request-context implementation is `apps/api/src/http.ts`, integrated by `apps/api/src/app.ts`; audit correlation is persisted in the existing transactional audit helper. `tests/http-errors.test.ts` covers response/log non-disclosure, correlation, parsing, validation, authorization, CSRF, throttling and sink failure. `tests/api.test.ts` verifies persisted correlation and idempotency against PostgreSQL. `.github/workflows/verify.yml`, `tests/repository-gates.test.ts` and `scripts/repository-gates.ts` cover the aggregate CI/repository-policy contract. See [F05](F05-QUALITY-GATES.md) for exact execution and remaining external enforcement evidence; source tests are not production certification.

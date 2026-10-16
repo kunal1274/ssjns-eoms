@@ -1,0 +1,83 @@
+# F05 — Automated quality and repository acceptance gates
+
+**Status:** In progress. Source implementation and local checks are ready; fresh CI and repository-admin protection enforcement are separate acceptance items.
+
+F03/F04 are accepted. This phase keeps the production startup block and historical database migrations unchanged. It does not implement customer hierarchy, OIDC/MFA, configurable business roles, licensing or complete field-level RLS; those remain in F06–F25.
+
+## Required verification sequence
+
+`Verify EOMS milestones` runs on pull requests, main pushes and merge-queue requests, using read-only repository permissions. Its `verify` job must pass:
+
+1. Clean lockfile installation on Node 24.x.
+2. `npm run format:check` for application/domain/scripts/tests, workflow/configuration, package metadata and Compose.
+3. PostgreSQL migration, synthetic seed and isolated test-database setup.
+4. Unit/domain/sync, HTTP error/disclosure and repository-policy regression tests; actual PostgreSQL/API integration tests; TypeScript/web/PWA build.
+5. Existing browser/workflow/offline/installability regression checks.
+6. Dependency audit at the high/critical threshold. Do not suppress a failure or introduce a permanent blanket exception. Any proposed temporary exception requires an owner, scoped advisory, rationale, expiry and explicit review before being encoded.
+7. Actual Docker build/start/migrations/health, isolated tests/build, proxy/login/capture/idempotency and retained-volume recreation.
+
+The stable final job is **`quality-gate`**. It runs with `if: always()` and succeeds only if `verify` is `success`; failure, cancellation and skipped prerequisites fail the gate. Unit tests execute the actual shell condition from the workflow against those outcomes. No step uses `continue-on-error` to hide verification failure.
+
+This workflow is not yet an enforced merge gate while main remains unprotected. A green check alone does not prevent a direct push or merge. The required repository settings below are part of F05 acceptance.
+
+## Safe error and logging contract
+
+All application-handled API errors return additive JSON fields:
+
+```json
+{"error":"Safe human-readable message","code":"CONFLICT","requestId":"server-generated-UUID"}
+```
+
+The existing `error` string and expected business status codes remain for clients. Added `code` and `requestId` support deterministic handling and support correlation. `X-Request-ID` matches the body; successful API responses also carry a fresh server ID. Inbound correlation headers are not trusted or reused. API responses remain `Cache-Control: no-store`, including malformed/oversized JSON.
+
+`apps/api/src/http.ts` centralizes status/code classification. Origin/CSRF/auth, validation, rate-limit, missing route/reference, duplicate/conflict, permission, database availability and internal failures share the same contract. Zod validation uses a bounded generic message so arbitrary keys/enum values are not reflected. Trusted business `ApiError` messages are public by design; callers must never wrap raw exceptions, SQL or sensitive inputs in a public business message. Internal/availability errors remain generic even if an ApiError was constructed with private detail.
+
+HTTP failure logs contain only event category, server request ID, status, allowlisted error code and normalized method. They exclude raw exceptions/stack, database metadata, bodies, headers/cookies/tokens, query strings, paths, user names and wage/bank/employee values. Logger failure does not cause an unsafe response. Failures after response headers destroy the response rather than passing the raw exception to Express's default logger. These are application HTTP failure-log guarantees, not a claim of durable centralized log delivery or redaction of all privileged database/tooling logs.
+
+Operational audit events retain the originating request ID in transactionally committed detail. An idempotent replay keeps the original business/audit event and receives a new HTTP request ID. No new migration or mutable audit privilege is introduced.
+
+### Evidence scope
+
+- `tests/http-errors.test.ts`: server IDs, success/failure correlation, forged headers, malformed/oversized JSON, generic validation, database/internal non-disclosure, Origin/auth/CSRF/404/rate-limit contracts and logger failure.
+- `tests/api.test.ts`: persisted audit/request correlation plus idempotent replay and existing database/authorization/concurrency coverage using the restricted runtime role.
+- `tests/repository-gates.test.ts`: actual aggregate shell success/failure/cancel/skip behavior and fail-closed policy inspection.
+- Existing database and browser journeys must still pass. Full customer/block/field isolation, runtime role-drift remediation and a dedicated audit-read permission remain assigned to security phases; this error-contract change does not certify them.
+
+## Immutable image and dependency promotion
+
+Node and PostgreSQL base images are now pinned to immutable digests. Their provenance is the successful F04 execution [run 38891371564](https://github.com/kunal1274/ssjns-eoms/actions/runs/38891371564), tested on 16 October 2026. Node's Dockerfile identity and PostgreSQL's Compose/CI identity are explicit; tests check the digest requirement and PostgreSQL consistency.
+
+Updating the runtime line, image digest or dependency lockfile requires a reviewed PR and the complete gate. Do not update a mutable tag behind a published release. Node remains the accepted 24.x line and PostgreSQL remains 18. Pinning is reproducibility, not a vulnerability scan: OS-image CVE review, signed release provenance, production artifact promotion, rollback and deployment approvals remain release-readiness obligations before production use.
+
+## Repository administration — remaining external gate
+
+Observed on 16 October 2026: GitHub's main branch metadata reports `protected: false`. The connected GitHub capability can write source and PR metadata but does not expose repository administration mutation. No protection setting has been changed by this phase.
+
+The exact proposed payload is `.github/branch-protection.main.json`:
+
+- Require `quality-gate` and an up-to-date branch.
+- Require a PR and at least one independent approving review; dismiss stale approval and require approval of the last push.
+- Enforce the rules for administrators, require resolved discussions and linear history.
+- Disable force pushes and branch deletion.
+
+An authorized repository administrator can apply the prepared payload from the same checkout, using an already authorized GitHub CLI session:
+
+```sh
+gh api --method PUT repos/kunal1274/ssjns-eoms/branches/main/protection --input .github/branch-protection.main.json
+```
+
+Alternatively, configure the same settings in GitHub → repository Settings → Branches → main. Designate an independent reviewer rather than assuming the author can approve their own changes. This is repository change control, separate from EOMS application roles/licensing.
+
+`npm run check:repository-gates` is a **read-only** verification command. It needs `GITHUB_TOKEN` supplied securely with repository Administration read access. It exits nonzero when settings are missing, weaker than required, inaccessible or unverifiable, without printing the token or raw API response. Do not commit that token or include it in logs. Record the actual returned policy evidence before closing this gate. If organization rulesets are adopted instead, verify their effective equivalent controls explicitly rather than treating the existence of a ruleset as proof.
+
+## Acceptance checklist
+
+- [x] Current F04 closeout source and passing CI reconciled.
+- [x] Backward-compatible safe error codes and server correlation contract implemented.
+- [x] Disclosure/JSON/origin/auth/CSRF/rate-limit/logger tests added; the CI integration suite includes the real-PostgreSQL audit correlation assertion.
+- [x] Formatting check, immutable image references and stable fail-closed aggregate job implemented.
+- [x] Local 20 unit/security/configuration tests, formatting and TypeScript/web/PWA build passed.
+- [ ] Fresh CI passes all required PostgreSQL/browser/Docker stages and the aggregate quality-gate on the tested source commit.
+- [ ] An authorized administrator enables and independently verifies the prepared main protection/review policy.
+
+Keep F05 open while either unchecked condition remains. Do not merge the draft PR or begin F06 as though F05 were accepted. Production release remains gated regardless of F05's eventual closure.

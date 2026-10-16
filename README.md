@@ -88,3 +88,10 @@ Sign out requires connectivity and prompts before discarding unsynced device dat
 ## Automated checks
 
 GitHub Actions runs unit/sync and PostgreSQL integration tests, the build, all four browser workflows, Chrome manifest/installability diagnostics and the dependency audit on pushes to main and pull requests. Actions are pinned to immutable revisions; the job has read-only repository permissions. CI databases/accounts are disposable and independent of local credentials. See `docs/MILESTONE-CLOSEOUT.md` for the delivered checkpoint and explicit future work.
+
+
+## F05 quality and safe API errors
+
+Run `npm run format:check`, `npm test` and `npm run build` locally; database/browser/Docker checks remain mandatory in CI. API error responses preserve the human-readable `error` string and add a stable `code`, server `requestId` and matching `X-Request-ID`. Application failure logs use allowlisted metadata rather than raw exception messages.
+
+The final `quality-gate` CI job fails for failed, cancelled or skipped verification. Enforcing that job on main also requires repository-admin branch protection; it has not been enabled by a source commit. See [F05 quality gates](docs/F05-QUALITY-GATES.md) for evidence, image/dependency promotion and the exact remaining administrator action. Full production security and deployment acceptance remain open.

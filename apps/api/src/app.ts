@@ -1,25 +1,19 @@
-import express, {
-  type Request,
-  type Response,
-  type NextFunction,
-} from "express";
+import express, { type Request, type Response } from "express";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
-import { z, ZodError } from "zod";
+import { z } from "zod";
 import type { Pool, PoolClient } from "pg";
 import { webOrigin } from "./config.ts";
 import { hash, token, verifyPassword, passwordHash } from "./security.ts";
 import { allocateHundredths } from "../../../packages/domain/allocation.ts";
 import { workflowRoutes, assertGangAllowed } from "./workflow.ts";
 import { maintenanceRoutes } from "./maintenance.ts";
-class ApiError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}
+import {
+  ApiError,
+  requestContext,
+  safeErrorHandler,
+  type FailureLogger,
+} from "./http.ts";
 const uuid = z.string().uuid();
 const createSchema = z
   .object({
@@ -48,15 +42,12 @@ const createSchema = z
       .refine((v) => new Set(v).size === v.length, "Workers must be unique"),
   })
   .strict();
-export function createApp(pool: Pool) {
+export function createApp(pool: Pool, options: { log?: FailureLogger } = {}) {
   const app = express();
   app.disable("x-powered-by");
+  app.use("/api", requestContext);
   app.use(helmet());
   app.use(express.json({ limit: "64kb" }));
-  app.use("/api", (_req, res, next) => {
-    res.set("Cache-Control", "no-store");
-    next();
-  });
   app.get("/api/health", async (_req, res) => {
     await pool.query("SELECT 1");
     res.json({ status: "ok", service: "eoms-api", stage: "foundation" });
@@ -66,7 +57,7 @@ export function createApp(pool: Pool) {
       !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
       req.get("Origin") !== webOrigin
     )
-      return res.status(403).json({ error: "Untrusted request origin" });
+      throw new ApiError(403, "Untrusted request origin", "ORIGIN_REJECTED");
     next();
   });
   const dummy = passwordHash("dummy-unknown-account-" + token());
@@ -77,6 +68,14 @@ export function createApp(pool: Pool) {
       limit: 20,
       standardHeaders: "draft-8",
       legacyHeaders: false,
+      handler: (_req, _res, next) =>
+        next(
+          new ApiError(
+            429,
+            "Too many sign-in attempts. Try again later.",
+            "RATE_LIMITED",
+          ),
+        ),
     }),
     async (req, res) => {
       const input = z
@@ -136,7 +135,7 @@ export function createApp(pool: Pool) {
       !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
       req.get("X-CSRF-Token") !== rows.rows[0].csrf
     )
-      throw new ApiError(403, "Invalid CSRF token");
+      throw new ApiError(403, "Invalid CSRF token", "CSRF_REJECTED");
     next();
   });
   app.get("/api/auth/session", (req, res) => {
@@ -198,7 +197,13 @@ export function createApp(pool: Pool) {
   ) {
     await c.query(
       "INSERT INTO eoms.audit(estate_id,actor_id,action,record_id,detail) VALUES($1,$2,$3,$4,$5)",
-      [estateId, res.locals.user.id, action, id, JSON.stringify(detail)],
+      [
+        estateId,
+        res.locals.user.id,
+        action,
+        id,
+        JSON.stringify({ ...detail, requestId: res.locals.requestId }),
+      ],
     );
   }
   async function openPeriod(c: PoolClient, estateId: string, date: string) {
@@ -501,33 +506,9 @@ export function createApp(pool: Pool) {
       ),
     ),
   );
-  app.use("/api", (_req, res) =>
-    res.status(404).json({ error: "API route not found" }),
-  );
-  app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
-    if (error instanceof ZodError)
-      return res.status(422).json({
-        error: error.errors
-          .map((e) => `${e.path.join(".")}: ${e.message}`)
-          .join("; "),
-      });
-    if (error instanceof ApiError)
-      return res.status(error.status).json({ error: error.message });
-    if (error.code === "23503")
-      return res.status(422).json({ error: "Invalid record reference" });
-    if (error.code === "23505")
-      return res
-        .status(409)
-        .json({ error: "A matching record already exists" });
-    if (error.type === "entity.too.large")
-      return res.status(413).json({ error: "Request too large" });
-    if (error.type === "entity.parse.failed")
-      return res.status(400).json({ error: "Invalid JSON" });
-    console.error("API error", {
-      code: error.code || "unknown",
-      message: error.message,
-    });
-    res.status(500).json({ error: "Request could not be completed" });
+  app.use("/api", () => {
+    throw new ApiError(404, "API route not found");
   });
+  app.use(safeErrorHandler(options.log));
   return app;
 }

@@ -19,7 +19,10 @@ export function maintenanceRoutes(
   app: Express,
   estateTx: EstateTx,
   audit: Audit,
-  ApiError: new (status: number, message: string) => Error,
+  ApiError: new (
+    status: 400 | 401 | 403 | 404 | 409 | 413 | 422 | 429 | 500 | 503,
+    message: string,
+  ) => Error,
 ) {
   const uuid = z.string().uuid(),
     text = z.string().trim().min(1).max(100),
