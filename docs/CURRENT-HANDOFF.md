@@ -1,0 +1,36 @@
+# Current project handoff
+
+Purpose: recover this plan after a new conversation, environment restart or another developer taking over. This file and PROGRESS.md are the durable project checkpoint; they do not schedule autonomous work outside an active session.
+
+## Goal and source
+
+Deliver the complete Estate Opera EOMS solution end to end against the accepted requirements/client documents: connected role-based journeys for new users, shared PERN/Docker codebase, security/scopes/custom roles/licensing, understandable short/detailed audit, user-friendly error/info feedback and real test evidence. Repository: kunal1274/ssjns-eoms. Working branch: planning/production-roadmap-data-security; draft PR #1. Do not merge/deploy automatically.
+
+## Read in this order
+
+1. PROGRESS.md: canonical F01–F25 status and evidence.
+2. PRODUCTION-ROADMAP.md and F02 requirement/journey crosswalk/evidence map: full scope and gaps.
+3. AUDIT-AND-USER-FEEDBACK.md: audit, feedback and recovery acceptance across all 16 journeys.
+4. PLAYWRIGHT-JOURNEY-TEST-PLAN.md and PLAYWRIGHT-WORKBENCH-QUICKSTART.md: reusable testing plan and runnable commands.
+5. F05-QUALITY-GATES.md: actual repository-policy gate and tested source/run evidence.
+
+## Current delivery state
+
+- F01–F04 complete for their defined gates.
+- F05 remains Blocked on repository enforcement. The active ruleset targets the default branch but only restricts deletion/force pushes; required PR/reviews, quality-gate/up-to-date checks, conversation resolution and linear history remain missing. The connected GitHub tools cannot administer these settings. Recheck before repeating this observation.
+- F06 and later phases have not started. Foundation/test-tool improvements do not silently waive their dependencies.
+- Safe server error/correlation logs, expandable audit presentation, main API/device-sync recovery and visible browser replay exist. Raw-audit API authorization and full field/scope controls remain future work.
+- Playwright Test runner/UI/headed/report commands and reusable fixture/page object exist. The first capture/confirm/audit/logout journey passed at desktop/mobile widths in CI 38946761298 on source 179aae4dde45d834e28cf8644fc48187b11b12e0. See the tracker for newer evidence.
+- Current increment adds sign-in validation/service recovery and work-form validation/retry cases. Fresh CI evidence is recorded after verification; discovery alone is not execution.
+
+## Next concrete queue
+
+1. Verify and record the current validation/recovery cases in both viewport projects, retaining the full existing regression gate.
+2. Complete local interactive observation with the owner: `npm run test:e2e:ui` / `npm run test:e2e:headed` after host test setup. The browser opens on the executing computer; remote headless CI does not show it on the owner's desktop.
+3. Add a machine-readable field/action/form/navigation coverage ledger mapped to case assertions and real latest-run evidence. Not tested, draft, skipped, failed and stale must remain visible; no static green indicators.
+4. Add reviewed-recording conversion and real run/result metadata, then a project-aware local runner-backed one-click dashboard. Keep secrets/session traces private and commands allowlisted. Prove a versioned shared kit against a second project before claiming portability.
+5. As soon as the policy gate is genuinely satisfied, close F05 with proof and proceed F06–F25 in order, adding tests/audit/feedback alongside each business module. The testing workbench does not replace customer hierarchy, identity, permissions, licensing or the remaining client process flows.
+
+## Working conventions
+
+Use synthetic data and isolated eoms_test for runner scenarios; keep serial workers until fixtures support isolation. Keep immutable retry keys and append-only business audit. Manual recordings require fixtures, assertions and review before counting as tests. Local desktop observation, manual usability/accessibility acceptance and production readiness are distinct from headless CI success. Record exact tested source and CI run; documentation-only follow-ups must not imply changed code was tested.

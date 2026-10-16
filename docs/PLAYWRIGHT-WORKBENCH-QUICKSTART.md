@@ -58,3 +58,8 @@ The existing script-based visible replay remains available. A project-aware dash
 ## Executed evidence
 
 [CI run 38946761298](https://github.com/kunal1274/ssjns-eoms/actions/runs/38946761298) passed on source `179aae4dde45d834e28cf8644fc48187b11b12e0`: E2E-JRN-07-001 passed in chrome-desktop (1.9 seconds) and chrome-mobile (1.8 seconds), alongside 27 unit/config/security/presentation tests, 18 PostgreSQL/API tests, legacy browser/PWA checks, build/formatting, zero known dependency vulnerabilities in that run, and Docker/proxy/idempotency/persistence verification. The final quality-gate passed. This is headless execution evidence; local interactive UI/desktop observation is still pending. A subsequent documentation-only commit records the result.
+
+
+## Additional selectable cases
+
+E2E-JRN-03-001 checks required/format sign-in fields, focus, no invalid login request, safe injected service-failure guidance/support reference and successful real authentication retry. E2E-JRN-07-002 checks missing work date/gang/area, nonpositive/invalid area precision, no selected worker, preserved inputs after an injected 422 rejection, then a real save with exactly one record/audit event. These are deliberate partial assertions, not complete per-field coverage. Each appears under both desktop/mobile viewport projects in UI mode. Latest CI evidence is in the tracker.
