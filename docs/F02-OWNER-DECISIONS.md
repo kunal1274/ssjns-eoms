@@ -1,7 +1,7 @@
 # F02 — Owner decision register and proposed defaults
 
-**Status:** Proposal for review only; none of these defaults is accepted until the accountable owner confirms it.  
-**Purpose:** Make F02 decisions explicit so later architecture and implementation do not encode unapproved assumptions. DEC-01's flexible hierarchy/security design is selected as the product baseline; all other proposed defaults remain unapproved until explicitly accepted. The companion [recommended disposition proposal](F02-DECISION-RECOMMENDATIONS.md) explains a safe interim guard and accountable-owner input for DEC-02–DEC-09.
+**Status:** DEC-01 is accepted as the product-design default; DEC-02–DEC-09 remain proposals pending explicit disposition by their accountable owners.  
+**Purpose:** Make F02 decisions explicit so later architecture and implementation do not encode unapproved assumptions. DEC-01's flexible hierarchy/security design is accepted as the product-design default by explicit project-owner instruction; all other proposed defaults remain unapproved until explicitly accepted. The companion [recommended disposition proposal](F02-DECISION-RECOMMENDATIONS.md) explains a safe interim guard and accountable-owner input for DEC-02–DEC-09.
 
 ## Decision protocol
 
@@ -14,7 +14,7 @@
 
 ### DEC-01 — Customer tenancy, legal entities and plantation operating hierarchy
 
-**Status:** **Selected as the product-design baseline on 16 October 2026**, following the project owner's direction to use the commonly recommended plantation ERP approach. This approves the product's flexible architecture, **not** any particular client's legal-company chart or estate names.
+**Status:** **Accepted as the product-design default on 16 October 2026**, following the project owner's explicit acceptance of the recommended plantation ERP hierarchy. This accepts the flexible product architecture, **not** any particular client's legal-company chart, estate names or customer-specific scope assignments.
 
 **Design principle:** Keep the SaaS tenant boundary, legal/financial structure and plantation operating structure separate. Do not hard-code them into one mandatory chain.
 
@@ -133,4 +133,4 @@
 
 ## Review record
 
-For each decision, record one of: **Accepted**, **Changed**, **Deferred with owner/date**, or **Not applicable**, plus a short rationale. F02 remains in progress until the requirement baseline and relevant blockers are explicitly accepted or deferred. No proposed default in this document should be treated as client sign-off.
+Review record: **DEC-01 — Accepted by the project owner on 16 October 2026** as the product-design default. Customer-specific legal-entity mapping, operating levels and scope assignments remain open for configuration. For DEC-02–DEC-09, record one of **Accepted**, **Changed**, **Deferred with owner/date**, or **Not applicable**, plus a short rationale. F02 remains in progress until the requirement baseline and relevant blockers are explicitly accepted or deferred. The unaccepted DEC-02–DEC-09 proposals are not client sign-off.
