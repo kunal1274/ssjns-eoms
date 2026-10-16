@@ -3,7 +3,7 @@
 **Status:** Draft traceability aid; REQ-* and JRN-* identifiers are proposed and require owner review.  
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  
-**Related documents:** [Requirement catalogue](F02-REQUIREMENT-CATALOGUE.md) · [Persona journey register](F02-PERSONA-JOURNEYS.md) · [Source-to-test map](SOURCE-MAP-F02.md) · [Traceability matrix](TRACEABILITY-F02.md) · [Decision recommendations](F02-DECISION-RECOMMENDATIONS.md)  
+**Related documents:** [Requirement catalogue](F02-REQUIREMENT-CATALOGUE.md) · [Persona journey register](F02-PERSONA-JOURNEYS.md) · [Source-to-test map](SOURCE-MAP-F02.md) · [Journey-to-evidence map](F02-JOURNEY-EVIDENCE-MAP.md) · [Traceability matrix](TRACEABILITY-F02.md) · [Decision recommendations](F02-DECISION-RECOMMENDATIONS.md)  
 **CI evidence:** [Run #47](https://github.com/kunal1274/ssjns-eoms/actions/runs/38839251289) passed on commit `cddd761b9c7aba0b93563c96a42de2c1f28a4682`; this run includes the crosswalk and linked F02 documentation. It does not imply owner acceptance.
 
 ## Purpose
@@ -68,7 +68,7 @@ A consistency check across the current draft catalogue, journey register and cro
 
 1. Owner reviews each draft REQ-* and JRN-* key against the actual product scope and any signed requirements source.
 2. Replace or map draft keys to approved IDs; preserve trace links if IDs change.
-3. For each accepted requirement, add exact implementation/schema/API/browser/test anchors, or mark **not implemented** with a phase owner and acceptance test plan.
+3. Use the [journey-to-evidence map](F02-JOURNEY-EVIDENCE-MAP.md) to review every JRN-* row. For each accepted requirement, add exact implementation/schema/API/browser/test anchors, or mark **not implemented** with a phase owner and acceptance test plan.
 4. For each journey, confirm actor, scope fixture, preconditions, action, expected allow/deny result, persisted effect, audit result and recovery/conflict behavior.
 5. Apply the accepted DEC-01–DEC-09 product defaults; record any customer-specific variation as a scoped exception with an accountable owner and rationale in [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md).
 6. Obtain owner acceptance before closing F02 or starting F03.
