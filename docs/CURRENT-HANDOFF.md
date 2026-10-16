@@ -25,7 +25,7 @@ Deliver the complete Estate Opera EOMS solution end to end against the accepted 
 
 ## Next concrete queue
 
-1. Deliver F06 in working increments under the accepted F05 exception. Verify F06.1 customer boundary/upgrade/read UI, then implement F06.2 controlled legal/operational hierarchy configuration. Keep audit/feedback/Playwright evidence alongside business features.
+1. F06.1 is verified. Next: F06.2 controlled legal/operational hierarchy configuration, explicit administrative grants, tenant-local codes, valid parent/type rules, cycles/cross-tenant prevention and change history. Keep the full regression gate and current owner exception.
 2. Complete local interactive observation with the owner: `npm run test:e2e:ui` / `npm run test:e2e:headed` after host test setup. The browser opens on the executing computer; remote headless CI does not show it on the owner's desktop.
 3. The initial 39-item coverage ledger is implemented; [coverage guide](PLAYWRIGHT-COVERAGE-LEDGER.md). Next expand the inventory from actual screens and add reviewed-recording conversion/run metadata, preserving precise assertion mappings and visible gaps. Local execution evidence is not fabricated.
 4. Add reviewed-recording conversion and real run/result metadata, then a project-aware local runner-backed one-click dashboard. Keep secrets/session traces private and commands allowlisted. Prove a versioned shared kit against a second project before claiming portability.
@@ -50,3 +50,7 @@ Latest verified source: `85d8ec16b6aa9b74a0ad9966f50c7e03dcf0b45a`, [CI run 3895
 ## Current F06 progression
 
 The owner explicitly accepted the current ruleset for continuing development. See F05-OWNER-EXCEPTION.md and F06-CUSTOMER-HIERARCHY.md. F06.1 code is implemented; fresh execution evidence is recorded after verification. Historical blocked notes below/above do not override this later authorization. Next business increment: configurable hierarchy; keep the reusable testing workstream queued alongside it.
+
+## Latest verified business checkpoint
+
+Source `8027aad3364576c29d32b7e9a095ab72209f6cec`, [CI run 38966302671](https://github.com/kunal1274/ssjns-eoms/actions/runs/38966302671): F06.1 customer boundary/scoped Organization/history/estate-handoff verified; 55 unit/API tests, separate legacy upgrade harness, eight browser-runner executions and full prior/Docker/final gate passed. Current inventory is 42 items (22 mappings, 20 gaps), rendered at two viewport projects: 44 passed/40 untested rows. Later evidence edits are docs only. Continue F06.2; do not re-block on the owner-accepted F05 ruleset exception. F06 remains In progress.

@@ -8,7 +8,7 @@ Customer tenant remains a distinct boundary from legal/financial company/group s
 
 | Increment | Scope | Status |
 |---|---|---|
-| F06.1 Customer boundary and scoped context | Explicit customer roots, company/estate tenant keys, conservative legacy migration, safe read API, history and guided organization-to-estate handoff | Implemented; execution evidence recorded below after verification |
+| F06.1 Customer boundary and scoped context | Explicit customer roots, company/estate tenant keys, conservative legacy migration, safe read API, history and guided organization-to-estate handoff | Verified; see executed evidence below |
 | F06.2 Hierarchy configuration | Separate group/legal relationships and operational nodes; valid parent/type rules, no cycles/cross-tenant links, approved ownership/effective relationships, controlled administration UI/API | Next |
 | F06.3 Access and history completion | Explicit inheritance/scoped grants, hierarchy-change lineage, move/deactivation/conflict rules and larger-data navigation; align with F09–F13 permission engine | Planned, dependencies explicit |
 | F06.4 Phase acceptance | Positive/negative tenant/hierarchy cases, safe upgrade, persisted UI journeys, audit evidence and reconciled requirements | Pending |
@@ -32,4 +32,11 @@ The Organization navigation screen guides: choose accessible customer → inspec
 
 ## Remaining limits
 
-No customer/group provisioning UI, division/field/block hierarchy CRUD, cycle/move/effective-date model or general inherited authorization is claimed yet. Existing operational records still enforce estate membership; full customer/record/field permission enforcement and production identity remain downstream gates. Production startup remains blocked. F06 completion requires the full roadmap acceptance, not just this working read slice.
+No customer/group provisioning UI, division/field/block hierarchy CRUD, cycle/move/effective-date model or general inherited authorization is claimed yet. Estate codes still have their legacy global uniqueness constraint; tenant-local business codes and their negative cases must be addressed with controlled hierarchy configuration. Existing operational records still enforce estate membership; full customer/record/field permission enforcement and production identity remain downstream gates. Production startup remains blocked. F06 completion requires the full roadmap acceptance, not just this working read slice.
+
+
+## Executed F06.1 evidence — 17 October 2026 (India)
+
+[CI run 38966302671](https://github.com/kunal1274/ssjns-eoms/actions/runs/38966302671) passed on source `8027aad3364576c29d32b7e9a095ab72209f6cec`: 34 unit/config/security/presentation/ledger tests, 21 PostgreSQL/API tests and the separate legacy-schema upgrade harness, through both host CI and Docker verification. The upgrade harness preserved original company/estate/membership IDs, created correct customer mappings/history and verified runtime RLS in a separate temporary database. All eight Playwright executions passed, including the new organization/history/estate-handoff scenario at desktop/mobile viewport widths. Existing browser/PWA/installability, coverage-ledger filters, formatting/build, dependency audit (zero known vulnerabilities), Docker/proxy/idempotency/persistence and final quality-gate passed. The generated ledger reported 44 passed/40 untested item/project rows (42 inventory items total).
+
+The later evidence commit is documentation-only. F06.1 is verified; F06 remains In progress. Local interactive observation, complete hierarchy configuration/inheritance, production identity/permission enforcement and full phase acceptance are still open.

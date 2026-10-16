@@ -47,3 +47,8 @@ The owner accepted the current 16-journey inventory as the planning/traceability
 ## Additional runner evidence — 16 October 2026
 
 `tests/e2e/jrn-07-capture.spec.ts` now provides named-step, real-server/database evidence for a slice of JRN-07 capture, JRN-08 confirmation and JRN-11 short/detailed audit. It checks saved feedback/state after reload, quantity, exactly one creation and confirmation audit event, support references, cross-estate denial and viewport overflow. Both desktop/mobile Chrome viewport projects passed in [CI run 38946761298](https://github.com/kunal1274/ssjns-eoms/actions/runs/38946761298) on `179aae4dde45d834e28cf8644fc48187b11b12e0`. The fixture/page object and interactive UI commands are described in [the quickstart](PLAYWRIGHT-WORKBENCH-QUICKSTART.md). These journeys remain partial; field/record/customer permissions, full history and maker/checker are not established by this case. Local interactive UI observation is pending.
+
+
+## F06.1 additional evidence
+
+JRN-02 remains partial but now includes explicit customer/company/estate boundary keys, safe scoped Organization/history reads and E2E-JRN-02-001 estate handoff. [CI run 38966302671](https://github.com/kunal1274/ssjns-eoms/actions/runs/38966302671) passed on `8027aad3364576c29d32b7e9a095ab72209f6cec`, including three new PostgreSQL/API isolation/history/integrity tests, a legacy upgrade harness and both viewport runs. Configurable group/division/field/block hierarchy, administration and inherited permission acceptance remain open; see F06-CUSTOMER-HIERARCHY.md.

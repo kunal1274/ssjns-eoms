@@ -71,3 +71,8 @@ Latest validation/recovery evidence: [CI run 38950026833](https://github.com/kun
 ## Coverage ledger
 
 The runner now creates `.local/e2e-ledger/index.html` and JSON evidence. Run `npm run test:coverage` to regenerate against current source, then open that file and filter by status/screen. The [coverage guide](PLAYWRIGHT-COVERAGE-LEDGER.md) explains the initial inventory, evidence gates, stale detection and remaining gaps. This is a read-only assertion report; use Playwright UI for test execution.
+
+
+## Organization scenario
+
+E2E-JRN-02-001 now covers scoped customer/company/estate context, recorded customer display-history disclosure and opening the assigned estate register, at desktop/mobile widths. Both passed in CI 38966302671 on source 8027aad3364576c29d32b7e9a095ab72209f6cec. There are four scenarios/eight viewport executions in total. Full hierarchy creation/moves/inheritance remain unimplemented and are not implied by this read-only journey.

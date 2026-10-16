@@ -26,7 +26,7 @@ Generated evidence/reports are ignored, not committed as sample passes. With no 
 
 ## Initial scope and honest gaps
 
-The first inventory has 39 items: 19 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (78 rows). It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
+The current inventory has 42 items: 22 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (84 rows). The initial ledger before F06 had 39 items. It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
 
 The mapped controls include email/password prevention, safe login recovery, date/gang/area validation, missing-worker disabled Save, retained input after a rejected submission, exactly-once corrected save/audit, confirmation/reload, selected audit disclosure, cross-estate denial, audit-screen overflow and logout navigation. Existing browser/API scripts cover additional behavior; that evidence is separate and is not silently imported as a runner pass. An untested row means no executed assertion mapping in this ledger, not proof that no other test exists.
 
@@ -68,3 +68,6 @@ Add a stable inventory ID, accepted journey ID, screen/category, precise control
 ## Executed evidence
 
 [CI run 38957729942](https://github.com/kunal1274/ssjns-eoms/actions/runs/38957729942) passed on `85d8ec16b6aa9b74a0ad9966f50c7e03dcf0b45a`. Six real journey executions produced 38 passed/40 untested ledger rows; regeneration matched. The separate browser check verified status filtering, combined screen/status selection, known gaps, restored rows and no page errors. The first candidate exposed ambiguous filter labels; explicit label associations fixed the UI and the same browser assertion then passed. 52 unit/API tests, existing browser/PWA, build/formatting, dependency audit (zero known vulnerabilities in that run), actual Docker/persistence and final gate also passed. A later documentation-only update records this proof. Local interactive desktop observation and full inventory/workbench acceptance remain open.
+
+
+F06.1 evidence: [CI run 38966302671](https://github.com/kunal1274/ssjns-eoms/actions/runs/38966302671), source `8027aad3364576c29d32b7e9a095ab72209f6cec`, includes three new organization/history/estate-handoff mappings. Actual generated counts: 44 passed and 40 untested rows; filters passed. These remain partial product assertions, not complete hierarchy coverage.
