@@ -101,7 +101,7 @@ These apply to every feature and must be explicit in the requirement-to-test lin
 6. **Delivery:** build, automated tests, browser journeys, dependency/security checks, migration/rollback notes and acceptance evidence.
 7. **Production gate:** passing CI is necessary but not sufficient for production; identity, monitoring, backup/restore, load, security review and UAT remain separate gates.
 
-## Open decisions to carry into the trace
+## Accepted defaults and customer-specific configuration to carry into the trace
 
 The accepted DEC-01–DEC-09 product defaults and their implementation/production guards are recorded in [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md) and [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md). Acceptance establishes product defaults, not customer-specific company charts, role assignments, contract terms, payroll values, integration mappings or operational targets. This matrix remains the canonical status tracker.
 
@@ -130,11 +130,13 @@ F02 can close only when:
 - [x] A candidate persona/journey register with proposed positive and negative boundaries is recorded for owner review.
 - [x] Product defaults for DEC-01–DEC-09 are accepted and recorded with explicit implementation/production guards.
 - [x] A draft REQ-* to JRN-* crosswalk identifies current evidence and known gaps.
+- [x] Crosswalk identifier consistency checked: all 34 draft REQ-* IDs have rows and all 16 candidate JRN-* IDs are referenced; this is coverage consistency, not owner acceptance or proof of implementation.
 - [ ] The owner accepts/changes the draft REQ-* IDs and confirms coverage against any signed requirements source.
-- [ ] Each approved requirement is mapped to exact source and specific code/test locations.
+- [ ] Each approved requirement is mapped to exact source and specific code/test locations; any missing implementation is explicitly assigned to a downstream phase with acceptance tests.
 - [ ] Every owner-confirmed in-scope journey has positive and negative acceptance criteria and adequate evidence links.
 - [x] DEC-02–DEC-09 product defaults are accepted; their customer-specific configuration and release prerequisites remain recorded separately.
 - [ ] Any required hosted-demo-only journey is identified and traced, or the owner confirms none remain.
 - [ ] The traceability baseline is reviewed and accepted before F03 architecture conventions begin.
+- [ ] CI passes on the latest F02 documentation commit.
 
 **Current disposition: F02 In progress.** DEC-01–DEC-09 product defaults are accepted. The candidate REQ-* catalogue and journey inventory remain review drafts; owner acceptance, exact requirement-to-test mapping and current CI verification are still required before F02 can close.
