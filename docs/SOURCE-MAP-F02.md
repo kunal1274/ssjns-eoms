@@ -22,7 +22,7 @@ This map names current source locations and test cases so later work can disting
 
 ## Anchored implementation-to-test trace
 
-The links below include GitHub line anchors to make review and follow-up test work specific. These links trace the **current implementation slice**; they do not imply that future EOMS requirements have been accepted or implemented.
+The [journey-to-evidence map](F02-JOURNEY-EVIDENCE-MAP.md) expands positive/negative evidence and gaps for all 16 candidate JRN-* journeys. The links below include GitHub line anchors to make review and follow-up test work specific. These links trace the **current implementation slice**; they do not imply that future EOMS requirements have been accepted or implemented.
 
 | Trace key | Behavior traced | Implementation / schema | Existing test evidence | Acceptance status and remaining gap |
 |---|---|---|---|---|
@@ -37,6 +37,8 @@ The links below include GitHub line anchors to make review and follow-up test wo
 | CAP-DEPLOY-01 | Restricted runtime role and production startup gate | [Production guard and runtime role check](../apps/api/src/server.ts#L4-L18); [role, RLS and grants](../db/migrations/001_foundation.sql#L2-L39); [later grant migrations](../db/migrations/002_transaction_locks.sql#L1-L5), [003](../db/migrations/003_maintenance.sql#L1-L12), [004](../db/migrations/004_gangs_review.sql#L1-L25) | [Restricted runtime-role and audit protection test](../tests/api.test.ts#L231-L240); latest CI [run #11](https://github.com/kunal1274/ssjns-eoms/actions/runs/38785370600) | **Partial.** Production startup is gated and CI passes. Full role-attribute drift detection, pooled-context isolation tests, redacted logging, full app Docker, backup/restore, load and operations evidence remain open. |
 
 ## Journey acceptance coverage and gaps
+
+This section is a short summary of existing evidence; see the [full journey-to-evidence map](F02-JOURNEY-EVIDENCE-MAP.md) for all 16 candidate journeys.
 
 | Journey | Positive acceptance currently evidenced | Negative/boundary acceptance currently evidenced | Not yet covered / decision needed |
 |---|---|---|---|
