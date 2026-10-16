@@ -3,8 +3,8 @@
 **Status:** Draft derived from the owner-defined phase tracker and production roadmap; owner approval required.  
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  
-**Related artifacts:** [Traceability matrix](TRACEABILITY-F02.md) · [Source-to-test map](SOURCE-MAP-F02.md) · [Persona journey register](F02-PERSONA-JOURNEYS.md) · [Owner decision register](F02-OWNER-DECISIONS.md) · [Decision recommendations](F02-DECISION-RECOMMENDATIONS.md)  
-**CI evidence:** [Run #31](https://github.com/kunal1274/ssjns-eoms/actions/runs/38793118636) passed on commit `7e022cc32ca4f3e21d7f0cf4fb622e2a4154f473` after this catalogue and the persona journey register were added. It verifies repository checks, not owner approval or implementation of missing requirements.
+**Related artifacts:** [Traceability matrix](TRACEABILITY-F02.md) · [Source-to-test map](SOURCE-MAP-F02.md) · [Persona journey register](F02-PERSONA-JOURNEYS.md) · [Owner decision register](F02-OWNER-DECISIONS.md) · [Decision recommendations](F02-DECISION-RECOMMENDATIONS.md) · [Requirement-to-journey crosswalk](F02-REQ-JOURNEY-CROSSWALK.md)  
+**CI evidence:** [Run #47](https://github.com/kunal1274/ssjns-eoms/actions/runs/38839251289) passed on commit `cddd761b9c7aba0b93563c96a42de2c1f28a4682`, including this catalogue, the persona journey register, decision recommendations and requirement-to-journey crosswalk. It verifies repository checks, not owner approval or implementation of missing requirements.
 
 ## How to use this catalogue
 
