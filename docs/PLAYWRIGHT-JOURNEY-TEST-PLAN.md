@@ -6,7 +6,7 @@ Owner request: 16 October 2026. Playwright is the browser automation standard fo
 
 The repository already uses the `playwright` package with executable browser scripts. `npm run verify:browser` starts temporary API/web/PWA servers and runs capture, maintenance, review/reversal, offline sync and installability checks serially. These are partial journey evidence. The latest application-source verification before this plan was CI run [38925295750](https://github.com/kunal1274/ssjns-eoms/actions/runs/38925295750), source `d3b61c3bc9e9ff4ab4085d7d40ccaf062352c36d`; 43 unique unit/API tests plus the existing browser/PWA/Docker checks passed.
 
-The next test infrastructure increment will adopt the Playwright Test runner (`@playwright/test`, matched to the existing Playwright version), reusable fixtures/page objects, named steps, tags, HTML/JUnit reports and failure traces. These runner features are **planned**, not installed/configured by this document. Keep the existing scripts in the quality gate until equivalent scenarios have passed in the new runner; remove duplication only with recorded parity.
+The first test infrastructure increment now implements the matched Playwright Test runner, reusable work fixture/page object, named steps/tags, HTML/JUnit reports and an initial desktop/mobile viewport journey. Failure traces remain off pending capture review. Further scenario migration and the custom workbench remain planned. Keep the existing scripts in the quality gate until equivalent scenarios have passed in the new runner; remove duplication only with recorded parity.
 
 ## Delivery matrix
 
@@ -14,7 +14,7 @@ The next test infrastructure increment will adopt the Playwright Test runner (`@
 |---|---|---|---|
 | Existing browser/PWA regression baseline | F05 | Implemented, partial journey coverage | Current serial scripts remain required; source evidence above |
 | Journey test design and coverage rules | F05 continuation | Documented in this plan | Stable case IDs, reusable structure, positive/negative/UI/audit checks |
-| Runner and reusable fixtures migration | F05 continuation after current policy gate is resolved | Planned | Matching locked runner dependency, config, independent fixture setup/cleanup, one migrated capture/review scenario, parity and CI evidence |
+| Runner and reusable fixtures migration | F05 continuation | Partially implemented | Matching locked runner dependency, config, independent fixture setup/cleanup, one migrated capture/review scenario, parity and CI evidence |
 | Customer/identity/role/scope scenarios | F06–F18 alongside implementation | Planned | Every new feature ships with allowed and denied actor/scope cases; no phase closes solely on UI visibility |
 | License/seat/expiry scenarios | F19–F22 alongside implementation | Planned | Contract-configured boundary cases and API parity |
 | Workflow and guided task scenarios | F23–F24 | Planned | Complete handoffs, correction lineage, next actions and audit/feedback acceptance |
@@ -24,7 +24,7 @@ Main branch now reports protected and the active ruleset targets the default bra
 
 ## Reusable organization
 
-Proposed structure (not created yet):
+Target structure (the first fixtures/page object/scenario and root config now exist; additional modules remain planned):
 
 - `tests/e2e/fixtures/`: isolated synthetic customer/estate/user/role/license data, authenticated contexts, clock and offline helpers.
 - `tests/e2e/pages/`: sign-in, navigation, master maintenance, muster, device queue, audit and later administration components. Page objects express reusable interactions; scenario assertions stay visible in the test.
@@ -96,7 +96,7 @@ The existing scripts and their actual assertions remain authoritative for curren
 | Expanded full regression | Planned scheduled runs and release candidates | All implemented journeys/personas/scopes/entitlements, critical browser/viewport matrix and upgrade/migration flows |
 | Release acceptance | F25 / promotion | Full executed matrix, retained evidence, manual guided-journey/accessibility review and open-defect assessment |
 
-Proposed tags: `@smoke`, `@regression`, `@negative`, `@offline`, `@accessibility`, plus journey IDs. Tag filters and new runner commands will be documented and verified with the runner increment; they are not runnable today. No recurring automation is created by this plan.
+Proposed tags: `@smoke`, `@regression`, `@negative`, `@offline`, `@accessibility`, plus journey IDs. The initial runner supports tag/title selection through Playwright's `--grep`, for example `npm run test:e2e -- --grep @smoke`; the complete tagged matrix remains planned. No recurring automation is created by this plan.
 
 Current executable baseline: `npm run verify:browser` after dependencies, PostgreSQL migrations/seed and browser installation. The current CI already supplies this setup. Isolated scripts can also be run through existing package commands when their API/web/PWA servers and fixtures are ready. The canonical full quality gate remains `.github/workflows/verify.yml`.
 
@@ -125,7 +125,7 @@ Owner refinement: 16 October 2026. The intended experience is a browser visibly 
 
 Use the host development/test setup documented in README (Node 24, `npm ci`, configured PostgreSQL, migrations, host synthetic seed/account file, test database and `npm run build`). Chrome must be installed. Do not mix Docker seed credentials with the host account file. The verifier starts its own app/PWA servers and stops them at the end. `E2E_SLOW_MO_MS` may be set from 0 to 2000; visible runs have a 600-second per-script deadline, while ordinary CI retains the 120-second deadline and headless behavior. Local visible replay itself still requires observation on a real desktop; CI headless evidence does not certify that visual experience.
 
-`npm run test:journeys:record` opens Playwright codegen/Inspector against the running development app at `http://localhost:5174`, with Chrome and draft output `.local/recorded-journey.spec.ts`. Start the API/web app first and use only synthetic data. The codegen CLI exists in the installed Playwright package. Its output targets the planned Playwright Test runner; generated files are **drafts**, not executable members of the current script suite or proof of acceptance. That runner is not installed by this increment. `.local` is ignored; the host setup/seed creates it. Do not place credentials, recorded authentication/session state or private captured values in committed test source.
+`npm run test:journeys:record` opens Playwright codegen/Inspector against the running development app at `http://localhost:5174`, with Chrome and draft output `.local/recorded-journey.spec.ts`. Start the API/web app first and use only synthetic data. The codegen CLI exists in the installed Playwright package. Its output targets the installed Playwright Test runner; generated files are **drafts**, not automatically discovered/reviewed cases or proof of acceptance. `.local` is ignored; the host setup/seed creates it. Do not place credentials, recorded authentication/session state or private captured values in committed test source.
 
 ### Workbench delivery sequence
 
@@ -133,7 +133,7 @@ Use the host development/test setup documented in README (Node 24, `npm ci`, con
 |---|---|---|
 | Visible current replay | Implemented; verification evidence tracked in F05 | One local npm command shows the current scenarios acting in Chrome; pass/fail remains terminal/CI evidence |
 | Manual recorder entry | CLI launch configured | Record clicks/typing/navigation into an ignored draft; manually add assertions and deterministic fixtures before review |
-| Runner authoring/replay UI | Planned test infrastructure | Adopt matched `@playwright/test`, use its UI mode/Inspector to select a journey, run/debug/pause and inspect each step; confirm synthetic fixture isolation |
+| Runner authoring/replay UI | Initial runner/UI commands implemented; local desktop observation pending | Adopt matched `@playwright/test`, use its UI mode/Inspector to select a journey, run/debug/pause and inspect each step; confirm synthetic fixture isolation |
 | Manual recording to reviewed scenario | Planned | Assign journey/case ID and persona; replace hard-coded sensitive inputs; add assertions, negative cases, setup/cleanup and persisted/audit expectations; review and run independently |
 | One-click journey dashboard | Planned | Select project/environment/persona/journey; Run/Stop/Replay/Record controls; real queued/running/result states, step timeline, elapsed time and evidence links |
 | Field/action/form/navigation coverage ledger | Planned | Inventory each screen/control, required/optional validation, boundary/format rules, save/cancel/reset, dialog behavior, focus, navigation/back/reload, access and feedback states; map each item to explicit assertions and last run |
@@ -154,7 +154,7 @@ A web button needs a trusted local/CI runner to launch a browser: a normal websi
 ### Immediate sequence and closure
 
 1. Verify the visible launch settings and unchanged headless regressions; record actual tested evidence and limitations.
-2. Complete the existing F05 repository-policy gate, then deliver the planned runner/fixture migration increment with actual UI-mode execution evidence.
+2. Complete the existing F05 repository-policy gate and continue runner/fixture migration with actual local UI-mode observation; the initial scenario has headless CI execution evidence.
 3. Implement the reviewed-recording workflow and run/result metadata, followed by the real one-click dashboard and coverage ledger. No static green completion indicators.
 4. Expand each F06–F25 journey alongside its feature, then extract the versioned shared kit and validate a second project adapter.
 

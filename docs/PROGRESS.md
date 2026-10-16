@@ -83,3 +83,5 @@ Visible-launch infrastructure evidence: [CI run 38945388469](https://github.com/
 ## Interactive runner continuation
 
 Playwright Test UI/headed/headless/report commands, matched dependency lock, isolated eoms_test web servers, reusable work fixture/page object and E2E-JRN-07-001 desktop/mobile viewport runs are implemented as F05 test tooling. CI now runs these alongside every existing browser regression. [Quickstart](PLAYWRIGHT-WORKBENCH-QUICKSTART.md). Custom cross-project dashboard and full control/field coverage remain planned. Local type/discovery/format checks passed; fresh CI execution evidence follows. This supersedes the earlier runner-not-installed status without closing the external F05 gate.
+
+Interactive runner evidence: [CI run 38946761298](https://github.com/kunal1274/ssjns-eoms/actions/runs/38946761298) passed on `179aae4dde45d834e28cf8644fc48187b11b12e0`: 45 unit/API tests plus the new journey at two viewport widths, every legacy browser/PWA check and Docker/final gate. [Quickstart and evidence](PLAYWRIGHT-WORKBENCH-QUICKSTART.md). UI-mode local desktop observation and complete journey coverage remain open.

@@ -42,3 +42,8 @@ The owner accepted the current 16-journey inventory as the planning/traceability
 2. Close implementation and evidence gaps in their assigned phases; do not conflate an accepted product default with an implemented control.
 3. Add any later-identified specific hosted-demo-only journey through traceability change control.
 4. Keep production startup, payroll/financial posting and external integrations gated until their separate acceptance criteria pass.
+
+
+## Additional runner evidence — 16 October 2026
+
+`tests/e2e/jrn-07-capture.spec.ts` now provides named-step, real-server/database evidence for a slice of JRN-07 capture, JRN-08 confirmation and JRN-11 short/detailed audit. It checks saved feedback/state after reload, quantity, exactly one creation and confirmation audit event, support references, cross-estate denial and viewport overflow. Both desktop/mobile Chrome viewport projects passed in [CI run 38946761298](https://github.com/kunal1274/ssjns-eoms/actions/runs/38946761298) on `179aae4dde45d834e28cf8644fc48187b11b12e0`. The fixture/page object and interactive UI commands are described in [the quickstart](PLAYWRIGHT-WORKBENCH-QUICKSTART.md). These journeys remain partial; field/record/customer permissions, full history and maker/checker are not established by this case. Local interactive UI observation is pending.

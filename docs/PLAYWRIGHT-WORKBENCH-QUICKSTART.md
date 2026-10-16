@@ -53,3 +53,8 @@ Review the draft: remove literal passwords/private inputs, use seeded fixtures a
 The regular CI runs `npm run test:e2e` in addition to all existing browser scripts, after isolated test database setup and Chrome installation. HTML/JUnit results and failure screenshots are generated locally in CI; automatic public artifact upload is deliberately not enabled. Trace/video capture remains off because it can record credentials/requests. Use synthetic data and review any interactive UI snapshot/recording before sharing.
 
 The existing script-based visible replay remains available. A project-aware dashboard, recording-to-case review UI, full field/action/form/navigation inventory, coverage/stale-result engine and a versioned portable kit for other projects remain planned. Playwright UI is the working test runner interface; it is not yet that custom cross-project workbench. No claim is made of manual desktop observation from this remote environment.
+
+
+## Executed evidence
+
+[CI run 38946761298](https://github.com/kunal1274/ssjns-eoms/actions/runs/38946761298) passed on source `179aae4dde45d834e28cf8644fc48187b11b12e0`: E2E-JRN-07-001 passed in chrome-desktop (1.9 seconds) and chrome-mobile (1.8 seconds), alongside 27 unit/config/security/presentation tests, 18 PostgreSQL/API tests, legacy browser/PWA checks, build/formatting, zero known dependency vulnerabilities in that run, and Docker/proxy/idempotency/persistence verification. The final quality-gate passed. This is headless execution evidence; local interactive UI/desktop observation is still pending. A subsequent documentation-only commit records the result.

@@ -133,3 +133,8 @@ Shared browser launch settings now support visible Chrome with bounded action de
 ## Interactive test runner continuation
 
 Matched Playwright Test dependency/config, reusable isolated eoms_test fixtures/page object, one named capture/confirm/audit/logout scenario in desktop/mobile viewport projects, HTML/JUnit reports and UI/headed/headless/report commands now exist. CI adds runner execution while retaining every legacy script. Trace/video capture is off; no automatic artifact upload is introduced. Local TypeScript checks, scenario discovery and formatting passed. Record actual full CI execution below; local interactive observation and full journey coverage remain separate. [Quickstart](PLAYWRIGHT-WORKBENCH-QUICKSTART.md).
+
+
+### Verified interactive-runner infrastructure
+
+[CI run 38946761298](https://github.com/kunal1274/ssjns-eoms/actions/runs/38946761298) passed on `179aae4dde45d834e28cf8644fc48187b11b12e0`: 27 unit/configuration/security/presentation/launch tests and 18 PostgreSQL/API tests, plus both E2E-JRN-07-001 runner projects (desktop 1.9s, mobile viewport 1.8s). Existing browser/PWA/installability checks, formatting, build, dependency audit (zero known vulnerabilities), actual Docker/container/proxy/idempotency/persistence and final quality-gate passed. Local runner discovery listed both cases and config/types passed. Headless execution does not certify manual UI-mode observation. The evidence follow-up changes documentation only; F05 policy gate and F06 status remain unchanged.
