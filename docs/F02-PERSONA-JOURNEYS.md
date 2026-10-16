@@ -4,7 +4,7 @@
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  
 **Canonical phase tracker:** [PROGRESS.md](PROGRESS.md)  
-**Related evidence:** [TRACEABILITY-F02.md](TRACEABILITY-F02.md), [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md), [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md), [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md), [F02-REQ-JOURNEY-CROSSWALK.md](F02-REQ-JOURNEY-CROSSWALK.md)  
+**Related evidence:** [TRACEABILITY-F02.md](TRACEABILITY-F02.md), [SOURCE-MAP-F02.md](SOURCE-MAP-F02.md), [F02-OWNER-DECISIONS.md](F02-OWNER-DECISIONS.md), [F02-DECISION-RECOMMENDATIONS.md](F02-DECISION-RECOMMENDATIONS.md), [F02-REQ-JOURNEY-CROSSWALK.md](F02-REQ-JOURNEY-CROSSWALK.md), [F02-JOURNEY-EVIDENCE-MAP.md](F02-JOURNEY-EVIDENCE-MAP.md)  
 **CI evidence:** [GitHub Actions run #47](https://github.com/kunal1274/ssjns-eoms/actions/runs/38839251289) passed on commit `cddd761b9c7aba0b93563c96a42de2c1f28a4682`, which includes this register, the draft requirement catalogue, decision recommendations and requirement-to-journey crosswalk. CI confirms repository checks only; it does not approve these proposed personas or journeys.
 
 ## Purpose and interpretation
@@ -77,5 +77,7 @@ Every test case should identify the requirement/journey ID, actor, tenant and sc
 - Accept this baseline before F03 starts. F02 remains **In progress** until the owner baseline and relevant blockers are accepted/deferred.
 
 ## Evidence boundaries
+
+The [journey-to-evidence map](F02-JOURNEY-EVIDENCE-MAP.md) expands current evidence and gaps across all 16 candidate JRN-* journeys. It is a draft evidence inventory, not an assertion that all journey behavior is implemented or accepted.
 
 The current source-map and CI links prove only the tested repository build with synthetic data. They do not establish exact parity with the ChatGPT-hosted rendered demo, production security certification, load capacity, or behavior for missing features. No implementation, client sign-off, or production readiness is implied by this draft register.
