@@ -21,6 +21,7 @@ export function SearchSelect({
   disabled = false,
   placeholder = "Choose a record",
   onReady,
+  onReview,
 }: {
   api: Api;
   path: string | null;
@@ -33,6 +34,7 @@ export function SearchSelect({
   disabled?: boolean;
   placeholder?: string;
   onReady?: (ready: boolean) => void;
+  onReview?: (row: Row) => void;
 }) {
   const [term, setTerm] = useState(""),
     [query, setQuery] = useState(""),
@@ -179,6 +181,21 @@ export function SearchSelect({
           ))}
         </select>
       </label>
+      {onReview && value && (
+        <button
+          type="button"
+          disabled={
+            disabled ||
+            busy ||
+            !!error ||
+            selected?.id !== value ||
+            selected?.eligible === false
+          }
+          onClick={() => selected && onReview(selected)}
+        >
+          Load selected {label}
+        </button>
+      )}
       {busy && <p role="status">Loading {label} choices…</p>}
       {error && (
         <p role="alert" className="error">

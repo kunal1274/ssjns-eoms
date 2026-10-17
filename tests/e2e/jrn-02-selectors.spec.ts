@@ -233,10 +233,9 @@ test("E2E-JRN-02-009 @regression paged configuration choices connect hierarchy t
       .getByRole("button", { name: "Refresh lists", exact: true })
       .click();
     await find("Existing unit", deep.code);
-    await setup.getByLabel("Existing unit", { exact: true }).selectOption("");
     await setup
-      .getByLabel("Existing unit", { exact: true })
-      .selectOption(deep.id);
+      .getByRole("button", { name: "Load selected Existing unit", exact: true })
+      .click();
     await expect(setup.getByLabel("Unit name", { exact: true })).toHaveValue(
       "Concurrent selector rename",
     );

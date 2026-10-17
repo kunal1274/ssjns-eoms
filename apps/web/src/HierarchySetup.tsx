@@ -204,7 +204,7 @@ export function HierarchySetup({
       await loadUnits(estate);
       setNeedsRefresh(false);
       setMessage(
-        "Lists reloaded. Choose Edit again to load the latest saved version.",
+        "Lists reloaded. Search Existing unit and select Load selected Existing unit, or choose Edit, to load the latest saved version.",
       );
     } catch (e) {
       setError((e as Error).message);
@@ -416,6 +416,7 @@ export function HierarchySetup({
               api={api}
               path={`/navigation/estates/${estate}/units?status=all`}
               label="Existing unit"
+              onReview={(row) => editUnit(row as Unit)}
               value={editing?.id || ""}
               onChange={(_id, row) =>
                 row ? editUnit(row as Unit) : resetUnit()
@@ -463,7 +464,7 @@ export function HierarchySetup({
                     editing.version
                   : "Create a new unit"}
                 . After a conflict, refresh lists, search Existing unit and
-                choose the record again, or use its Edit button.
+                select Load selected Existing unit, or use its Edit button.
               </p>
               <div className="grid">
                 <label>
@@ -526,6 +527,7 @@ export function HierarchySetup({
               <label>
                 Unit reason
                 <textarea
+                  aria-label="Unit reason"
                   required
                   minLength={3}
                   maxLength={500}
