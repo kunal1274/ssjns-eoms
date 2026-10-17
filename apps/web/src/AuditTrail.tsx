@@ -24,6 +24,9 @@ const labels: Record<string, string> = {
 // Explicit presentation allowlist. Never dump audit payloads or employee snapshots.
 const fields = {
   month: "Period",
+  legalCompanyId: "Recorded responsible company ID",
+  legalCompanyName: "Recorded responsible company",
+  legalResponsibilityId: "Responsibility change reference",
   blockCode: "Recorded block code",
   blockId: "Configured block reference",
   reason: "Reason",

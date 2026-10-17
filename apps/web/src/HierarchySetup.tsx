@@ -1,3 +1,4 @@
+import { EstateResponsibility } from "./EstateResponsibility";
 import { OperatingPlacement } from "./OperatingPlacement";
 import { useEffect, useState } from "react";
 type Unit = {
@@ -215,6 +216,11 @@ export function HierarchySetup({
   return (
     <section className="editor" aria-label="Hierarchy setup">
       <h3>Hierarchy setup</h3>
+      <EstateResponsibility
+        key={"legal-" + customerId}
+        api={api}
+        customerId={customerId}
+      />
       <OperatingPlacement key={customerId} api={api} customerId={customerId} />
       <p>
         Optional legal group → company. Within each assigned estate: division →

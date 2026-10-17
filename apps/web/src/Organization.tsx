@@ -144,7 +144,7 @@ export function Organization({
         >
           <h3>{company.company_name}</h3>
           <p>
-            Legal company ·{" "}
+            Baseline legal company ·{" "}
             {
               selected.filter((row) => row.company_id === company.company_id)
                 .length

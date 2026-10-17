@@ -774,6 +774,11 @@ function App() {
                 {detail.business_date} · {detail.gang_code} ·{" "}
                 {detail.quantity_ha} Ha
               </p>
+              <p data-work-attribution="true">
+                {detail.legal_company_id
+                  ? `Recorded responsible company: ${detail.legal_company_name} · ${detail.legal_responsibility_id ? "Dated assignment" : "Baseline assignment"}`
+                  : "Legacy record: company attribution was not captured."}
+              </p>
               <table>
                 <thead>
                   <tr>

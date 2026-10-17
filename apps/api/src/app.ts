@@ -1,3 +1,4 @@
+import { responsibilityRoutes } from "./responsibility";
 import { placementRoutes } from "./placement";
 import { hierarchyRoutes } from "./hierarchy";
 import { organizationRoutes } from "./organization";
@@ -175,6 +176,7 @@ export function createApp(pool: Pool, options: { log?: FailureLogger } = {}) {
   organizationRoutes(app, tx);
   hierarchyRoutes(app, tx);
   placementRoutes(app, tx);
+  responsibilityRoutes(app, tx);
   async function estateTx<T>(
     req: Request,
     res: Response,
@@ -397,6 +399,9 @@ export function createApp(pool: Pool, options: { log?: FailureLogger } = {}) {
       await audit(c, id, res, "muster.created", row.id, {
         quantityHa: input.quantityHa,
         workers: input.workerIds.length,
+        legalCompanyId: row.legal_company_id,
+        legalCompanyName: row.legal_company_name,
+        legalResponsibilityId: row.legal_responsibility_id,
       });
       await c.query(
         "INSERT INTO eoms.idempotency(estate_id,user_id,key,request_hash,response) VALUES($1,$2,$3,$4,$5)",

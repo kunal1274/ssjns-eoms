@@ -26,7 +26,7 @@ Generated evidence/reports are ignored, not committed as sample passes. With no 
 
 ## Initial scope and honest gaps
 
-The current inventory has 54 items: 34 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (108 rows). The initial ledger before F06 had 39 items. It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
+The current inventory has 58 items: 38 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (116 rows). The initial ledger before F06 had 39 items. It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
 
 The mapped controls include email/password prevention, safe login recovery, date/gang/area validation, missing-worker disabled Save, retained input after a rejected submission, exactly-once corrected save/audit, confirmation/reload, selected audit disclosure, cross-estate denial, audit-screen overflow and logout navigation. Existing browser/API scripts cover additional behavior; that evidence is separate and is not silently imported as a runner pass. An untested row means no executed assertion mapping in this ledger, not proof that no other test exists.
 
@@ -81,3 +81,5 @@ F06.3a executed evidence: [CI run 38980380357](https://github.com/kunal1274/ssjn
 F06.3b adds four exact E2E-JRN-02-003 mappings for optional area setup, persisted initial estate placement/ownership preservation, label/audit review and ordinary-user sibling isolation/handoff. Actual fourteen viewport executions and 68 passed/40 untested rows in CI 38999436012 attempt 2. Full JRN-02 stays an explicit gap.
 
 F06.3b executed proof: [CI run 38999436012](https://github.com/kunal1274/ssjns-eoms/actions/runs/38999436012), attempt 2, source `3ba0b5d41f7c45cdb3178a74d227bb89e6f09ce0`. All fourteen executions and ledger UI passed. The first attempt had an occupied Docker port after browser success; the full rerun passed. Later evidence changes are documentation only.
+
+F06.3c1 adds four precise E2E-JRN-02-004 mappings for baseline boundary review, dated scheduling/detail, captured work identity and real recorded-work conflict/recovery. Expected sixteen viewport executions and 76 passed/40 untested rows; fresh execution evidence pending. Full JRN-02 remains a gap.

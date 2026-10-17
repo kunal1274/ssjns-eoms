@@ -1104,3 +1104,292 @@ test("database prevents area scope changes cycles moves unaudited edits and runt
     c.release();
   }
 });
+
+async function legalFixture() {
+  const own = await placementEstate();
+  const target = (
+    await admin.query(
+      "INSERT INTO eoms.companies(customer_id,name) VALUES($1,$2) RETURNING id,name",
+      [customer, "ZZ legal successor " + suffix()],
+    )
+  ).rows[0];
+  const anchor = (
+    await admin.query(
+      "INSERT INTO eoms.estates(customer_id,company_id,code,name) VALUES($1,$2,$3,'Legal target anchor') RETURNING id",
+      [customer, target.id, "LA-" + suffix()],
+    )
+  ).rows[0];
+  await admin.query(
+    "INSERT INTO eoms.memberships(user_id,estate_id,role) VALUES($1,$2,'manager')",
+    [manager.id, anchor.id],
+  );
+  const worker = (
+    await admin.query(
+      "INSERT INTO eoms.workers(estate_id,code,name) VALUES($1,'LW','Legal work fixture') RETURNING id",
+      [own.id],
+    )
+  ).rows[0].id;
+  await admin.query(
+    "INSERT INTO eoms.gangs(estate_id,code,name) VALUES($1,'G-01','Legal fixture gang')",
+    [own.id],
+  );
+  const occurrence = (
+    await admin.query(
+      "INSERT INTO eoms.occurrences(estate_id,block_code,task_code,activity,round_code,capacity_ha) VALUES($1,'LW','LEGAL-WORK','Attribution test','L',10) RETURNING id",
+      [own.id],
+    )
+  ).rows[0].id;
+  return { own, target, anchor, worker, occurrence };
+}
+async function legalWork(f: any, day: string) {
+  await admin.query(
+    "INSERT INTO eoms.periods(estate_id,month) VALUES($1,$2) ON CONFLICT DO NOTHING",
+    [f.own.id, day.slice(0, 7) + "-01"],
+  );
+  const result = await manager.agent
+    .post(`/api/estates/${f.own.id}/musters`)
+    .set("Origin", origin)
+    .set("X-CSRF-Token", manager.csrf)
+    .set("Idempotency-Key", randomUUID())
+    .send({
+      occurrenceId: f.occurrence,
+      businessDate: day,
+      gangCode: "G-01",
+      quantityHa: 0.1,
+      workerIds: [f.worker],
+    });
+  assert.equal(result.status, 201, JSON.stringify(result.body));
+  return result;
+}
+test("responsibility timeline resolves boundary dates and preserves baseline legal ownership", async () => {
+  const f = await legalFixture();
+  const initial = await manager.agent.get(
+    `/api/estates/${f.own.id}/responsibility`,
+  );
+  assert.equal(initial.status, 200);
+  assert.equal(initial.body.revision, 0);
+  assert.equal(initial.body.responsible.id, f.own.company_id);
+  const created = await post(manager, `/estates/${f.own.id}/responsibility`, {
+    companyId: f.target.id,
+    effectiveFrom: "2100-01-10",
+    revision: 0,
+    reason: "Reviewed prospective responsibility",
+  });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  assert.equal(created.body.revision, 1);
+  assert.equal(created.body.previous_company_id, f.own.company_id);
+  assert.equal(created.body.request_id, created.headers["x-request-id"]);
+  for (const [on, expected] of [
+    ["2100-01-09", f.own.company_id],
+    ["2100-01-10", f.target.id],
+    ["2100-02-01", f.target.id],
+  ]) {
+    const view = await manager.agent
+      .get(`/api/estates/${f.own.id}/responsibility`)
+      .query({ on });
+    assert.equal(view.body.responsible.id, expected);
+    assert.equal(view.body.asOf, on);
+  }
+  assert.equal(
+    (
+      await admin.query("SELECT company_id FROM eoms.estates WHERE id=$1", [
+        f.own.id,
+      ])
+    ).rows[0].company_id,
+    f.own.company_id,
+  );
+  const evidence = (
+    await admin.query(
+      "SELECT actor_id,reason,request_id FROM eoms.estate_responsibilities WHERE id=$1",
+      [created.body.id],
+    )
+  ).rows[0];
+  assert.equal(evidence.actor_id, manager.id);
+  assert.equal(evidence.reason, "Reviewed prospective responsibility");
+});
+test("new work captures immutable business-date attribution and existing future work blocks scheduling", async () => {
+  const f = await legalFixture(),
+    baselineWork = await legalWork(f, "2099-12-15");
+  assert.equal(baselineWork.body.legal_company_id, f.own.company_id);
+  assert.equal(baselineWork.body.legal_responsibility_id, null);
+  const assignment = await post(
+    manager,
+    `/estates/${f.own.id}/responsibility`,
+    {
+      companyId: f.target.id,
+      effectiveFrom: "2100-01-10",
+      revision: 0,
+      reason: "Future legal attribution",
+    },
+  );
+  assert.equal(assignment.status, 201);
+  const work = await legalWork(f, "2100-01-15");
+  assert.equal(work.body.legal_company_id, f.target.id);
+  assert.equal(work.body.legal_company_name, f.target.name);
+  assert.equal(work.body.legal_responsibility_id, assignment.body.id);
+  const blocked = await post(manager, `/estates/${f.own.id}/responsibility`, {
+    companyId: f.own.company_id,
+    effectiveFrom: "2100-01-12",
+    revision: 1,
+    reason: "Would rewrite recorded work",
+  });
+  assert.equal(blocked.status, 409);
+  assert.match(blocked.body.error, /Work already exists/);
+  const later = await post(manager, `/estates/${f.own.id}/responsibility`, {
+    companyId: f.own.company_id,
+    effectiveFrom: "2100-02-01",
+    revision: 1,
+    reason: "Later responsibility returns",
+  });
+  assert.equal(later.status, 201);
+  await admin.query(
+    "UPDATE eoms.companies SET name='Renamed company after capture' WHERE id=$1",
+    [f.target.id],
+  );
+  const saved = (
+    await manager.agent.get(`/api/estates/${f.own.id}/musters/${work.body.id}`)
+  ).body;
+  assert.equal(saved.legal_company_name, f.target.name);
+  assert.equal(saved.legal_company_id, f.target.id);
+  await assert.rejects(
+    () =>
+      admin.query("UPDATE eoms.musters SET legal_company_id=$2 WHERE id=$1", [
+        work.body.id,
+        f.own.company_id,
+      ]),
+    (e: any) => e.code === "23514",
+  );
+  const audit = (
+    await admin.query(
+      "SELECT detail FROM eoms.audit WHERE record_id=$1 AND action='muster.created'",
+      [work.body.id],
+    )
+  ).rows[0].detail;
+  assert.equal(audit.legalCompanyId, f.target.id);
+  assert.equal(audit.legalResponsibilityId, assignment.body.id);
+});
+test("responsibility permissions and dated labels never grant sibling estate access", async () => {
+  const f = await legalFixture();
+  await admin.query(
+    "INSERT INTO eoms.memberships(user_id,estate_id,role) VALUES($1,$2,'manager')",
+    [readonlyManager.id, f.own.id],
+  );
+  const payload = {
+    companyId: f.target.id,
+    effectiveFrom: "2100-01-10",
+    revision: 0,
+    reason: "Scoped legal responsibility",
+  };
+  assert.equal(
+    (await request(app).get(`/api/estates/${f.own.id}/responsibility`)).status,
+    401,
+  );
+  assert.equal(
+    (
+      await post(
+        readonlyManager,
+        `/estates/${f.own.id}/responsibility`,
+        payload,
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    (await post(manager, `/estates/${foreignEstate}/responsibility`, payload))
+      .status,
+    404,
+  );
+  const foreignCompany = (
+    await admin.query("SELECT company_id FROM eoms.estates WHERE id=$1", [
+      foreignEstate,
+    ])
+  ).rows[0].company_id;
+  assert.equal(
+    (
+      await post(manager, `/estates/${f.own.id}/responsibility`, {
+        ...payload,
+        companyId: foreignCompany,
+      })
+    ).status,
+    422,
+  );
+  assert.equal(
+    (await post(manager, `/estates/${f.own.id}/responsibility`, payload))
+      .status,
+    201,
+  );
+  const view = await readonlyManager.agent
+    .get(`/api/estates/${f.own.id}/responsibility`)
+    .query({ on: "2100-01-10" });
+  assert.equal(view.status, 200);
+  assert.equal(view.body.canConfigure, false);
+  assert.equal(view.body.responsible.id, f.target.id);
+  assert.equal(view.body.items.length, 1);
+  assert.equal(
+    (await readonlyManager.agent.get(`/api/estates/${f.anchor.id}/units`))
+      .status,
+    404,
+  );
+  const org = (await readonlyManager.agent.get("/api/organization")).body;
+  assert.ok(!org.items.some((row: any) => row.estate_id === f.anchor.id));
+});
+test("responsibility rejects stale duplicate backwards and direct unaudited changes", async () => {
+  const f = await legalFixture(),
+    path = `/estates/${f.own.id}/responsibility`,
+    payload = {
+      companyId: f.target.id,
+      effectiveFrom: "2100-01-10",
+      revision: 0,
+      reason: "First legal schedule",
+    };
+  assert.equal(
+    (await post(manager, path, { ...payload, effectiveFrom: "2000-01-01" }))
+      .status,
+    422,
+  );
+  assert.equal(
+    (await post(manager, path, { ...payload, reason: "" })).status,
+    422,
+  );
+  assert.equal((await post(manager, path, payload)).status, 201);
+  assert.equal((await post(manager, path, payload)).status, 409);
+  assert.equal(
+    (
+      await post(manager, path, {
+        ...payload,
+        revision: 1,
+        companyId: f.own.company_id,
+      })
+    ).status,
+    422,
+  );
+  for (const sql of [
+    "UPDATE eoms.estate_responsibilities SET reason='rewrite'",
+    "DELETE FROM eoms.estate_responsibilities",
+  ]) {
+    await assert.rejects(
+      () => pool.query(sql),
+      (e: any) => e.code === "42501",
+    );
+  }
+  assert.equal(
+    (await pool.query("SELECT * FROM eoms.estate_responsibilities")).rowCount,
+    0,
+  );
+  const c = await pool.connect();
+  try {
+    await c.query("BEGIN");
+    await c.query("SELECT set_config('app.user_id',$1,true)", [manager.id]);
+    await assert.rejects(
+      () =>
+        c.query(
+          "INSERT INTO eoms.estate_responsibilities(estate_id,customer_id,company_id,effective_from,revision,reason) VALUES($1,$2,$3,'2100-01-09',2,'Reject earlier schedule')",
+          [f.own.id, customer, f.own.company_id],
+        ),
+      (e: any) => e.code === "23514",
+    );
+  } finally {
+    await c.query("ROLLBACK");
+    c.release();
+  }
+});

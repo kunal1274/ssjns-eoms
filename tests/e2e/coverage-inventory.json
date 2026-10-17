@@ -570,6 +570,54 @@
         "caseId": "E2E-JRN-02-003",
         "step": "Verify ordinary estate access gains no sibling area or estate visibility"
       }
+    },
+    {
+      "id": "COV-LEGAL-BASELINE",
+      "journey": "JRN-02",
+      "screen": "Estate responsibility",
+      "category": "navigation",
+      "control": "Responsibility date review",
+      "assertion": "Before-boundary view resolves baseline and makes no schedule write",
+      "binding": {
+        "caseId": "E2E-JRN-02-004",
+        "step": "Review baseline responsibility before the effective boundary"
+      }
+    },
+    {
+      "id": "COV-LEGAL-SCHEDULE",
+      "journey": "JRN-02",
+      "screen": "Estate responsibility",
+      "category": "form",
+      "control": "Dated responsibility change",
+      "assertion": "Persist dated company with unchanged baseline and inspect previous/new/reason/reference",
+      "binding": {
+        "caseId": "E2E-JRN-02-004",
+        "step": "Schedule dated responsibility and inspect recorded change details"
+      }
+    },
+    {
+      "id": "COV-LEGAL-WORK-SNAPSHOT",
+      "journey": "JRN-02",
+      "screen": "Estate responsibility",
+      "category": "journey",
+      "control": "Work attribution snapshot",
+      "assertion": "Save and reload muster with captured company name/ID and responsibility event",
+      "binding": {
+        "caseId": "E2E-JRN-02-004",
+        "step": "Capture reload and inspect immutable responsible company snapshot"
+      }
+    },
+    {
+      "id": "COV-LEGAL-RECORDED-WORK-GUARD",
+      "journey": "JRN-02",
+      "screen": "Estate responsibility",
+      "category": "action",
+      "control": "Recorded work protection",
+      "assertion": "Real conflict retains input and support reference; no extra schedule or attribution rewrite",
+      "binding": {
+        "caseId": "E2E-JRN-02-004",
+        "step": "Reject schedule affecting recorded work with retained input and audit reference"
+      }
     }
   ]
 }

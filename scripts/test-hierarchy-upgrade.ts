@@ -84,6 +84,34 @@ try {
       placement_version: 1,
       company_id: company,
     });
+    await c.query(
+      "INSERT INTO eoms.gangs(estate_id,code,name) VALUES($1,'LEGACY-GANG','Legacy gang')",
+      [estate],
+    );
+    const legacyWork = (
+      await c.query(
+        "INSERT INTO eoms.musters(estate_id,occurrence_id,business_date,gang_code,quantity_ha,created_by) VALUES($1,$2,'2026-01-15','LEGACY-GANG',0.1,$3) RETURNING id",
+        [estate, legacyTask, user],
+      )
+    ).rows[0].id;
+    await c.query(
+      await readFile("db/migrations/009_estate_responsibility.sql", "utf8"),
+    );
+    const oldAttribution = (
+      await c.query(
+        "SELECT legal_company_id,legal_company_name,legal_responsibility_id FROM eoms.musters WHERE id=$1",
+        [legacyWork],
+      )
+    ).rows[0];
+    assert.deepEqual(oldAttribution, {
+      legal_company_id: null,
+      legal_company_name: null,
+      legal_responsibility_id: null,
+    });
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.estate_responsibilities")).rowCount,
+      0,
+    );
     const preservedTask = (
       await c.query(
         "SELECT id,block_code,block_unit_id,version FROM eoms.occurrences WHERE id=$1",
