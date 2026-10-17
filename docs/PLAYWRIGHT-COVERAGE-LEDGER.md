@@ -78,4 +78,6 @@ F06.3a adds four precise E2E-JRN-06-001 bindings for configured task creation, l
 
 F06.3a executed evidence: [CI run 38980380357](https://github.com/kunal1274/ssjns-eoms/actions/runs/38980380357) on `ede87f56bd25b13071162fb494f16bd340ef1c9d`. The configured/matching block selectors gained explicit accessible names after the first browser failure; the unchanged journey assertions passed at both viewports and the ledger UI passed. This evidence follow-up changes documentation only.
 
-F06.3b adds four exact E2E-JRN-02-003 mappings for optional area setup, persisted initial estate placement/ownership preservation, label/audit review and ordinary-user sibling isolation/handoff. Expected fourteen viewport executions and 68 passed/40 untested rows; execution pending. Full JRN-02 stays an explicit gap.
+F06.3b adds four exact E2E-JRN-02-003 mappings for optional area setup, persisted initial estate placement/ownership preservation, label/audit review and ordinary-user sibling isolation/handoff. Actual fourteen viewport executions and 68 passed/40 untested rows in CI 38999436012 attempt 2. Full JRN-02 stays an explicit gap.
+
+F06.3b executed proof: [CI run 38999436012](https://github.com/kunal1274/ssjns-eoms/actions/runs/38999436012), attempt 2, source `3ba0b5d41f7c45cdb3178a74d227bb89e6f09ce0`. All fourteen executions and ledger UI passed. The first attempt had an occupied Docker port after browser success; the full rerun passed. Later evidence changes are documentation only.
