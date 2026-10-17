@@ -59,6 +59,13 @@ test("E2E-JRN-02-004 @regression dated responsibility preserves captured work", 
     "INSERT INTO eoms.occurrences(estate_id,block_code,task_code,activity,round_code,capacity_ha) VALUES($1,'LW',$2,'Responsibility journey','L',2)",
     [own.id, taskCode],
   );
+  // Fixtures were created after login; reload to fetch the updated estate directory.
+  await page.reload();
+  await expect(
+    page
+      .getByLabel("Estate", { exact: true })
+      .locator(`option[value="${own.id}"]`),
+  ).toBeAttached();
   await page.getByRole("button", { name: "Organization", exact: true }).click();
   const legal = page.getByRole("region", {
     name: "Estate responsibility",
