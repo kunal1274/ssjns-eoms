@@ -243,6 +243,25 @@ try {
       ).rows[0],
       oldAttribution,
     );
+    const navigationCounts = (
+      await c.query(
+        "SELECT (SELECT count(*) FROM eoms.estates)::int AS estates,(SELECT count(*) FROM eoms.operating_units)::int AS units,(SELECT count(*) FROM eoms.hierarchy_history)::int AS history",
+      )
+    ).rows[0];
+    await c.query(
+      await readFile(
+        "db/migrations/013_hierarchy_navigation_indexes.sql",
+        "utf8",
+      ),
+    );
+    assert.deepEqual(
+      (
+        await c.query(
+          "SELECT (SELECT count(*) FROM eoms.estates)::int AS estates,(SELECT count(*) FROM eoms.operating_units)::int AS units,(SELECT count(*) FROM eoms.hierarchy_history)::int AS history",
+        )
+      ).rows[0],
+      navigationCounts,
+    );
     const preservedTask = (
       await c.query(
         "SELECT id,block_code,block_unit_id,version FROM eoms.occurrences WHERE id=$1",

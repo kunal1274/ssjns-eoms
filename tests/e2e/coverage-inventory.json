@@ -774,6 +774,66 @@
         "caseId": "E2E-JRN-02-007",
         "step": "Reactivate estate and parents before block then resume linked capture"
       }
+    },
+    {
+      "id": "COV-NAV-ESTATE",
+      "journey": "JRN-02",
+      "screen": "Organization explorer",
+      "category": "navigation",
+      "control": "Estate search and paging",
+      "assertion": "Find assigned estate beyond the 200-row overview and reset/paginate results",
+      "binding": {
+        "caseId": "E2E-JRN-02-008",
+        "step": "Search and paginate assigned estates beyond the overview limit"
+      }
+    },
+    {
+      "id": "COV-NAV-RECOVERY",
+      "journey": "JRN-02",
+      "screen": "Organization explorer",
+      "category": "navigation",
+      "control": "Paging recovery",
+      "assertion": "Injected 503 retains rows/reference; real retry appends a unique next page",
+      "binding": {
+        "caseId": "E2E-JRN-02-008",
+        "step": "Recover a failed unit next page without losing rows or duplicating results"
+      }
+    },
+    {
+      "id": "COV-NAV-UNIT",
+      "journey": "JRN-02",
+      "screen": "Organization explorer",
+      "category": "navigation",
+      "control": "Unit search and record history",
+      "assertion": "Find configured unit beyond 500, literal search and actor/reference audit filtering",
+      "binding": {
+        "caseId": "E2E-JRN-02-008",
+        "step": "Find a unit beyond 500 and filter its actual actor and support history"
+      }
+    },
+    {
+      "id": "COV-NAV-CUSTOMER",
+      "journey": "JRN-02",
+      "screen": "Organization explorer",
+      "category": "navigation",
+      "control": "Older display history",
+      "assertion": "Server search reaches creation outside the recent history cap",
+      "binding": {
+        "caseId": "E2E-JRN-02-008",
+        "step": "Search older customer history outside the recent 50 event window"
+      }
+    },
+    {
+      "id": "COV-NAV-SCOPE",
+      "journey": "JRN-02",
+      "screen": "Organization explorer",
+      "category": "navigation",
+      "control": "Scoped work handoff",
+      "assertion": "Unassigned actor denied and selected estate opens register at correct context",
+      "binding": {
+        "caseId": "E2E-JRN-02-008",
+        "step": "Deny unassigned scope and continue from explorer into estate work"
+      }
     }
   ]
 }

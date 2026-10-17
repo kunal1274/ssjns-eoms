@@ -119,3 +119,15 @@ Current increment F06.3c2b2 adds `E2E-JRN-02-007`. Run visibly against the isola
 6. Use **Open availability setup**, reactivate estate first, then division → field → block. Attempting a child too early returns recovery guidance and keeps your reason. Refresh task lists and capture again.
 
 An estate pause preserves individual unit flags; reactivating the estate resumes only units that are themselves active. Legacy unlinked task codes do not establish a block relationship; use the existing explicit link-review journey for attribution. Offline drafts may require review after availability changes. The headed journey is automated regression; arbitrary manual-recording conversion and the one-click reusable runner dashboard remain planned.
+
+### Searchable hierarchy and history demo
+
+F06.3d1 adds `E2E-JRN-02-008`. Visible isolated replay: `npm run test:e2e:headed -- --grep E2E-JRN-02-008`. It prepares 201 assigned estates, 501 units and older customer history under a separate synthetic customer, using a valid setup-user test-DB session. These are test fixtures, not production/customer provisioning acceptance. Existing authentication/rate limits remain unchanged. Current suite expects twelve cases × two projects; actual CI and owner-desktop observation pending.
+
+1. Open **Organization → Find estates, units and recorded changes**. Enter customer/company/estate name or code under **Find assigned estate**, choose page size and select **Search estates**. **Load more estates** appends the next page. A new search starts at the first page.
+2. Select **Inspect …** on an assigned estate. Use **Find operating unit**, type and availability filters, then **Search units**. A page error keeps loaded rows; use **Retry units**. The automated journey injects one safe 503 and then tests a real successful retry. It does not treat the mock response as backend outage evidence.
+3. Select **Review unit history**, optionally enter **History support reference** or a type/text filter, then **Search history**. Expand **View explorer audit details** to inspect actual actor ID, recorded before/after fields and references. Clear the unit filter to broaden the permitted history scope.
+4. Choose **Customer name/code changes** for customer display history; estate/unit/type filters do not apply there. Search `customer.created` to find original creation even when it is older than the overview's recent 50-event window. **Load more history events** browses older records; rerun Search history for newer events.
+5. Select **Continue to selected estate** to open its Muster register. Seeing parent labels does not grant unassigned estates or history. Other configuration selectors still have their separate bounded lists; full selector and dedicated-ledger pagination is the next increment.
+
+The explorer performs literal text search (% and _ are not wildcards), pages in stable record-ID order, and rechecks current access on every request. It does not claim a full historical snapshot of master labels or permissions, a 5–10 lakh-row load benchmark, or completion of all EOMS journeys.

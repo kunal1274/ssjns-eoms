@@ -26,7 +26,7 @@ Generated evidence/reports are ignored, not committed as sample passes. With no 
 
 ## Initial scope and honest gaps
 
-The current inventory has 71 items: 51 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (142 rows). The initial ledger before F06 had 39 items. It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
+The current inventory has 76 items: 56 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (152 rows). The initial ledger before F06 had 39 items. It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
 
 The mapped controls include email/password prevention, safe login recovery, date/gang/area validation, missing-worker disabled Save, retained input after a rejected submission, exactly-once corrected save/audit, confirmation/reload, selected audit disclosure, cross-estate denial, audit-screen overflow and logout navigation. Existing browser/API scripts cover additional behavior; that evidence is separate and is not silently imported as a runner pass. An untested row means no executed assertion mapping in this ledger, not proof that no other test exists.
 
@@ -91,3 +91,5 @@ F06.3c2a adds four precise E2E-JRN-02-005 mappings for cancellation/self-review 
 F06.3c2b1 adds four E2E-JRN-02-006 assertion mappings: pending placement/self-review, deactivation dependency recovery, independent move/provenance, area lifecycle/inactive destination rejection. Verified twenty viewport executions and 92 passed/40 untested rows by CI 39016388790 on source `34a8d6431f8d1670ce7bd67c5fd563364a8761c8`. These mappings do not close full JRN-02, full SoD or every lifecycle gap.
 
 F06.3c2b2 adds five E2E-JRN-02-007 assertion mappings for child conflict/recovery, linked draft blocking, confirmed-work/unit-history preservation, estate pause guidance/read access and ordered reactivation/resumed capture. Verified twenty-two viewport executions and 102 passed/40 untested rows by CI 39022200186 on source `52f5861545e43951011f365834669d1b7c2ed4ef`. Full JRN-02, full lifecycle/offline matrix and configurable SoD remain open.
+
+F06.3d1 adds five E2E-JRN-02-008 mappings for beyond-window estate/unit search, next-page recovery, actor/support audit, older customer history and scoped work handoff. Expected twenty-four viewport executions and 112 passed/40 untested rows; actual CI pending. Complete configuration-selector and volume/performance coverage remain open.

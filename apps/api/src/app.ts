@@ -1,3 +1,4 @@
+import { navigationRoutes } from "./navigation";
 import {
   lifecycleRoutes,
   lifecycleLock,
@@ -181,6 +182,7 @@ export function createApp(pool: Pool, options: { log?: FailureLogger } = {}) {
     }
   }
   organizationRoutes(app, tx);
+  navigationRoutes(app, tx);
   hierarchyRoutes(app, tx);
   lifecycleRoutes(app, tx);
   placementRoutes(app, tx);

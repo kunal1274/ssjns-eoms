@@ -1,3 +1,4 @@
+import { OrganizationExplorer } from "./OrganizationExplorer";
 import { HierarchySetup } from "./HierarchySetup";
 import { useEffect, useState } from "react";
 type Node = {
@@ -102,6 +103,7 @@ export function Organization({
         not grant access to its other estates. Use the hierarchy setup below to
         review or configure permitted groups, divisions, fields and blocks.
       </p>
+      <OrganizationExplorer api={api} onOpenEstate={onOpenEstate} />
       {loading && <p role="status">Loading your organization…</p>}
       {error && (
         <p role="alert" className="error">
@@ -116,8 +118,9 @@ export function Organization({
       )}
       {truncated && (
         <p role="status">
-          Showing the first 200 accessible estates. Complete organization
-          navigation for larger assignments is still pending.
+          The overview shows the first 200 accessible estates. Use the
+          searchable explorer above to find other assigned estates.
+          Configuration selectors retain their separate limits.
         </p>
       )}
       {!!customers.length && (
