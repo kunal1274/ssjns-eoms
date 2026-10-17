@@ -1,3 +1,4 @@
+import { responsibilityGovernanceRoutes } from "./responsibility-governance";
 import { responsibilityRoutes } from "./responsibility";
 import { placementRoutes } from "./placement";
 import { hierarchyRoutes } from "./hierarchy";
@@ -177,6 +178,7 @@ export function createApp(pool: Pool, options: { log?: FailureLogger } = {}) {
   hierarchyRoutes(app, tx);
   placementRoutes(app, tx);
   responsibilityRoutes(app, tx);
+  responsibilityGovernanceRoutes(app, tx);
   async function estateTx<T>(
     req: Request,
     res: Response,

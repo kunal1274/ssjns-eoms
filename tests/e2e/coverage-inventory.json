@@ -618,6 +618,54 @@
         "caseId": "E2E-JRN-02-004",
         "step": "Reject schedule affecting recorded work with retained input and audit reference"
       }
+    },
+    {
+      "id": "COV-CANCEL-REQUEST",
+      "journey": "JRN-02",
+      "screen": "Responsibility cancellation",
+      "category": "form",
+      "control": "Cancellation request and self-review denial",
+      "assertion": "Pending request leaves schedule active and server rejects self-review",
+      "binding": {
+        "caseId": "E2E-JRN-02-005",
+        "step": "Request future cancellation without changing active responsibility"
+      }
+    },
+    {
+      "id": "COV-CANCEL-REVIEW",
+      "journey": "JRN-02",
+      "screen": "Responsibility cancellation",
+      "category": "audit",
+      "control": "Independent setup review",
+      "assertion": "Distinct authenticated reviewer approves; request/decision actors and references are visible; resolver excludes cancelled change",
+      "binding": {
+        "caseId": "E2E-JRN-02-005",
+        "step": "Independent setup reviewer approves and records actor reasons and references"
+      }
+    },
+    {
+      "id": "COV-CANCEL-REPLACEMENT",
+      "journey": "JRN-02",
+      "screen": "Responsibility cancellation",
+      "category": "action",
+      "control": "Linked correction",
+      "assertion": "Append replacement with revision 2 and original cancelled event retained",
+      "binding": {
+        "caseId": "E2E-JRN-02-005",
+        "step": "Create linked same-date replacement while retaining cancelled original"
+      }
+    },
+    {
+      "id": "COV-CANCEL-WORK-GUARD",
+      "journey": "JRN-02",
+      "screen": "Responsibility cancellation",
+      "category": "journey",
+      "control": "Replacement attribution and recovery",
+      "assertion": "Work captures replacement identity; recorded-work guard retains input/reference and makes no extra request",
+      "binding": {
+        "caseId": "E2E-JRN-02-005",
+        "step": "Capture replacement work and deny cancellation with retained recovery guidance"
+      }
     }
   ]
 }

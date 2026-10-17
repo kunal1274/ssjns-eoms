@@ -98,6 +98,12 @@ try {
       estates: [estates[0].id],
     },
   ];
+  accounts.push({
+    email: "reviewer@eoms.local",
+    name: "Development Setup Reviewer",
+    role: "manager",
+    estates: estates.map((e) => e.id),
+  });
   for (const a of accounts) {
     const existing = await c.query("SELECT id FROM eoms.users WHERE email=$1", [
       a.email,
@@ -112,7 +118,7 @@ try {
       id = row.rows[0].id;
       credentials.push({ email: a.email, password, role: a.role });
     }
-    if (a.email === "manager@eoms.local")
+    if (["manager@eoms.local", "reviewer@eoms.local"].includes(a.email))
       await c.query(
         "INSERT INTO eoms.organization_admins(customer_id,user_id) VALUES($1,$2) ON CONFLICT DO NOTHING",
         [customer, id],

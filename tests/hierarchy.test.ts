@@ -1393,3 +1393,305 @@ test("responsibility rejects stale duplicate backwards and direct unaudited chan
     c.release();
   }
 });
+
+let independentReviewer: any;
+async function reviewerFor(id: string) {
+  if (!independentReviewer) {
+    const accounts = JSON.parse(
+      await readFile(".local/test-accounts.json", "utf8"),
+    );
+    const account = accounts.find(
+      (row: any) => row.email === "reviewer@eoms.local",
+    );
+    assert.ok(account, "Seed the explicit independent setup reviewer");
+    independentReviewer = await login(account.email, account.password);
+  }
+  await admin.query(
+    "INSERT INTO eoms.memberships(user_id,estate_id,role) VALUES($1,$2,'manager') ON CONFLICT DO NOTHING",
+    [independentReviewer.id, id],
+  );
+  return independentReviewer;
+}
+async function scheduleForCancellation(f: any, date = "2100-01-10") {
+  const saved = await post(manager, `/estates/${f.own.id}/responsibility`, {
+    companyId: f.target.id,
+    effectiveFrom: date,
+    revision: 0,
+    reason: "Schedule for governed review",
+  });
+  assert.equal(saved.status, 201, JSON.stringify(saved.body));
+  return saved.body;
+}
+async function cancellation(f: any, assignment: any) {
+  const created = await post(
+    manager,
+    `/estates/${f.own.id}/responsibility/${assignment.id}/cancellation`,
+    {
+      revision: assignment.revision,
+      reason: "Request cancellation after setup review",
+    },
+  );
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  return created;
+}
+function decide(
+  actor: any,
+  estate: string,
+  request: string,
+  revision: number,
+  decision = "approved",
+) {
+  return post(
+    actor,
+    `/estates/${estate}/responsibility/requests/${request}/decision`,
+    { revision, decision, reason: "Independent review decision" },
+  );
+}
+test("cancellation requires independent review; rejection preserves schedule and approval preserves originals", async () => {
+  const f = await legalFixture(),
+    reviewer = await reviewerFor(f.own.id),
+    assignment = await scheduleForCancellation(f),
+    requested = await cancellation(f, assignment);
+  assert.equal(
+    (await decide(manager, f.own.id, requested.body.id, 1)).status,
+    403,
+  );
+  const rejected = await decide(
+    reviewer,
+    f.own.id,
+    requested.body.id,
+    1,
+    "rejected",
+  );
+  assert.equal(rejected.status, 201);
+  assert.equal(
+    (await decide(reviewer, f.own.id, requested.body.id, 1)).status,
+    409,
+  );
+  let timeline = (
+    await manager.agent
+      .get(`/api/estates/${f.own.id}/responsibility`)
+      .query({ on: "2100-01-10" })
+  ).body;
+  assert.equal(timeline.responsible.id, f.target.id);
+  assert.equal(timeline.items[0].cancelled, false);
+  const again = await cancellation(f, assignment),
+    approved = await decide(reviewer, f.own.id, again.body.id, 1);
+  assert.equal(approved.status, 201, JSON.stringify(approved.body));
+  timeline = (
+    await manager.agent
+      .get(`/api/estates/${f.own.id}/responsibility`)
+      .query({ on: "2100-01-10" })
+  ).body;
+  assert.equal(timeline.responsible.id, f.own.company_id);
+  assert.equal(timeline.items[0].cancelled, true);
+  assert.equal(timeline.items[0].id, assignment.id);
+  assert.equal(timeline.requests.length, 2);
+  const evidence = (
+    await admin.query(
+      "SELECT q.requester_id,q.request_id,d.reviewer_id,d.request_id AS decision_reference FROM eoms.responsibility_cancel_requests q JOIN eoms.responsibility_cancel_decisions d ON d.cancel_request_id=q.id WHERE q.id=$1",
+      [again.body.id],
+    )
+  ).rows[0];
+  assert.equal(evidence.requester_id, manager.id);
+  assert.equal(evidence.reviewer_id, reviewer.id);
+  assert.notEqual(evidence.requester_id, evidence.reviewer_id);
+  assert.equal(evidence.request_id, again.headers["x-request-id"]);
+  assert.equal(evidence.decision_reference, approved.headers["x-request-id"]);
+  const captured = await legalWork(f, "2100-01-15");
+  assert.equal(captured.body.legal_company_id, f.own.company_id);
+  assert.equal(captured.body.legal_responsibility_id, null);
+});
+test("approved cancellation permits explicitly linked same-date replacement and preserves work attribution", async () => {
+  const f = await legalFixture(),
+    reviewer = await reviewerFor(f.own.id),
+    original = await scheduleForCancellation(f),
+    request = await cancellation(f, original);
+  assert.equal(
+    (await decide(reviewer, f.own.id, request.body.id, 1)).status,
+    201,
+  );
+  const body = {
+    companyId: f.target.id,
+    effectiveFrom: "2100-01-10",
+    revision: 1,
+    reason: "Replace independently cancelled setup change",
+  };
+  assert.equal(
+    (await post(manager, `/estates/${f.own.id}/responsibility`, body)).status,
+    422,
+  );
+  assert.equal(
+    (
+      await post(manager, `/estates/${f.own.id}/responsibility`, {
+        ...body,
+        replacesId: randomUUID(),
+      })
+    ).status,
+    422,
+  );
+  const replacement = await post(
+    manager,
+    `/estates/${f.own.id}/responsibility`,
+    { ...body, replacesId: original.id },
+  );
+  assert.equal(replacement.status, 201, JSON.stringify(replacement.body));
+  assert.equal(replacement.body.revision, 2);
+  const rows = (
+    await admin.query(
+      "SELECT id,replaces_responsibility_id FROM eoms.estate_responsibilities WHERE estate_id=$1 ORDER BY revision",
+      [f.own.id],
+    )
+  ).rows;
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].id, original.id);
+  assert.equal(rows[1].replaces_responsibility_id, original.id);
+  const captured = await legalWork(f, "2100-01-15");
+  assert.equal(captured.body.legal_responsibility_id, replacement.body.id);
+  assert.equal(captured.body.legal_company_id, f.target.id);
+  assert.equal(
+    (
+      await post(
+        manager,
+        `/estates/${f.own.id}/responsibility/${replacement.body.id}/cancellation`,
+        { revision: 2, reason: "Must protect replacement work" },
+      )
+    ).status,
+    409,
+  );
+});
+test("pending cancellation approval revalidates work dates revision and authorization", async () => {
+  const f = await legalFixture(),
+    reviewer = await reviewerFor(f.own.id),
+    assignment = await scheduleForCancellation(f),
+    request = await cancellation(f, assignment);
+  assert.equal(
+    (
+      await post(
+        manager,
+        `/estates/${f.own.id}/responsibility/${assignment.id}/cancellation`,
+        { revision: 1, reason: "Duplicate open request" },
+      )
+    ).status,
+    409,
+  );
+  await legalWork(f, "2100-01-15");
+  const blocked = await decide(reviewer, f.own.id, request.body.id, 1);
+  assert.equal(blocked.status, 409);
+  assert.match(blocked.body.error, /Work already exists/);
+  assert.equal(
+    (await decide(reviewer, f.own.id, request.body.id, 1, "rejected")).status,
+    201,
+  );
+  assert.equal(
+    (await decide(supervisor, f.own.id, request.body.id, 1)).status,
+    404,
+  );
+  assert.equal(
+    (await decide(reviewer, foreignEstate, request.body.id, 1)).status,
+    404,
+  );
+  const other = await legalFixture(),
+    otherReviewer = await reviewerFor(other.own.id),
+    first = await scheduleForCancellation(other),
+    pending = await cancellation(other, first);
+  const next = await post(manager, `/estates/${other.own.id}/responsibility`, {
+    companyId: other.own.company_id,
+    effectiveFrom: "2100-02-01",
+    revision: 1,
+    reason: "Later schedule invalidates pending review",
+  });
+  assert.equal(next.status, 201);
+  assert.equal(
+    (await decide(otherReviewer, other.own.id, pending.body.id, 2)).status,
+    409,
+  );
+  assert.equal(
+    (await decide(otherReviewer, other.own.id, pending.body.id, 2, "rejected"))
+      .status,
+    201,
+  );
+  const todayFixture = await legalFixture(),
+    today = (
+      await manager.agent.get(
+        `/api/estates/${todayFixture.own.id}/responsibility`,
+      )
+    ).body.today,
+    current = await scheduleForCancellation(todayFixture, today);
+  assert.equal(
+    (
+      await post(
+        manager,
+        `/estates/${todayFixture.own.id}/responsibility/${current.id}/cancellation`,
+        { revision: 1, reason: "Already effective today" },
+      )
+    ).status,
+    409,
+  );
+});
+test("database cancellation guards enforce independent actor append-only history and same-date lineage", async () => {
+  const f = await legalFixture(),
+    reviewer = await reviewerFor(f.own.id),
+    assignment = await scheduleForCancellation(f),
+    request = await cancellation(f, assignment),
+    c = await pool.connect();
+  try {
+    await c.query("BEGIN");
+    await c.query("SELECT set_config('app.user_id',$1,true)", [manager.id]);
+    await assert.rejects(
+      () =>
+        c.query(
+          "INSERT INTO eoms.responsibility_cancel_decisions(cancel_request_id,estate_id,customer_id,decision,reason) VALUES($1,$2,$3,'approved','Self approval is forbidden')",
+          [request.body.id, f.own.id, customer],
+        ),
+      (e: any) => e.code === "42501",
+    );
+  } finally {
+    await c.query("ROLLBACK");
+    c.release();
+  }
+  assert.equal(
+    (await decide(reviewer, f.own.id, request.body.id, 1)).status,
+    201,
+  );
+  for (const table of [
+    "responsibility_cancel_requests",
+    "responsibility_cancel_decisions",
+  ])
+    for (const sql of [
+      `DELETE FROM eoms.${table}`,
+      `UPDATE eoms.${table} SET reason='rewrite'`,
+    ])
+      await assert.rejects(
+        () => pool.query(sql),
+        (e: any) => e.code === "42501",
+      );
+  assert.equal(
+    (await pool.query("SELECT * FROM eoms.responsibility_cancel_requests"))
+      .rowCount,
+    0,
+  );
+  assert.equal(
+    (await pool.query("SELECT * FROM eoms.active_estate_responsibilities"))
+      .rowCount,
+    0,
+  );
+  const direct = await pool.connect();
+  try {
+    await direct.query("BEGIN");
+    await direct.query("SELECT set_config('app.user_id',$1,true)", [
+      manager.id,
+    ]);
+    await assert.rejects(
+      () =>
+        direct.query(
+          "INSERT INTO eoms.estate_responsibilities(estate_id,customer_id,company_id,effective_from,revision,reason) VALUES($1,$2,$3,'2100-01-10',2,'Missing lineage must fail')",
+          [f.own.id, customer, f.target.id],
+        ),
+      (e: any) => e.code === "23514",
+    );
+  } finally {
+    await direct.query("ROLLBACK");
+    direct.release();
+  }
+});

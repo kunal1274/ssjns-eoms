@@ -1,3 +1,4 @@
+import { ResponsibilityGovernance } from "./ResponsibilityGovernance";
 import { useEffect, useState } from "react";
 type Api = (path: string, body?: unknown) => Promise<any>;
 export function EstateResponsibility({
@@ -17,7 +18,8 @@ export function EstateResponsibility({
   const [company, setCompany] = useState(""),
     [effective, setEffective] = useState(""),
     [reason, setReason] = useState(""),
-    [review, setReview] = useState("");
+    [review, setReview] = useState(""),
+    [replaces, setReplaces] = useState("");
   const path = `/estates/${estate}/responsibility`;
   useEffect(() => {
     let active = true;
@@ -46,6 +48,7 @@ export function EstateResponsibility({
     setCompany("");
     setEffective("");
     setReason("");
+    setReplaces("");
     if (estate) {
       setLoading(true);
       api(path)
@@ -79,7 +82,7 @@ export function EstateResponsibility({
       setBusy(false);
     }
   }
-  const lastCompany = data?.items[0]?.company_id || data?.baseline.id;
+  const lastCompany = data?.lastActiveCompanyId || data?.baseline.id;
   return (
     <section className="editor" aria-label="Estate responsibility">
       <h3>Estate responsibility</h3>
@@ -189,6 +192,7 @@ export function EstateResponsibility({
                       effectiveFrom: effective,
                       revision: data.revision,
                       reason,
+                      replacesId: replaces || null,
                     });
                     committed = true;
                     setMessage(
@@ -197,6 +201,7 @@ export function EstateResponsibility({
                     setCompany("");
                     setEffective("");
                     setReason("");
+                    setReplaces("");
                     const value = await api(
                       path + "?on=" + saved.effective_from,
                     );
@@ -218,10 +223,44 @@ export function EstateResponsibility({
               <p>
                 Use a date later than the latest change. Any work already
                 recorded on or after the proposed date blocks scheduling. Saved
-                changes are append-only; cancellation, retroactive correction
-                and movement/deactivation approvals are still planned.
+                changes are append-only. Future cancellation requires
+                independent review below; retroactive correction and
+                movement/deactivation approvals remain planned.
               </p>
               <fieldset disabled={busy}>
+                <label>
+                  Correction source
+                  <select
+                    aria-label="Correction source"
+                    value={replaces}
+                    onChange={(e) => setReplaces(e.target.value)}
+                  >
+                    <option value="">New schedule (no replacement)</option>
+                    {data.items
+                      .filter(
+                        (row: any) =>
+                          row.cancelled &&
+                          !data.items.some(
+                            (other: any) =>
+                              other.replaces_responsibility_id === row.id,
+                          ),
+                      )
+                      .map((row: any) => (
+                        <option key={row.id} value={row.id}>
+                          {row.effective_from} · {row.company_name} · approved
+                          cancellation
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                {data.companies.filter((row: any) => row.id !== lastCompany)
+                  .length === 0 && (
+                  <p>
+                    No different company is accessible. Company provisioning and
+                    the required estate/company access must be configured before
+                    scheduling.
+                  </p>
+                )}
                 <label>
                   Next responsible company
                   <select
@@ -274,6 +313,19 @@ export function EstateResponsibility({
               company provisioning remain pending.
             </p>
           )}
+          <ResponsibilityGovernance
+            key={estate}
+            estate={estate}
+            api={api}
+            data={data}
+            busy={busy}
+            onBusy={setBusy}
+            onChanged={async () => {
+              const value = await api(path + (review ? "?on=" + review : ""));
+              setData(value);
+              setReview(value.asOf);
+            }}
+          />
           <h4>Recorded responsibility changes</h4>
           <p>
             Each date applies until the next recorded change. Capture time and
@@ -294,7 +346,10 @@ export function EstateResponsibility({
             >
               <div className="eventbody">
                 <strong>
-                  From {row.effective_from} · {row.company_name}
+                  From {row.effective_from} · {row.company_name} ·{" "}
+                  {row.cancelled
+                    ? "Cancelled after independent review"
+                    : "Active schedule"}
                 </strong>
                 <small>
                   {row.actor} · recorded{" "}
@@ -312,6 +367,12 @@ export function EstateResponsibility({
                     <dd>
                       {row.company_name} · {row.company_id}
                     </dd>
+                    {row.replaces_responsibility_id && (
+                      <>
+                        <dt>Replaces approved-cancelled change</dt>
+                        <dd>{row.replaces_responsibility_id}</dd>
+                      </>
+                    )}
                     <dt>Effective from / revision</dt>
                     <dd>
                       {row.effective_from} · {row.revision}

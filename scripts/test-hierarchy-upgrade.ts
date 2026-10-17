@@ -112,6 +112,43 @@ try {
       (await c.query("SELECT * FROM eoms.estate_responsibilities")).rowCount,
       0,
     );
+    const scheduledCompany = (
+      await c.query(
+        "INSERT INTO eoms.companies(customer_id,name) SELECT customer_id,'Legacy scheduled company' FROM eoms.estates WHERE id=$1 RETURNING id",
+        [estate],
+      )
+    ).rows[0].id;
+    const legacySchedule = (
+      await c.query(
+        "INSERT INTO eoms.estate_responsibilities(estate_id,customer_id,company_id,effective_from,revision,reason) SELECT id,customer_id,$2,'2200-01-01',1,'Pre-cancellation fixture' FROM eoms.estates WHERE id=$1 RETURNING id",
+        [estate, scheduledCompany],
+      )
+    ).rows[0].id;
+    await c.query(
+      await readFile(
+        "db/migrations/010_responsibility_cancellation.sql",
+        "utf8",
+      ),
+    );
+    assert.equal(
+      (
+        await c.query(
+          "SELECT id FROM eoms.active_estate_responsibilities WHERE id=$1",
+          [legacySchedule],
+        )
+      ).rowCount,
+      1,
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.responsibility_cancel_requests"))
+        .rowCount,
+      0,
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.responsibility_cancel_decisions"))
+        .rowCount,
+      0,
+    );
     const preservedTask = (
       await c.query(
         "SELECT id,block_code,block_unit_id,version FROM eoms.occurrences WHERE id=$1",
