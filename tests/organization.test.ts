@@ -74,7 +74,18 @@ test("organization requires authentication and exposes only assigned estates, no
   );
   assert.equal(own.body.items[0].customer_id, customer);
   const broader = await manager.agent.get("/api/organization");
-  assert.equal(broader.body.items.length, 2);
+  const authorized = (
+    await admin.query(
+      "SELECT estate_id FROM eoms.memberships WHERE user_id=$1 ORDER BY estate_id",
+      [manager.id],
+    )
+  ).rows.map((row: any) => row.estate_id);
+  assert.deepEqual(
+    broader.body.items.map((row: any) => row.estate_id).sort(),
+    authorized,
+  );
+  assert.ok(authorized.includes("20000000-0000-4000-8000-000000000001"));
+  assert.ok(authorized.includes("20000000-0000-4000-8000-000000000002"));
   assert.ok(broader.body.items.every((r: any) => r.customer_id === customer));
   assert.ok(!JSON.stringify(broader.body).includes(foreignCustomer));
 });
