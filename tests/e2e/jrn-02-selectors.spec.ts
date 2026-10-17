@@ -230,7 +230,7 @@ test("E2E-JRN-02-009 @regression paged configuration choices connect hierarchy t
       "Retained after real version conflict",
     );
     await setup
-      .getByRole("button", { name: "Refresh lists", exact: true })
+      .getByRole("button", { name: "Refresh hierarchy lists", exact: true })
       .click();
     await find("Existing unit", deep.code);
     await setup
