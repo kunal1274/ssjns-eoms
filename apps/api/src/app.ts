@@ -1,3 +1,4 @@
+import { placementRoutes } from "./placement";
 import { hierarchyRoutes } from "./hierarchy";
 import { organizationRoutes } from "./organization";
 import express, { type Request, type Response } from "express";
@@ -173,6 +174,7 @@ export function createApp(pool: Pool, options: { log?: FailureLogger } = {}) {
   }
   organizationRoutes(app, tx);
   hierarchyRoutes(app, tx);
+  placementRoutes(app, tx);
   async function estateTx<T>(
     req: Request,
     res: Response,

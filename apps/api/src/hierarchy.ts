@@ -21,13 +21,13 @@ const unit = z
   })
   .strict();
 const updateUnit = unit.extend({ version: z.number().int().positive() });
-async function visibleCustomer(c: PoolClient, id: string) {
+export async function visibleCustomer(c: PoolClient, id: string) {
   if (
     !(await c.query("SELECT id FROM eoms.customers WHERE id=$1", [id])).rowCount
   )
     throw new ApiError(404, "Customer is not available in your scope");
 }
-async function administrator(c: PoolClient, id: string) {
+export async function administrator(c: PoolClient, id: string) {
   if (
     !(await c.query("SELECT eoms.can_manage_customer($1) AS allowed", [id]))
       .rows[0].allowed
@@ -37,13 +37,13 @@ async function administrator(c: PoolClient, id: string) {
       "Hierarchy setup permission is required for this customer",
     );
 }
-async function context(c: PoolClient, res: Response, text: string) {
+export async function context(c: PoolClient, res: Response, text: string) {
   await c.query(
     "SELECT set_config('app.change_reason',$1,true),set_config('app.request_id',$2,true)",
     [text, res.locals.requestId],
   );
 }
-async function estateContext(c: PoolClient, id: string) {
+export async function estateContext(c: PoolClient, id: string) {
   const row = (
     await c.query("SELECT id,customer_id FROM eoms.estates WHERE id=$1", [id])
   ).rows[0];

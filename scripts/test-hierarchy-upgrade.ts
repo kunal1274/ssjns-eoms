@@ -66,6 +66,24 @@ try {
       (await c.query("SELECT * FROM eoms.organization_admins")).rowCount,
       0,
     );
+    await c.query(
+      await readFile("db/migrations/008_operating_placement.sql", "utf8"),
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.operating_areas")).rowCount,
+      0,
+    );
+    const oldPlacement = (
+      await c.query(
+        "SELECT area_id,placement_version,company_id FROM eoms.estates WHERE id=$1",
+        [estate],
+      )
+    ).rows[0];
+    assert.deepEqual(oldPlacement, {
+      area_id: null,
+      placement_version: 1,
+      company_id: company,
+    });
     const preservedTask = (
       await c.query(
         "SELECT id,block_code,block_unit_id,version FROM eoms.occurrences WHERE id=$1",

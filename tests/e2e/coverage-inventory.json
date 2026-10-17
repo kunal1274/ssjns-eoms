@@ -522,6 +522,54 @@
         "caseId": "E2E-JRN-06-001",
         "step": "Inspect recorded block link summary details and persisted task status"
       }
+    },
+    {
+      "id": "COV-AREA-PARENT-SETUP",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "form",
+      "control": "Optional operating areas",
+      "assertion": "Create region and business unit with persisted typed parent",
+      "binding": {
+        "caseId": "E2E-JRN-02-003",
+        "step": "Create optional region and business unit with recorded parent"
+      }
+    },
+    {
+      "id": "COV-ESTATE-PLACEMENT",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "action",
+      "control": "Initial estate placement",
+      "assertion": "Persist initial area with unchanged company, reload and reject direct reassignment",
+      "binding": {
+        "caseId": "E2E-JRN-02-003",
+        "step": "Place estate once and persist unchanged legal ownership"
+      }
+    },
+    {
+      "id": "COV-PLACEMENT-AUDIT",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "audit",
+      "control": "Operating placement history",
+      "assertion": "Versioned label edit and recorded before/after, reason and request reference",
+      "binding": {
+        "caseId": "E2E-JRN-02-003",
+        "step": "Edit area display and review before after placement audit"
+      }
+    },
+    {
+      "id": "COV-AREA-SCOPE",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "navigation",
+      "control": "Read-only placement scope",
+      "assertion": "Unassigned sibling areas/estate absent; no setup controls; assigned-estate register handoff",
+      "binding": {
+        "caseId": "E2E-JRN-02-003",
+        "step": "Verify ordinary estate access gains no sibling area or estate visibility"
+      }
     }
   ]
 }

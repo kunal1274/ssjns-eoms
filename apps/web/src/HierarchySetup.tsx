@@ -1,3 +1,4 @@
+import { OperatingPlacement } from "./OperatingPlacement";
 import { useEffect, useState } from "react";
 type Unit = {
   id: string;
@@ -214,6 +215,7 @@ export function HierarchySetup({
   return (
     <section className="editor" aria-label="Hierarchy setup">
       <h3>Hierarchy setup</h3>
+      <OperatingPlacement key={customerId} api={api} customerId={customerId} />
       <p>
         Optional legal group → company. Within each assigned estate: division →
         optional field → block. Structure does not grant operational access.
@@ -564,13 +566,17 @@ export function HierarchySetup({
                 <strong>
                   {change.record_type === "unit"
                     ? "Unit"
-                    : change.record_type === "task-link"
-                      ? "Task block link"
-                      : change.record_type === "company"
-                        ? "Company"
-                        : change.record_type === "setup-grant"
-                          ? "Setup grant"
-                          : "Group"}{" "}
+                    : change.record_type === "area"
+                      ? "Operating area"
+                      : change.record_type === "estate-placement"
+                        ? "Estate placement"
+                        : change.record_type === "task-link"
+                          ? "Task block link"
+                          : change.record_type === "company"
+                            ? "Company"
+                            : change.record_type === "setup-grant"
+                              ? "Setup grant"
+                              : "Group"}{" "}
                   {change.action} · {change.after.code || change.after.name}
                 </strong>
                 <small>

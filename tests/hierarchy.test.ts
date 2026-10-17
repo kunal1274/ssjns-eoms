@@ -758,3 +758,349 @@ test("database enforces block kind estate reason version manager authority and i
     c.release();
   }
 });
+
+async function areaNode(
+  kind: string,
+  parentId: string | null = null,
+  code = "AR-" + suffix(),
+) {
+  const response = await post(manager, `/customers/${customer}/areas`, {
+    kind,
+    code,
+    name: "Test operating " + kind,
+    parentId,
+    reason: "Create synthetic operating area",
+  });
+  assert.equal(response.status, 201, JSON.stringify(response.body));
+  return response.body;
+}
+async function placementEstate(withReadonly = false) {
+  const company = (
+    await admin.query("SELECT company_id FROM eoms.estates WHERE id=$1", [
+      estate,
+    ])
+  ).rows[0].company_id;
+  const row = (
+    await admin.query(
+      "INSERT INTO eoms.estates(customer_id,company_id,code,name) VALUES($1,$2,$3,'Placement fixture estate') RETURNING *",
+      [customer, company, "PL-" + suffix()],
+    )
+  ).rows[0];
+  await admin.query(
+    "INSERT INTO eoms.memberships(user_id,estate_id,role) VALUES($1,$2,'manager')",
+    [manager.id, row.id],
+  );
+  if (withReadonly)
+    await admin.query(
+      "INSERT INTO eoms.memberships(user_id,estate_id,role) VALUES($1,$2,'manager')",
+      [readonlyManager.id, row.id],
+    );
+  return row;
+}
+test("optional regions and business units enforce type scope codes and attributable display edits", async () => {
+  const region = await areaNode("region"),
+    business = await areaNode("business-unit", region.id),
+    rootBusiness = await areaNode("business-unit");
+  assert.equal(business.parent_id, region.id);
+  assert.equal(rootBusiness.parent_id, null);
+  assert.equal(
+    (
+      await post(manager, `/customers/${customer}/areas`, {
+        kind: "region",
+        code: region.code,
+        name: "Duplicate",
+        parentId: null,
+        reason: "Duplicate area",
+      })
+    ).status,
+    409,
+  );
+  for (const input of [
+    { kind: "region", parentId: business.id },
+    { kind: "business-unit", parentId: business.id },
+  ])
+    assert.equal(
+      (
+        await post(manager, `/customers/${customer}/areas`, {
+          ...input,
+          code: "BAD-" + suffix(),
+          name: "Invalid",
+          reason: "Invalid parent type",
+        })
+      ).status,
+      422,
+    );
+  const updated = await post(
+    manager,
+    `/customers/${customer}/areas/${business.id}`,
+    {
+      code: business.code,
+      name: "Reviewed operating unit",
+      version: 1,
+      reason: "Correct operating label",
+    },
+  );
+  assert.equal(updated.status, 200);
+  assert.equal(updated.body.version, 2);
+  assert.equal(
+    (
+      await post(manager, `/customers/${customer}/areas/${business.id}`, {
+        code: business.code,
+        name: "Stale",
+        version: 1,
+        reason: "Stale label edit",
+      })
+    ).status,
+    409,
+  );
+  const history = (
+    await admin.query(
+      "SELECT * FROM eoms.hierarchy_history WHERE record_id=$1 AND record_type='area' ORDER BY id",
+      [business.id],
+    )
+  ).rows;
+  assert.equal(history.length, 2);
+  assert.equal(history[1].before_state.name, business.name);
+  assert.equal(history[1].after_state.name, "Reviewed operating unit");
+  assert.equal(history[1].actor_id, manager.id);
+  assert.equal(history[1].request_id, updated.headers["x-request-id"]);
+});
+test("initial estate placement preserves legal ownership and scope with no sibling visibility", async () => {
+  const region = await areaNode("region"),
+    business = await areaNode("business-unit", region.id),
+    hiddenRegion = await areaNode("region"),
+    own = await placementEstate(true),
+    sibling = await placementEstate();
+  const first = await post(manager, `/estates/${own.id}/placement`, {
+    areaId: business.id,
+    version: 1,
+    reason: "Initial operating placement",
+  });
+  assert.equal(first.status, 200, JSON.stringify(first.body));
+  assert.equal(first.body.company_id, own.company_id);
+  assert.equal(first.body.placement_version, 2);
+  assert.equal(
+    (
+      await post(manager, `/estates/${sibling.id}/placement`, {
+        areaId: hiddenRegion.id,
+        version: 1,
+        reason: "Sibling initial placement",
+      })
+    ).status,
+    200,
+  );
+  const view = await readonlyManager.agent.get(
+    `/api/customers/${customer}/placements`,
+  );
+  assert.equal(view.status, 200);
+  assert.equal(view.body.canConfigure, false);
+  assert.ok(view.body.areas.some((row: any) => row.id === region.id));
+  assert.ok(view.body.areas.some((row: any) => row.id === business.id));
+  assert.ok(!view.body.areas.some((row: any) => row.id === hiddenRegion.id));
+  assert.ok(!view.body.estates.some((row: any) => row.id === sibling.id));
+  assert.equal(
+    (await readonlyManager.agent.get(`/api/estates/${sibling.id}/units`))
+      .status,
+    404,
+  );
+  const events = (
+    await readonlyManager.agent.get(
+      `/api/customers/${customer}/hierarchy/history`,
+    )
+  ).body.items;
+  assert.ok(
+    events.some(
+      (row: any) =>
+        row.record_id === own.id && row.record_type === "estate-placement",
+    ),
+  );
+  assert.ok(
+    !events.some(
+      (row: any) => row.record_id === sibling.id || row.record_type === "area",
+    ),
+  );
+  const recorded = (
+    await admin.query(
+      "SELECT * FROM eoms.hierarchy_history WHERE record_id=$1 AND record_type='estate-placement'",
+      [own.id],
+    )
+  ).rows;
+  assert.equal(recorded.length, 1);
+  assert.equal(recorded[0].before_state.parentId, null);
+  assert.equal(recorded[0].after_state.parentId, business.id);
+  assert.equal(recorded[0].request_id, first.headers["x-request-id"]);
+  for (const version of [1, 2])
+    assert.equal(
+      (
+        await post(manager, `/estates/${own.id}/placement`, {
+          areaId: region.id,
+          version,
+          reason: "Reject placement move",
+        })
+      ).status,
+      409,
+    );
+});
+test("placement rejects foreign areas unauthorized writes and missing reasons", async () => {
+  const own = await placementEstate(),
+    region = await areaNode("region");
+  const foreign = (
+    await admin.query(
+      "INSERT INTO eoms.operating_areas(customer_id,kind,code,name) VALUES($1,'region',$2,'Foreign operating area') RETURNING id",
+      [foreignCustomer, "FR-" + suffix()],
+    )
+  ).rows[0].id;
+  assert.equal(
+    (await request(app).get(`/api/customers/${customer}/placements`)).status,
+    401,
+  );
+  assert.equal(
+    (await manager.agent.get(`/api/customers/${foreignCustomer}/placements`))
+      .status,
+    404,
+  );
+  assert.equal(
+    (
+      await post(manager, `/estates/${own.id}/placement`, {
+        areaId: foreign,
+        version: 1,
+        reason: "Reject foreign area",
+      })
+    ).status,
+    422,
+  );
+  assert.equal(
+    (
+      await post(manager, `/customers/${customer}/areas`, {
+        kind: "business-unit",
+        code: "XF-" + suffix(),
+        name: "Foreign parent",
+        parentId: foreign,
+        reason: "Reject foreign region",
+      })
+    ).status,
+    422,
+  );
+  for (const actor of [supervisor, readonlyManager])
+    assert.equal(
+      (
+        await post(actor, `/customers/${customer}/areas`, {
+          kind: "region",
+          code: "DENIED",
+          name: "Denied",
+          parentId: null,
+          reason: "No setup grant",
+        })
+      ).status,
+      403,
+    );
+  assert.equal(
+    (
+      await post(supervisor, `/estates/${estate}/placement`, {
+        areaId: region.id,
+        version: 1,
+        reason: "No setup grant",
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await post(manager, `/estates/${foreignEstate}/placement`, {
+        areaId: region.id,
+        version: 1,
+        reason: "Reject foreign estate",
+      })
+    ).status,
+    404,
+  );
+  assert.equal(
+    (
+      await post(manager, `/estates/${own.id}/placement`, {
+        areaId: region.id,
+        version: 1,
+        reason: "",
+      })
+    ).status,
+    422,
+  );
+});
+test("database prevents area scope changes cycles moves unaudited edits and runtime deletes", async () => {
+  const region = await areaNode("region"),
+    business = await areaNode("business-unit", region.id),
+    own = await placementEstate();
+  const c = await pool.connect();
+  async function rejected(
+    sql: string,
+    args: unknown[],
+    expected: string,
+    actor = manager.id,
+    reason = "Direct placement guard",
+  ) {
+    try {
+      await c.query("BEGIN");
+      await c.query(
+        "SELECT set_config('app.user_id',$1,true),set_config('app.change_reason',$2,true)",
+        [actor, reason],
+      );
+      await assert.rejects(
+        () => c.query(sql, args),
+        (e: any) => e.code === expected,
+      );
+    } finally {
+      await c.query("ROLLBACK");
+    }
+  }
+  try {
+    await rejected(
+      "UPDATE eoms.operating_areas SET name='Silent',version=version+1 WHERE id=$1",
+      [region.id],
+      "23514",
+      manager.id,
+      "",
+    );
+    await rejected(
+      "UPDATE eoms.operating_areas SET parent_id=$2,version=version+1 WHERE id=$1",
+      [region.id, business.id],
+      "42501",
+    );
+    await assert.rejects(
+      () =>
+        admin.query(
+          "UPDATE eoms.operating_areas SET parent_id=$2,version=version+1 WHERE id=$1",
+          [region.id, business.id],
+        ),
+      (e: any) => e.code === "23514",
+    );
+    await rejected(
+      "UPDATE eoms.estates SET area_id=$2 WHERE id=$1",
+      [own.id, region.id],
+      "23514",
+    );
+    assert.equal(
+      (
+        await post(manager, `/estates/${own.id}/placement`, {
+          areaId: region.id,
+          version: 1,
+          reason: "Initial placement for guard",
+        })
+      ).status,
+      200,
+    );
+    await rejected(
+      "UPDATE eoms.estates SET area_id=NULL,placement_version=placement_version+1 WHERE id=$1",
+      [own.id],
+      "23514",
+    );
+    await assert.rejects(
+      () => pool.query("DELETE FROM eoms.operating_areas"),
+      (e: any) => e.code === "42501",
+    );
+    assert.equal(
+      (await pool.query("SELECT * FROM eoms.operating_areas")).rowCount,
+      0,
+    );
+  } finally {
+    c.release();
+  }
+});

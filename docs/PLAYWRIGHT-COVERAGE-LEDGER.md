@@ -26,7 +26,7 @@ Generated evidence/reports are ignored, not committed as sample passes. With no 
 
 ## Initial scope and honest gaps
 
-The current inventory has 50 items: 30 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (100 rows). The initial ledger before F06 had 39 items. It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
+The current inventory has 54 items: 34 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (108 rows). The initial ledger before F06 had 39 items. It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
 
 The mapped controls include email/password prevention, safe login recovery, date/gang/area validation, missing-worker disabled Save, retained input after a rejected submission, exactly-once corrected save/audit, confirmation/reload, selected audit disclosure, cross-estate denial, audit-screen overflow and logout navigation. Existing browser/API scripts cover additional behavior; that evidence is separate and is not silently imported as a runner pass. An untested row means no executed assertion mapping in this ledger, not proof that no other test exists.
 
@@ -77,3 +77,5 @@ F06.2 executed proof: [CI run 38977060930](https://github.com/kunal1274/ssjns-eo
 F06.3a adds four precise E2E-JRN-06-001 bindings for configured task creation, legacy-link conflict/review, persisted block/task/work identity and link audit/navigation. Actual current full run: twelve viewport executions, 60 passed/40 untested item/project rows in CI 38980380357. Complete JRN-06 remains a gap.
 
 F06.3a executed evidence: [CI run 38980380357](https://github.com/kunal1274/ssjns-eoms/actions/runs/38980380357) on `ede87f56bd25b13071162fb494f16bd340ef1c9d`. The configured/matching block selectors gained explicit accessible names after the first browser failure; the unchanged journey assertions passed at both viewports and the ledger UI passed. This evidence follow-up changes documentation only.
+
+F06.3b adds four exact E2E-JRN-02-003 mappings for optional area setup, persisted initial estate placement/ownership preservation, label/audit review and ordinary-user sibling isolation/handoff. Expected fourteen viewport executions and 68 passed/40 untested rows; execution pending. Full JRN-02 stays an explicit gap.
