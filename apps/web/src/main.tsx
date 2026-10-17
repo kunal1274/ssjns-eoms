@@ -388,6 +388,8 @@ function App() {
               estate={estate}
               onSetup={() => {
                 setTab("Organization");
+                setDetail(null);
+                setReviewAction(null);
                 setCreating(false);
               }}
             />

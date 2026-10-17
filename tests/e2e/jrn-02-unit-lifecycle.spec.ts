@@ -211,7 +211,19 @@ test("E2E-JRN-02-007 @regression estate and unit availability protects work", as
         exact: true,
       }),
     ).toBeVisible();
-    await open();
+    await page
+      .getByRole("button", { name: "Open availability setup", exact: true })
+      .click();
+    await expect(
+      page.getByRole("heading", {
+        name: "Muster detail · confirmed",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await panel
+      .getByLabel("Availability estate", { exact: true })
+      .selectOption(own.id);
+    await expect(panel.locator("[data-estate-availability]")).toBeVisible();
     await change(block, false);
     const event = panel.locator(`[data-lifecycle-record-id="${block.id}"]`);
     await event
