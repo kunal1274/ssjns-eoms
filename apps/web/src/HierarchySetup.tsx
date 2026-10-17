@@ -65,6 +65,11 @@ export function HierarchySetup({
   const [data, setData] = useState(empty),
     [estate, setEstate] = useState(""),
     [company, setCompany] = useState(""),
+    [companyRecord, setCompanyRecord] = useState<
+      Context["companies"][number] | null
+    >(null),
+    [companyReady, setCompanyReady] = useState(false),
+    [groupReady, setGroupReady] = useState(false),
     [group, setGroup] = useState(""),
     [units, setUnits] = useState<Unit[]>([]),
     [changes, setChanges] = useState<Change[]>([]),
@@ -107,11 +112,7 @@ export function HierarchySetup({
     // Preserve an explicitly searched estate beyond the bounded overview.
     // The selected-record API and unit reads revalidate access; never fall back to a different estate after a write.
     setEstate((current) => current || context.estates[0]?.id || "");
-    setCompany((current) =>
-      context.companies.some((row: any) => row.id === current)
-        ? current
-        : context.companies[0]?.id || "",
-    );
+    setCompany((current) => current || context.companies[0]?.id || "");
   }
   async function loadUnits(id: string) {
     if (!id) return;
@@ -128,7 +129,7 @@ export function HierarchySetup({
           setChanges(history.items);
           setTruncated(history.truncated);
           setEstate(context.estates[0]?.id || "");
-          setCompany(context.companies[0]?.id || "");
+          chooseCompany(context.companies[0]?.id || "", context.companies[0]);
         }
       })
       .catch((e) => {
@@ -141,9 +142,6 @@ export function HierarchySetup({
       active = false;
     };
   }, [customerId]);
-  useEffect(() => {
-    setGroup(data.companies.find((row) => row.id === company)?.group_id || "");
-  }, [company, data.companies]);
   useEffect(() => {
     let active = true;
     setUnits([]);
@@ -230,7 +228,16 @@ export function HierarchySetup({
           ? ["division", "field"].includes(row.kind)
           : false),
   );
-  const selectedCompany = data.companies.find((row) => row.id === company);
+  function chooseCompany(id: string, row?: any) {
+    setCompany(id);
+    setCompanyRecord(row || null);
+    setGroup(row?.group_id || "");
+    setAssignmentReason("");
+  }
+  const selectedCompany =
+    companyRecord?.id === company
+      ? companyRecord
+      : data.companies.find((row) => row.id === company);
   return (
     <section className="editor" aria-label="Hierarchy setup">
       <h3>Hierarchy setup</h3>
@@ -323,6 +330,7 @@ export function HierarchySetup({
                 <label>
                   Group reason
                   <textarea
+                    aria-label="Group reason"
                     required
                     minLength={3}
                     maxLength={500}
@@ -337,55 +345,57 @@ export function HierarchySetup({
                   e.preventDefault();
                   if (selectedCompany)
                     void save(
-                      () =>
-                        api(
+                      async () => {
+                        const saved = await api(
                           `/customers/${customerId}/companies/${company}/group`,
                           {
                             groupId: group || null,
                             version: selectedCompany.hierarchy_version,
                             reason: assignmentReason,
                           },
-                        ),
+                        );
+                        setCompanyRecord(saved);
+                        return saved;
+                      },
                       "Company group saved.",
                       () => setAssignmentReason(""),
                     );
                 }}
               >
                 <h4>2. Assign a company</h4>
-                <label>
-                  Hierarchy company
-                  <select
-                    aria-label="Hierarchy company"
-                    value={company}
-                    disabled={busy}
-                    onChange={(e) => setCompany(e.target.value)}
-                  >
-                    {data.companies.map((row) => (
-                      <option key={row.id} value={row.id}>
-                        {row.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Group assignment
-                  <select
-                    aria-label="Group assignment"
-                    value={group}
-                    disabled={busy}
-                    onChange={(e) => setGroup(e.target.value)}
-                  >
-                    <option value="">No group</option>
-                    {data.groups.map((row) => (
-                      <option key={row.id} value={row.id}>
-                        {row.code} · {row.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <SearchSelect
+                  api={api}
+                  path={`/navigation/customers/${customerId}/companies`}
+                  label="Hierarchy company"
+                  value={company}
+                  onChange={chooseCompany}
+                  onReview={(row) => chooseCompany(row.id, row)}
+                  onReady={setCompanyReady}
+                  seed={data.companies}
+                  required
+                  disabled={busy}
+                />
+                <p>
+                  After a conflict, refresh hierarchy lists, Find Hierarchy
+                  company, then Load selected Hierarchy company to review the
+                  latest version. This explicit reload replaces the group draft
+                  and clears its previous reason.
+                </p>
+                <SearchSelect
+                  api={api}
+                  path={`/navigation/customers/${customerId}/groups`}
+                  label="Group assignment"
+                  value={group}
+                  onChange={setGroup}
+                  onReady={setGroupReady}
+                  seed={data.groups}
+                  disabled={busy}
+                  placeholder="No group"
+                />
                 <label>
                   Assignment reason
                   <textarea
+                    aria-label="Assignment reason"
                     required
                     minLength={3}
                     maxLength={500}
@@ -393,7 +403,15 @@ export function HierarchySetup({
                     onChange={(e) => setAssignmentReason(e.target.value)}
                   />
                 </label>
-                <button disabled={busy || needsRefresh || !selectedCompany}>
+                <button
+                  disabled={
+                    busy ||
+                    needsRefresh ||
+                    !selectedCompany ||
+                    !companyReady ||
+                    !groupReady
+                  }
+                >
                   Save company group
                 </button>
               </form>

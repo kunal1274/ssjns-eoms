@@ -894,6 +894,54 @@
         "caseId": "E2E-JRN-02-009",
         "step": "Capture work with the selected estate task block and company identities intact"
       }
+    },
+    {
+      "id": "COV-CONTEXT-CUSTOMER",
+      "journey": "JRN-02",
+      "screen": "Customer company group setup",
+      "category": "navigation",
+      "control": "Customer",
+      "assertion": "Select a permitted root outside the overview and enter the correct setup",
+      "binding": {
+        "caseId": "E2E-JRN-02-010",
+        "step": "Find a permitted customer outside the organization overview and enter its setup"
+      }
+    },
+    {
+      "id": "COV-CONTEXT-GROUP",
+      "journey": "JRN-02",
+      "screen": "Customer company group setup",
+      "category": "form",
+      "control": "Company and group choices",
+      "assertion": "Retain deep company group IDs and reason through correlated group search failure and real retry",
+      "binding": {
+        "caseId": "E2E-JRN-02-010",
+        "step": "Recover group search with deep company choice and assignment reason retained"
+      }
+    },
+    {
+      "id": "COV-CONTEXT-VERSION",
+      "journey": "JRN-02",
+      "screen": "Customer company group setup",
+      "category": "form",
+      "control": "Company group save",
+      "assertion": "Reject real stale write then explicitly reload current company and save reviewed group at the next version",
+      "binding": {
+        "caseId": "E2E-JRN-02-010",
+        "step": "Recover a real company version conflict and explicitly reload before saving"
+      }
+    },
+    {
+      "id": "COV-CONTEXT-AUDIT",
+      "journey": "JRN-02",
+      "screen": "Customer company group setup",
+      "category": "audit",
+      "control": "Group assignment history",
+      "assertion": "Read actual before after actor support provenance and deny unassigned customer pin",
+      "binding": {
+        "caseId": "E2E-JRN-02-010",
+        "step": "Inspect actual group audit provenance and reject an unassigned customer pin"
+      }
     }
   ]
 }

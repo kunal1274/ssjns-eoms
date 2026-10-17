@@ -22,6 +22,65 @@ const uuid = z.string().uuid(),
     "unit-lifecycle",
   ]);
 export function navigationRoutes(app: Express, tx: Transaction) {
+  // Table/column names below are internal constants, never request-provided SQL.
+  for (const kind of ["customers", "companies", "groups"] as const) {
+    const root = kind === "customers";
+    const table = kind === "groups" ? "customer_groups" : kind;
+    const fields =
+      kind === "companies"
+        ? "id,name,group_id,hierarchy_version"
+        : "id,code,name";
+    const search = kind === "companies" ? "name" : "(code||' '||name)";
+    app.get(
+      root
+        ? "/api/navigation/customers"
+        : `/api/navigation/customers/:customerId/${kind}`,
+      async (req, res) => {
+        const customer = root
+          ? null
+          : uuid.parse((req.params as Record<string, string>).customerId);
+        const q = z
+          .object({ ...pageFields, selectedId: uuid.optional() })
+          .strict()
+          .parse(req.query);
+        const binding = {
+          route: kind,
+          actor: res.locals.user.id,
+          customer,
+          q: q.q,
+        };
+        const page = readPage(q.cursor, binding);
+        res.json(
+          await tx(res, async (c) => {
+            if (customer) await visibleCustomer(c, customer);
+            const rows = (
+              await c.query(
+                `SELECT ${fields} FROM eoms.${table} WHERE ${root ? "$1::uuid IS NULL" : "customer_id=$1"} AND ($2::uuid IS NULL OR id>$2) AND ${search} ILIKE $3 ORDER BY id LIMIT $4`,
+                [customer, page?.key ?? null, literalPattern(q.q), q.limit + 1],
+              )
+            ).rows;
+            const selected = q.selectedId
+              ? (
+                  await c.query(
+                    `SELECT ${fields} FROM eoms.${table} WHERE id=$1 AND ${root ? "$2::uuid IS NULL" : "customer_id=$2"}`,
+                    [q.selectedId, customer],
+                  )
+                ).rows[0]
+              : null;
+            if (q.selectedId && !selected)
+              throw new ApiError(
+                404,
+                "Selected record is not available in this customer and account. Clear the choice or refresh and review access.",
+              );
+            return {
+              ...pageResult(rows, q.limit, binding, (r) => r.id),
+              selected: selected ? { ...selected, eligible: true } : null,
+            };
+          }),
+        );
+      },
+    );
+  }
   app.get("/api/navigation/estates", async (req, res) => {
     const q = z
         .object({
@@ -166,7 +225,9 @@ export function navigationRoutes(app: Express, tx: Transaction) {
     );
   });
   app.get("/api/navigation/customers/:customerId/history", async (req, res) => {
-    const customer = uuid.parse(req.params.customerId),
+    const customer = uuid.parse(
+        (req.params as Record<string, string>).customerId,
+      ),
       q = z
         .object({
           ...pageFields,

@@ -649,3 +649,250 @@ test("selected unit reads report current revision availability and revoked membe
   ).rows[0].n;
   assert.equal(after, before);
 });
+
+let contextFixture: any;
+async function contextData() {
+  if (contextFixture) return contextFixture;
+  const code = "CTX-" + randomUUID().slice(0, 8).toUpperCase();
+  const customers = (
+    await admin.query(
+      "INSERT INTO eoms.customers(code,name) SELECT $1||'-'||lpad(i::text,3,'0'),'ZZZ Directory '||$1||' '||i FROM generate_series(1,201) i RETURNING id,code",
+      [code],
+    )
+  ).rows;
+  await admin.query(
+    "INSERT INTO eoms.companies(customer_id,name) SELECT id,'Anchor '||code FROM eoms.customers WHERE code LIKE $1",
+    [code + "-%"],
+  );
+  const estates = (
+    await admin.query(
+      "INSERT INTO eoms.estates(customer_id,company_id,code,name) SELECT c.customer_id,c.id,t.code,'Directory anchor '||t.code FROM eoms.companies c JOIN eoms.customers t ON t.id=c.customer_id WHERE t.code LIKE $1 RETURNING id,customer_id",
+      [code + "-%"],
+    )
+  ).rows;
+  await admin.query(
+    "INSERT INTO eoms.memberships(user_id,estate_id,role) SELECT $1,e.id,'manager' FROM eoms.estates e WHERE e.code LIKE $2",
+    [manager.id, code + "-%"],
+  );
+  const own = customers.find((r: any) => r.code.endsWith("-201"));
+  await admin.query(
+    "INSERT INTO eoms.organization_admins(customer_id,user_id) VALUES($1,$2)",
+    [own.id, manager.id],
+  );
+  const companies = (
+    await admin.query(
+      "INSERT INTO eoms.companies(customer_id,name) SELECT $1,$2||' Company '||lpad(i::text,3,'0') FROM generate_series(1,201) i RETURNING id,name",
+      [own.id, code],
+    )
+  ).rows;
+  await admin.query(
+    "INSERT INTO eoms.estates(customer_id,company_id,code,name) SELECT $1,id,$2||'-C-'||right(name,3),'Directory company anchor '||name FROM eoms.companies WHERE customer_id=$1 AND name LIKE $3",
+    [own.id, code, code + " Company %"],
+  );
+  await admin.query(
+    "INSERT INTO eoms.memberships(user_id,estate_id,role) SELECT $1,e.id,'manager' FROM eoms.estates e WHERE e.code LIKE $2",
+    [manager.id, code + "-C-%"],
+  );
+  const groups = (
+    await admin.query(
+      "INSERT INTO eoms.customer_groups(customer_id,code,name) SELECT $1,'CG-'||lpad(i::text,3,'0'),'Directory group '||i FROM generate_series(1,201) i RETURNING id,code,name",
+      [own.id],
+    )
+  ).rows;
+  companies.sort((a: any, b: any) => a.name.localeCompare(b.name));
+  groups.sort((a: any, b: any) => a.code.localeCompare(b.code));
+  return (contextFixture = {
+    code,
+    customers,
+    own,
+    companies,
+    groups,
+    estates,
+  });
+}
+test("context navigation pages all permitted customers with literal search bound cursors and scoped pins", async () => {
+  const f = await contextData(),
+    ids: string[] = [];
+  let cursor: string | undefined;
+  do {
+    const p = await navGet("customers", {
+      q: f.code,
+      limit: 100,
+      ...(cursor ? { cursor } : {}),
+    });
+    ids.push(...p.items.map((r: any) => r.id));
+    cursor = p.nextCursor ?? undefined;
+  } while (cursor);
+  assert.equal(ids.length, 201);
+  assert.equal(new Set(ids).size, 201);
+  const pin = await navGet("customers", {
+    q: "unmatched-context",
+    selectedId: f.own.id,
+  });
+  assert.deepEqual(pin.items, []);
+  assert.equal(pin.selected.id, f.own.id);
+  const first = await navGet("customers", { q: f.code, limit: 5 });
+  for (const actor of [manager, supervisor])
+    assert.equal(
+      (
+        await actor.agent
+          .get("/api/navigation/customers")
+          .query({ q: "changed", cursor: first.nextCursor })
+      ).status,
+      422,
+    );
+  assert.equal(
+    (
+      await supervisor.agent
+        .get("/api/navigation/customers")
+        .query({ selectedId: f.own.id })
+    ).status,
+    404,
+  );
+  assert.equal(
+    (
+      await manager.agent
+        .get("/api/navigation/customers")
+        .query({ selectedId: foreignCustomer })
+    ).status,
+    404,
+  );
+  assert.equal(
+    (await request(app).get("/api/navigation/customers")).status,
+    401,
+  );
+});
+test("company and group selectors reach deep rows while enforcing tenant account and route cursor scope", async () => {
+  const f = await contextData();
+  for (const kind of ["companies", "groups"]) {
+    const path = `customers/${f.own.id}/${kind}`,
+      ids: string[] = [];
+    let cursor: string | undefined;
+    do {
+      const p = await navGet(path, {
+        limit: 100,
+        ...(kind === "companies" ? { q: f.code + " Company" } : {}),
+        ...(cursor ? { cursor } : {}),
+      });
+      ids.push(...p.items.map((r: any) => r.id));
+      cursor = p.nextCursor ?? undefined;
+    } while (cursor);
+    assert.equal(ids.length, 201);
+    assert.equal(new Set(ids).size, 201);
+    const chosen = kind === "companies" ? f.companies[200] : f.groups[200];
+    const pin = await navGet(path, {
+      q: "unmatched-context",
+      selectedId: chosen.id,
+    });
+    assert.equal(pin.selected.id, chosen.id);
+    assert.deepEqual(pin.items, []);
+    const first = await navGet(path, { limit: 5 });
+    assert.equal(
+      (
+        await manager.agent
+          .get(
+            `/api/navigation/customers/${f.own.id}/${kind === "groups" ? "companies" : "groups"}`,
+          )
+          .query({ cursor: first.nextCursor })
+      ).status,
+      422,
+    );
+    assert.equal(
+      (
+        await supervisor.agent
+          .get("/api/navigation/" + path)
+          .query({ selectedId: chosen.id })
+      ).status,
+      404,
+    );
+    assert.equal(
+      (
+        await manager.agent
+          .get(`/api/navigation/customers/${customer}/${kind}`)
+          .query({ selectedId: chosen.id })
+      ).status,
+      404,
+    );
+  }
+  await admin.query("UPDATE eoms.companies SET name=$2 WHERE id=$1", [
+    f.companies[200].id,
+    "Literal 50% _ slash\\ company",
+  ]);
+  for (const q of ["%", "_", "\\"]) {
+    const found = await navGet(`customers/${f.own.id}/companies`, { q });
+    assert.deepEqual(
+      found.items.map((r: any) => r.id),
+      [f.companies[200].id],
+    );
+  }
+});
+test("deep company group writes retain optimistic versions actor references and audit while rejecting stale and cross-tenant choices", async () => {
+  const f = await contextData(),
+    company = f.companies[200],
+    group = f.groups[200],
+    path = `/api/customers/${f.own.id}/companies/${company.id}/group`;
+  const initial = await navGet(`customers/${f.own.id}/companies`, {
+    selectedId: company.id,
+  });
+  const version = initial.selected.hierarchy_version;
+  async function save(groupId: string | null, v: number) {
+    return manager.agent
+      .post(path)
+      .set("Origin", "http://localhost:5174")
+      .set("X-CSRF-Token", manager.csrf)
+      .send({
+        groupId,
+        version: v,
+        reason: "Reviewed deep company group assignment",
+      });
+  }
+  const saved = await save(group.id, version);
+  assert.equal(saved.status, 200, JSON.stringify(saved.body));
+  assert.equal(saved.body.id, company.id);
+  assert.equal(saved.body.group_id, group.id);
+  assert.equal((await save(null, version)).status, 409);
+  const pin = await navGet(`customers/${f.own.id}/companies`, {
+    selectedId: company.id,
+  });
+  assert.equal(pin.selected.hierarchy_version, version + 1);
+  assert.equal(pin.selected.group_id, group.id);
+  const foreign = (
+    await admin.query(
+      "INSERT INTO eoms.customer_groups(customer_id,code,name) VALUES($1,'CTX-FOREIGN','Foreign directory group') RETURNING id",
+      [foreignCustomer],
+    )
+  ).rows[0];
+  assert.equal((await save(foreign.id, version + 1)).status, 422);
+  const history = await navGet(`customers/${f.own.id}/history`, {
+    recordId: company.id,
+    recordType: "company",
+    requestId: saved.headers["x-request-id"],
+  });
+  assert.equal(history.items.length, 1);
+  assert.equal(history.items[0].actor_id, manager.id);
+  assert.equal(history.items[0].before.groupId, null);
+  assert.equal(history.items[0].after.groupId, group.id);
+  const anchor = f.estates.find(
+    (e: any) =>
+      e.customer_id === f.customers.find((r: any) => r.id !== f.own.id).id,
+  );
+  await admin.query(
+    "DELETE FROM eoms.memberships WHERE user_id=$1 AND estate_id=$2",
+    [manager.id, anchor.id],
+  );
+  try {
+    assert.equal(
+      (
+        await manager.agent
+          .get("/api/navigation/customers")
+          .query({ selectedId: anchor.customer_id })
+      ).status,
+      404,
+    );
+  } finally {
+    await admin.query(
+      "INSERT INTO eoms.memberships(user_id,estate_id,role) VALUES($1,$2,'manager')",
+      [manager.id, anchor.id],
+    );
+  }
+});

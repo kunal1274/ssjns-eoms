@@ -1,3 +1,4 @@
+import { SearchSelect } from "./SearchSelect";
 import { OrganizationExplorer } from "./OrganizationExplorer";
 import { HierarchySetup } from "./HierarchySetup";
 import { useEffect, useState } from "react";
@@ -31,6 +32,7 @@ export function Organization({
 }) {
   const [rows, setRows] = useState<Node[]>([]),
     [customer, setCustomer] = useState(""),
+    [customerReady, setCustomerReady] = useState(false),
     [events, setEvents] = useState<History[]>([]),
     [loading, setLoading] = useState(true),
     [historyLoading, setHistoryLoading] = useState(false),
@@ -119,25 +121,31 @@ export function Organization({
       {truncated && (
         <p role="status">
           The overview shows the first 200 accessible estates. Use the
-          searchable explorer above to find other assigned estates.
-          Configuration selectors retain their separate limits.
+          searchable explorer above to find other assigned estates. Search
+          Customer below to configure another permitted customer. Some other
+          configuration panels retain separate limits.
         </p>
       )}
-      {!!customers.length && (
-        <label>
-          Customer
-          <select
-            aria-label="Customer"
-            value={customer}
-            onChange={(e) => setCustomer(e.target.value)}
-          >
-            {customers.map((row) => (
-              <option key={row.customer_id} value={row.customer_id}>
-                {row.customer_name} · {row.customer_code}
-              </option>
-            ))}
-          </select>
-        </label>
+      {!loading && (
+        <SearchSelect
+          api={api}
+          path="/navigation/customers"
+          label="Customer"
+          value={customer}
+          onChange={setCustomer}
+          onReady={setCustomerReady}
+          seed={customers.map((row) => ({
+            id: row.customer_id,
+            code: row.customer_code,
+            name: row.customer_name,
+          }))}
+        />
+      )}
+      {customer && !selected.length && (
+        <p>
+          This customer is outside the overview. Use Hierarchy estate below or
+          the Organization explorer to find its permitted estates.
+        </p>
       )}
       {companies.map((company) => (
         <section
@@ -176,7 +184,12 @@ export function Organization({
         </section>
       ))}
       {customer && (
-        <HierarchySetup key={customer} api={api} customerId={customer} />
+        <fieldset
+          disabled={!customerReady}
+          style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}
+        >
+          <HierarchySetup key={customer} api={api} customerId={customer} />
+        </fieldset>
       )}
       {customer && (
         <section aria-label="Customer name and code history">
