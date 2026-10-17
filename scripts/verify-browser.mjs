@@ -7,6 +7,7 @@ const web = Number(process.env.VERIFY_WEB_PORT || 5274),
   api = Number(process.env.VERIFY_API_PORT || 4200),
   pwaApi = Number(process.env.VERIFY_PWA_API_PORT || 4201);
 const children = [];
+const scenarioDeadline = process.env.E2E_HEADED === "1" ? 600000 : 120000;
 await mkdir(".local", { recursive: true });
 const log = await open(".local/browser-verification.log", "w", 0o600);
 async function assertFree(port) {
@@ -50,8 +51,15 @@ async function run(script) {
     });
     const deadline = setTimeout(() => {
       c.kill("SIGTERM");
-      reject(Error(script + " exceeded the 120-second test deadline"));
-    }, 120000);
+      reject(
+        Error(
+          script +
+            " exceeded its " +
+            scenarioDeadline / 1000 +
+            "-second test deadline",
+        ),
+      );
+    }, scenarioDeadline);
     deadline.unref();
     c.on("error", (error) => {
       clearTimeout(deadline);

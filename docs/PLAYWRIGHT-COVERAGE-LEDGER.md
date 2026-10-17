@@ -1,0 +1,123 @@
+# Assertion coverage ledger
+
+The initial ledger connects specific field, action, form, navigation and audit checks to real Playwright results. It is part of the reusable testing workstream inside EOMS, not completion of the full product or F05 repository-policy gate.
+
+## Use it
+
+After the test environment setup in PLAYWRIGHT-WORKBENCH-QUICKSTART.md:
+
+```sh
+npm run test:e2e
+npm run test:coverage
+```
+
+Open `.local/e2e-ledger/index.html` on your computer. Filter by status or screen. The Playwright reporter creates this view automatically after a run; the second command regenerates it and checks source freshness. `npm run test:coverage-ui` verifies the generated HTML filters against actual successful run evidence and known open gaps; CI runs this after the journey tests.
+
+Machine-readable outputs:
+
+| File                                | Meaning                                                                                                                                                |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `tests/e2e/coverage-inventory.json` | Versioned control/assertion inventory, journey, screen, category, case and named-step bindings                                                         |
+| `.local/e2e-ledger/latest-run.json` | Latest actual runner attempt: selected case/project IDs, attempts, assertion-bearing completed step names, status, source fingerprint and run metadata |
+| `.local/e2e-ledger/coverage.json`   | Derived current status for each inventory item and viewport project                                                                                    |
+| `.local/e2e-ledger/index.html`      | Local filterable view of the same derived statuses                                                                                                     |
+
+Generated evidence/reports are ignored, not committed as sample passes. With no run file, mapped items show not-run and unmapped items show untested. They do not become green from test discovery. Use `npm run test:e2e:ui` to select/replay journeys; this ledger is a read-only report, not the custom one-click execution dashboard.
+
+## Initial scope and honest gaps
+
+The current inventory has 85 items: 65 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (170 rows). The initial ledger before F06 had 39 items. It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
+
+The mapped controls include email/password prevention, safe login recovery, date/gang/area validation, missing-worker disabled Save, retained input after a rejected submission, exactly-once corrected save/audit, confirmation/reload, selected audit disclosure, cross-estate denial, audit-screen overflow and logout navigation. Existing browser/API scripts cover additional behavior; that evidence is separate and is not silently imported as a runner pass. An untested row means no executed assertion mapping in this ledger, not proof that no other test exists.
+
+Mappings reference the actual stable case ID and named `test.step`. The reporter accepts a completed step only when it contains an executed Playwright assertion. Merely clicking/filling or having the step title in source does not count. Unit checks validate that inventory bindings resolve to named steps in their real test source. Grouped assertions are conservative: if a scenario/group fails, earlier individual field checks are not promoted to independent passes. A failed evidence row does not by itself prove that every associated control is defective.
+
+## Status contract
+
+| Status        | Interpretation                                                                                                                                             |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| untested      | No runner assertion mapping yet                                                                                                                            |
+| not-run       | Mapping exists, but no current selected execution evidence for this item/project                                                                           |
+| running       | Selected run is still in progress; no early pass                                                                                                           |
+| passed        | Current fingerprint, successful overall case/run, expected normal success, completed assertion-bearing mapped step, no preceding failed retry/global error |
+| failed        | Latest mapped case failed/timed out, or an expected-failure convention cannot establish normal passing evidence                                            |
+| skipped       | Latest selected test was skipped; not accepted coverage                                                                                                    |
+| cancelled     | Selected run/case was interrupted                                                                                                                          |
+| flaky         | A failed/nonpassing attempt was followed by a pass; it remains non-green                                                                                   |
+| blocked       | The mapped case passed but the overall run/global error prevents accepting the evidence                                                                    |
+| mapping-error | A passed case did not complete the required assertion-bearing step                                                                                         |
+| stale         | Relevant source fingerprint differs; prior status remains visible, including previous failures                                                             |
+
+The latest attempt replaces the latest snapshot, even on failure. A filtered run does not inherit passes for unselected cases/projects. Reporter mapping/flaky/stale/global errors fail the runner rather than hiding behind an overall green result. Skips and unimplemented gaps remain visible; this initial phase does not require every planned product feature to pass. F25 acceptance still requires complete agreed coverage/explicit scope decisions.
+
+## Freshness and safety
+
+A SHA-256 fingerprint covers source under apps/packages/db/tests/e2e/scripts plus package/lock, TypeScript and Playwright config files. Inventory and test versions are included. Generated dist/node_modules/hidden files, environment secrets and local reports are excluded. Documentation-only commits do not invalidate unchanged application/test evidence; the original run commit and timestamp remain visible.
+
+Run evidence is a snapshot of the named synthetic environment at execution time. Fingerprints do not detect later database contents, external service changes or every runtime environment change; rerun after those changes. An old report already open in a browser does not auto-refresh: rerun `test:coverage` and reload it before assessing current freshness. Interrupted processes that cannot write a final event can remain marked running/incomplete; they never create a new pass.
+
+Evidence stores allowlisted IDs, statuses and static named-step titles, not request bodies, passwords, cookies, SQL exceptions or screenshots/traces. Do not put secrets/private values in test/step names. Outputs use private local file permissions and atomic replacement; malformed evidence fails validation and removes derived reports instead of displaying the old green report as newly generated. HTML escapes dynamic labels/metadata. Trace/video/public artifact upload remains off under the existing plan.
+
+## Extend and reuse
+
+Add a stable inventory ID, accepted journey ID, screen/category, precise control assertion and real case/step binding. Keep missing field boundaries and navigation/error paths as explicit unmapped rows. Run the case independently, then the full regression gate. Avoid broad entries that imply every field is covered by a single successful click.
+
+`packages/testing/coverage.ts` contains reusable schema/status/rendering logic. `scripts/coverage-files.ts` supplies the EOMS source/inventory adapter; `scripts/coverage-reporter.ts` supplies Playwright events. A versioned shared package and second-project adapter remain future work. The reviewed-recording workflow, source-linked control discovery and project-aware execution dashboard remain queued in CURRENT-HANDOFF.md.
+
+## Executed evidence
+
+[CI run 38957729942](https://github.com/kunal1274/ssjns-eoms/actions/runs/38957729942) passed on `85d8ec16b6aa9b74a0ad9966f50c7e03dcf0b45a`. Six real journey executions produced 38 passed/40 untested ledger rows; regeneration matched. The separate browser check verified status filtering, combined screen/status selection, known gaps, restored rows and no page errors. The first candidate exposed ambiguous filter labels; explicit label associations fixed the UI and the same browser assertion then passed. 52 unit/API tests, existing browser/PWA, build/formatting, dependency audit (zero known vulnerabilities in that run), actual Docker/persistence and final gate also passed. A later documentation-only update records this proof. Local interactive desktop observation and full inventory/workbench acceptance remain open.
+
+F06.1 evidence: [CI run 38966302671](https://github.com/kunal1274/ssjns-eoms/actions/runs/38966302671), source `8027aad3364576c29d32b7e9a095ab72209f6cec`, includes three new organization/history/estate-handoff mappings. Actual generated counts: 44 passed and 40 untested rows; filters passed. These remain partial product assertions, not complete hierarchy coverage.
+
+F06.2 adds four assertion bindings for E2E-JRN-02-002: group/company setup, division/field setup, block create/edit, and persisted relationships/history. Actual full-run rows are 52 passed/40 untested in CI 38977060930 on source 258a03860ed53a3f9cbdbd0b1f3ba80f9661bab4; all ten executions and ledger UI checks passed. This does not close the full JRN-02 gap.
+
+F06.2 executed proof: [CI run 38977060930](https://github.com/kunal1274/ssjns-eoms/actions/runs/38977060930). This later evidence update changes documentation only.
+
+F06.3a adds four precise E2E-JRN-06-001 bindings for configured task creation, legacy-link conflict/review, persisted block/task/work identity and link audit/navigation. Actual current full run: twelve viewport executions, 60 passed/40 untested item/project rows in CI 38980380357. Complete JRN-06 remains a gap.
+
+F06.3a executed evidence: [CI run 38980380357](https://github.com/kunal1274/ssjns-eoms/actions/runs/38980380357) on `ede87f56bd25b13071162fb494f16bd340ef1c9d`. The configured/matching block selectors gained explicit accessible names after the first browser failure; the unchanged journey assertions passed at both viewports and the ledger UI passed. This evidence follow-up changes documentation only.
+
+F06.3b adds four exact E2E-JRN-02-003 mappings for optional area setup, persisted initial estate placement/ownership preservation, label/audit review and ordinary-user sibling isolation/handoff. Actual fourteen viewport executions and 68 passed/40 untested rows in CI 38999436012 attempt 2. Full JRN-02 stays an explicit gap.
+
+F06.3b executed proof: [CI run 38999436012](https://github.com/kunal1274/ssjns-eoms/actions/runs/38999436012), attempt 2, source `3ba0b5d41f7c45cdb3178a74d227bb89e6f09ce0`. All fourteen executions and ledger UI passed. The first attempt had an occupied Docker port after browser success; the full rerun passed. Later evidence changes are documentation only.
+
+F06.3c1 adds four precise E2E-JRN-02-004 mappings for baseline boundary review, dated scheduling/detail, captured work identity and real recorded-work conflict/recovery. Actual sixteen viewport executions and 76 passed/40 untested rows in CI 39007971408. Full JRN-02 remains a gap.
+
+F06.3c1 executed evidence: [CI 39007971408](https://github.com/kunal1274/ssjns-eoms/actions/runs/39007971408), source `bb4eebe9aa1c37140f1d4933c2287dd624ea9d11`. The fixture directory refresh and stable reason-field accessible name preserve the original assertion contract. All sixteen executions and ledger UI passed. Later evidence updates are documentation only.
+
+F06.3c2a adds four precise E2E-JRN-02-005 mappings for cancellation/self-review denial, independent review/provenance, linked replacement and replacement work/conflict recovery. Verified eighteen viewport executions and 84 passed/40 untested rows by CI 39014863357 on source `1e17700a68d0fdaf0033d64445a7af4ebe659f35`. Full JRN-02 and full SoD remain gaps.
+
+F06.3c2b1 adds four E2E-JRN-02-006 assertion mappings: pending placement/self-review, deactivation dependency recovery, independent move/provenance, area lifecycle/inactive destination rejection. Verified twenty viewport executions and 92 passed/40 untested rows by CI 39016388790 on source `34a8d6431f8d1670ce7bd67c5fd563364a8761c8`. These mappings do not close full JRN-02, full SoD or every lifecycle gap.
+
+F06.3c2b2 adds five E2E-JRN-02-007 assertion mappings for child conflict/recovery, linked draft blocking, confirmed-work/unit-history preservation, estate pause guidance/read access and ordered reactivation/resumed capture. Verified twenty-two viewport executions and 102 passed/40 untested rows by CI 39022200186 on source `52f5861545e43951011f365834669d1b7c2ed4ef`. Full JRN-02, full lifecycle/offline matrix and configurable SoD remain open.
+
+F06.3d1 adds five E2E-JRN-02-008 mappings for beyond-window estate/unit search, next-page recovery, actor/support audit, older customer history and scoped work handoff. Verified twenty-four viewport executions and 112 passed/40 untested rows by CI 39023986833 on source `9960466d006ce204310bd63b7702d3868c63fd1a`. Complete configuration-selector and volume/performance coverage remain open.
+
+## F06.3d2a — Configuration selectors (verified below)
+
+Implemented searchable/paged Hierarchy estate, Existing unit and allowed Unit parent choices, plus configured task block and exact-code legacy-link selection. Each page and pinned selected record rechecks current scope; selected records remain visible outside the search, and ineligible pins cannot authorize a new choice. Parent type/active/exclusion filters and exact-code constraints bind cursors; authoritative write checks and optimistic versions remain unchanged. Searching/retrying retains entered names/reasons and IDs; stale writes require explicit refresh/reselection. A successful write followed by failed list refresh blocks further setup writes until refresh succeeds. An estate beyond the overview is retained after saving, without silently retargeting another estate.
+
+Three new API cases and E2E-JRN-02-009 cover scoped pins/current revisions/revoked membership, filters/cursors, deep hierarchy setup, injected search failure with real retry, real concurrent edit conflict, configured/explicit legacy task linking and captured estate/task/block/company alignment. Synthetic fixture uses 201 estates and 1,002 initial units; this is functional limit evidence, not a volume/performance benchmark. Inventory is 81 items (61 mapped/20 gaps). Actual full PostgreSQL/browser/Docker execution evidence and counts are recorded below.
+
+F06 remains In progress. Next F06.3d2b: other customer/company/group, operating placement/responsibility and estate/unit availability selectors, main estate dropdown and dedicated decision-ledger pagination; then F06.4 acceptance/dependency reconciliation. Other F07–F25 delivery, typed sites, full custom/inherited permissions, provisioning, mandatory attribution rollout, complete lifecycle/offline matrix, owner-desktop observation, recording conversion and reusable one-click runner dashboard remain open. Keep existing draft PR and F05 owner exception; no merge/deployment.
+
+## Verified F06.3d2a — 17 October 2026 (India)
+
+[CI run 39055317015](https://github.com/kunal1274/ssjns-eoms/actions/runs/39055317015), attempt 1, passed for branch source `251b4cc068dc02a2af65d35890de66c7d1e12302` (the PR workflow tests its generated merge with the base). Both verify and quality-gate succeeded. Passed: 35 unit/config/security/ledger tests + 59 PostgreSQL/API tests; separate legacy-upgrade harness through migration 013; all 26 desktop/mobile Playwright executions, including E2E-JRN-02-009 in 11.0s/12.6s; generated-ledger UI; all existing browser/workflow/PWA/installability checks; formatting/typecheck/build; dependency audit with zero known vulnerabilities; actual Docker build/start, container database/unit/API/upgrade checks, proxy/login/capture/idempotency and retained-volume persistence after recreation. Actual ledger: 122 passed/40 untested item/project rows (61 mapped assertions/20 gaps across two projects), not whole-product coverage.
+
+The new journey reached an assigned estate outside the 200-estate setup overview and created a field/block using parents beyond the old 500-unit list. It retained selected IDs and typed fields through an injected correlated search failure followed by a real retry, recovered a real concurrent-edit conflict via Refresh hierarchy lists → Find Existing unit → Load selected Existing unit, created a configured task and explicitly linked an exact-code legacy task, then persisted work with the correct estate/task/block/legal-company identities. The synthetic browser fixture starts with 201 estates and 1,002 units. API cases additionally verified negative customer/account/estate pins, parent/type/exclusion/exact-code filters, cursor binding, live revisions/ineligible pins and membership revocation without read-side history mutation. This is functional limit evidence, not a production load benchmark.
+
+Candidate source `aadc7cc3fcfa112b745836f7aefc0a7652032c6c` / CI 39028819063 passed API/legacy browser checks but failed both new viewport cases because the controlled Unit reason field lacked a stable accessible name after text entry. An explicit accessible label fixed the contract. Source `81f891b5f00f60d08d33f8df4ace814469bd3a6a` / CI 39054836196 progressed through retained fields and a real conflict, then failed because the new test used the shortened button label Refresh lists instead of the actual Refresh hierarchy lists. The test/guide now use the actual action; assertions and timeout thresholds were not weakened. An explicit selected-unit reload makes review of the latest saved version possible without changing the dropdown choice. The complete final suite above passed. This evidence follow-up changes documentation only.
+
+F06.3d2a is verified; F06 remains In progress. Continue the ordered F06.3d2b queue in [F06 acceptance matrix](F06-ACCEPTANCE-MATRIX.md): remaining context/configuration selectors, dedicated decision-ledger pagination and then F06.4 acceptance/dependency reconciliation. The full F07–F25 delivery and parallel visible testing/recording/dashboard plan remain in force. Owner-desktop observation, production volume/performance, full persona/permission/offline acceptance and release readiness remain open. Keep the current draft PR/F05 owner exception; no merge/deployment.
+
+## Verified F06.3d2b1 — 18 October 2026 (India)
+
+Customer/company/group selection now uses RLS-scoped search and keyset pages with safe projected fields, literal text matching, route/actor/customer/filter-bound cursors and independently rechecked selected-record pins. Company reads retain existing membership/responsibility visibility; setup authority does not imply visibility of every company. No provisioning or new grants are introduced. The Organization guide reaches permitted customers outside the 200-estate overview. Searching the same customer keeps its setup mounted and retains the draft, while temporarily disabling setup actions until the selected customer is verified. Choosing another customer opens that customer's setup. Company/group choices reach outside the 200-row overview, retain selected IDs/reasons through search/retry, preserve a deep company after saving and retain the editor's optimistic version until explicit review/reload. Refresh hierarchy lists → Find Hierarchy company → Load selected Hierarchy company loads the latest version and explicitly replaces the group draft/clears its reason.
+
+[CI run 39058099828](https://github.com/kunal1274/ssjns-eoms/actions/runs/39058099828), attempt 1, passed on branch source `0bba9a7bc27f997f74463d435f52fb6d300128c1` (the PR workflow checks its generated merge with the base). Both verify and quality-gate succeeded. Passed: 35 unit/config/security/ledger tests + 62 PostgreSQL/API tests; migration-013 legacy upgrade harness; all 28 desktop/mobile Playwright executions; generated-ledger UI; all prior browser/workflow/PWA/installability checks; formatting/typecheck/build; dependency audit with zero known vulnerabilities; actual Docker build/start, container unit/API/upgrade/build checks, proxy/login/capture/idempotency and retained-volume persistence after recreation. Actual ledger: 130 passed/40 untested item/project rows (65 mappings/20 gaps across two projects), not whole-product coverage. E2E-JRN-02-010 passed in 10.9s desktop/17.1s mobile on the first CI candidate.
+
+The new browser fixture creates 201 customer roots and 201 extra assigned companies plus 201 groups in the target customer. The journey selects records outside legacy windows, retains a same-customer draft through search, injects one correlated group-search failure then performs a real retry, creates a real stale-version conflict, explicitly reloads and saves the latest company group, checks actual before/after actor/reference provenance and denies an unassigned customer's selected pin. API cases prove complete unique pages, literal search, wrong route/filter/account/customer rejection, pinned current revision, invalid cross-customer group rollback and membership revocation. Synthetic DB fixtures and direct fixture session creation are isolated test setup; production provisioning/login and target 5–10 lakh-row performance are not certified. This later evidence update changes documentation only.
+
+The owner accepted F06.3d2a and authorized this next increment on 17 October 2026 at 23:51 India time. This records acceptance of that slice, not full F06/client UAT or production release. F06.3d2b1 is verified; F06 remains In progress. Next F06.3d2b2: operating placement/responsibility choices, followed by availability/main estate header, dedicated decision-ledger navigation and F06.4 acceptance/dependency reconciliation. F07–F25 and owner-desktop visible testing, reviewed recordings and the reusable one-click runner dashboard remain open. Keep current draft PR and F05 owner exception; no merge/deployment.

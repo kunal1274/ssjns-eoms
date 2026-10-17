@@ -1,28 +1,22 @@
 # STM EOMS · PERN foundation
 
-Connected development milestones, separate from the approved UI demo. React + Express/Node + PostgreSQL with TypeScript. Synthetic data only; not a production release.
+Connected PERN development foundation for the Estate Opera EOMS project. The related hosted demo was created within ChatGPT; this repository provides the React + Express/Node + PostgreSQL implementation. Exact parity with the hosted rendered artifact is not claimed until its journeys are traced. Synthetic data only; not a production release.
 
 ## Start locally
 
-Prerequisites: Node 24+, npm, Docker Compose, and Chrome for browser tests. Run all commands from this repository, not an ancestor directory.
+Prerequisites: Node 24.x, npm, Docker Compose, and Chrome for browser tests. Run all commands from this repository, not an ancestor directory.
 
 ```sh
-npm ci
 node scripts/setup-env.mjs
-docker compose up -d --wait
-npm run db:migrate
-npm run db:seed
-npm run db:test
-npm run dev:api
+docker compose up --build -d --wait api web
+docker compose --profile tools run --rm seed
 ```
 
-In another terminal in the same repository:
+Open http://localhost:5174. Use the same hostname as the configured CSRF origin. The API, web and PostgreSQL now run from the shared repository in containers. The seed is explicit and development-only. Generated credentials are in a private named volume; inspect locally using the command in [F04 Docker environment](docs/F04-DOCKER-ENVIRONMENT.md). Database/account volumes survive `docker compose down`; deleting volumes is destructive.
 
-```sh
-npm run dev:web
-```
+For host-run development instead, install with `npm ci`, run `docker compose up -d --wait postgres`, then `npm run db:migrate`, `npm run db:seed`, `npm run db:test`, `npm run dev:api` and (in another terminal) `npm run dev:web`. Host-run credentials are in the ignored host `.local/dev-accounts.json`; they are separate from Docker tooling's account volume. Do not alternate seed locations against a populated database and expect a new credentials file to be generated. Use one workflow for a given development database.
 
-Open http://localhost:5174 (use localhost, which matches the configured CSRF origin). Development credentials are generated in `.local/dev-accounts.json`; inspect them locally. They are not committed. Manager sees both seeded estates; each supervisor sees their estate; clerk has read access. Database persists in a dedicated Docker volume. Do not delete that volume unless you intend to discard this development data.
+See [F04 Docker environment](docs/F04-DOCKER-ENVIRONMENT.md) for clean setup, integration checks, persistence, reset boundaries and recorded execution evidence. This is an implementation environment; production startup remains intentionally blocked.
 
 ## Working flow
 
@@ -94,3 +88,81 @@ Sign out requires connectivity and prompts before discarding unsynced device dat
 ## Automated checks
 
 GitHub Actions runs unit/sync and PostgreSQL integration tests, the build, all four browser workflows, Chrome manifest/installability diagnostics and the dependency audit on pushes to main and pull requests. Actions are pinned to immutable revisions; the job has read-only repository permissions. CI databases/accounts are disposable and independent of local credentials. See `docs/MILESTONE-CLOSEOUT.md` for the delivered checkpoint and explicit future work.
+
+## F05 quality and safe API errors
+
+Run `npm run format:check`, `npm test` and `npm run build` locally; database/browser/Docker checks remain mandatory in CI. API error responses preserve the human-readable `error` string and add a stable `code`, server `requestId` and matching `X-Request-ID`. Application failure logs use allowlisted metadata rather than raw exception messages.
+
+The final `quality-gate` CI job fails for failed, cancelled or skipped verification. Enforcing that job on main also requires repository-admin branch protection; it has not been enabled by a source commit. See [F05 quality gates](docs/F05-QUALITY-GATES.md) for evidence, image/dependency promotion and the exact remaining administrator action. Full production security and deployment acceptance remain open.
+
+## Watch and record browser journeys
+
+After the host verification prerequisites above are ready, run `npm run test:journeys:visible` to watch the existing regression scenarios in Chrome on your computer. Actions are slowed for observation; the current suite covers selected journeys, not every field in the product.
+
+With the development API/web already running at http://localhost:5174, use `npm run test:journeys:record` to open Playwright's recorder. It writes an ignored draft to `.local/recorded-journey.spec.ts`. Use synthetic accounts/data; review recorded inputs before sharing. The generated draft targets the installed Playwright Test runner and needs fixtures/assertions/review before it becomes a regression case. The single-click dashboard and cross-project kit are planned in [the workbench plan](docs/PLAYWRIGHT-JOURNEY-TEST-PLAN.md#visible-testing-manual-recording-and-reusable-test-workbench).
+
+## Interactive Playwright test UI
+
+The first journey is available in Playwright UI mode. After host test setup and `npm run db:test`, run `npm run test:e2e:ui`, select E2E-JRN-07-001 and press Run. Use `npm run test:e2e:headed` for a visible browser, `npm run test:e2e` for headless regression, or `npm run test:e2e:report` for the latest generated HTML report. See [setup, recording review and current limits](docs/PLAYWRIGHT-WORKBENCH-QUICKSTART.md).
+
+## Continuing this project
+
+Start with [the current handoff](docs/CURRENT-HANDOFF.md) and [phase tracker](docs/PROGRESS.md). Repository instructions in AGENTS.md preserve the full EOMS goal, audit/feedback requirements, testing workstream, remaining gates and next action across sessions.
+
+## Field/action coverage ledger
+
+After a journey run, use `npm run test:coverage` and open `.local/e2e-ledger/index.html`. The local view filters actual assertion evidence and open gaps by status/screen, with stale-source detection. No run means no passing evidence. See [scope, status rules and how to extend it](docs/PLAYWRIGHT-COVERAGE-LEDGER.md).
+
+## Organization context — F06 first increment
+
+Open Organization to choose an accessible customer, review its legal company and your assigned estates, inspect recorded customer display changes, then open an estate register. Hierarchy setup also supports optional legal groups/company assignment and division/optional-field/block creation and editing for explicitly granted setup administrators. A manager role alone is insufficient. Saves require a reason and reject stale versions; recent changes offer short and detailed history. It does not grant sibling-estate access or complete the hierarchy phase. Migration 005 preserves legacy IDs and adds explicit customer/company/estate boundaries. [F06 scope and remaining steps](docs/F06-CUSTOMER-HIERARCHY.md).
+
+Task capacity now supports configured block selection with a stable reference and recorded code, explicitly labeled legacy unlinked codes, and reasoned/versioned manager review to link matching legacy tasks. Existing work/allocations remain unchanged. Recorded links cannot be reassigned or removed. The task list shows current configured display and the recorded code; navigation connects hierarchy setup and muster capture. Full hierarchy/attribution rollout and permission-engine acceptance remain pending.
+
+Organization → Operating placement supports optional customer-local regions/business units and initial placement of assigned estates, independently of legal ownership. Explicit setup grants are required; ordinary users see only area ancestors of their assigned estates. Display edits are versioned/reasoned; later moves/removal require independent review as described below. Recent changes provide short/detailed audit. Estate/unit availability is described below; full effective ownership, inherited permissions and phase acceptance remain pending.
+
+Organization → Estate responsibility supports date-based responsible-company review and prospective append-only scheduling with explicit setup authority, estate scope, revisions and reasons. Existing work on/after a proposed date blocks the change. New work captures immutable responsible-company ID/name; older work is marked as uncaptured legacy attribution. Baseline company grouping is retained. Independently reviewed future cancellation and linked correction are described below; retroactive restatement, full approvals and live financial posting remain pending. Operating moves/availability are described below.
+
+Estate responsibility now supports request → independent approve/reject → explicitly linked replacement for the latest strictly future change, provided no work exists on/after its effective date. Original schedules and request/decision history remain immutable. Approval rechecks scope, identity, revision/date and intervening work. The development reviewer account has an explicit audited setup grant; it is not production role management. Operating moves/availability are described below; retroactive correction and the full approval/permission engine remain pending.
+
+F06.3c2a verified: [CI run 39014863357](https://github.com/kunal1274/ssjns-eoms/actions/runs/39014863357) on source `1e17700a68d0fdaf0033d64445a7af4ebe659f35` passed 78 unit/API tests, migration-010 upgrade preservation, eighteen desktop/mobile journey executions and Docker/proxy/idempotency/persistence/final gate. Ledger: 84 passed/40 untested rows; F06 remains In progress. Next: operational movement/deactivation.
+
+Operating placement now adds request → independent approve/reject → immediate estate move (including return to customer root), retaining legal company, memberships, tasks and recorded work. Reasoned/versioned area deactivation blocks assigned estates/active child areas; inactive destinations cannot receive placement or approved moves. Reactivation follows parent-first order. API/database and guided audit/conflict recovery are verified by CI 39016388790. Estate/field/block availability is described below; scheduled moves remain planned.
+
+F06.3c2b1 verified: [CI run 39016388790](https://github.com/kunal1274/ssjns-eoms/actions/runs/39016388790) on source `34a8d6431f8d1670ce7bd67c5fd563364a8761c8` passed 82 unit/API tests, migration-011 preservation, twenty desktop/mobile journey executions and actual Docker/proxy/idempotency/persistence/quality-gate checks. Ledger: 92 passed/40 untested rows. F06 stays In progress; next is estate and division/field/block lifecycle. Historical operating-area as-of reporting and saved area-name snapshots remain open.
+
+Organization → Estate and unit availability now supports reasoned/versioned estate and division/field/block pause/resume. Open drafts and active children block deactivation; parent-first reactivation restores capture. New tasks/work respect estate/configured-block availability; historical work, membership and legal attribution remain. Capture catalog excludes unavailable tasks; maintenance retains explicit paused-task information. Already-saved idempotent requests replay safely. Full CI 39022200186 passed; exact evidence below. Configurable independent lifecycle approval, legacy mandatory attribution rollout and complete lifecycle/offline acceptance remain open.
+
+F06.3c2b2 verified: [CI run 39022200186](https://github.com/kunal1274/ssjns-eoms/actions/runs/39022200186) on source `52f5861545e43951011f365834669d1b7c2ed4ef` passed 87 unit/API tests, migration-012 upgrade preservation, twenty-two desktop/mobile Playwright executions and actual Docker/proxy/idempotency/persistence/quality-gate checks. Ledger: 102 passed/40 untested rows. F06 remains In progress. Next: scalable hierarchy/history navigation and remaining acceptance inventory. Draft correction/cancellation and the complete lifecycle/offline matrix remain open; invalid unresolved drafts safely block deactivation.
+
+Organization explorer now searches/pages all assigned estates and their units, including beyond the overview windows, and browses full permitted hierarchy/customer display history with scope/record/reference filters. Failed next-page retries retain loaded rows. Actor/scope/filter checks apply on every page; history uses an upper event boundary. Full CI 39023986833 passed. Configuration selectors and dedicated responsibility/move ledgers retain separate limits; see [F06 acceptance matrix](docs/F06-ACCEPTANCE-MATRIX.md).
+
+F06.3d1 verified: [CI run 39023986833](https://github.com/kunal1274/ssjns-eoms/actions/runs/39023986833) on source `9960466d006ce204310bd63b7702d3868c63fd1a` passed 91 unit/API tests, migration-013 preservation, twenty-four desktop/mobile journey executions and actual Docker/proxy/idempotency/persistence/quality-gate checks. Ledger: 112 passed/40 untested rows. Reconnect no longer remounts the availability banner or races explicit sync session validation; the strengthened PWA regression passed. F06 remains In progress; next is paginated configuration selectors and dedicated-ledger navigation.
+
+## F06.3d2a — Configuration selectors (verified below)
+
+Implemented searchable/paged Hierarchy estate, Existing unit and allowed Unit parent choices, plus configured task block and exact-code legacy-link selection. Each page and pinned selected record rechecks current scope; selected records remain visible outside the search, and ineligible pins cannot authorize a new choice. Parent type/active/exclusion filters and exact-code constraints bind cursors; authoritative write checks and optimistic versions remain unchanged. Searching/retrying retains entered names/reasons and IDs; stale writes require explicit refresh/reselection. A successful write followed by failed list refresh blocks further setup writes until refresh succeeds. An estate beyond the overview is retained after saving, without silently retargeting another estate.
+
+Three new API cases and E2E-JRN-02-009 cover scoped pins/current revisions/revoked membership, filters/cursors, deep hierarchy setup, injected search failure with real retry, real concurrent edit conflict, configured/explicit legacy task linking and captured estate/task/block/company alignment. Synthetic fixture uses 201 estates and 1,002 initial units; this is functional limit evidence, not a volume/performance benchmark. Inventory is 81 items (61 mapped/20 gaps). Actual full PostgreSQL/browser/Docker execution evidence and counts are recorded below.
+
+F06 remains In progress. Next F06.3d2b: other customer/company/group, operating placement/responsibility and estate/unit availability selectors, main estate dropdown and dedicated decision-ledger pagination; then F06.4 acceptance/dependency reconciliation. Other F07–F25 delivery, typed sites, full custom/inherited permissions, provisioning, mandatory attribution rollout, complete lifecycle/offline matrix, owner-desktop observation, recording conversion and reusable one-click runner dashboard remain open. Keep existing draft PR and F05 owner exception; no merge/deployment.
+
+## Verified F06.3d2a — 17 October 2026 (India)
+
+[CI run 39055317015](https://github.com/kunal1274/ssjns-eoms/actions/runs/39055317015), attempt 1, passed for branch source `251b4cc068dc02a2af65d35890de66c7d1e12302` (the PR workflow tests its generated merge with the base). Both verify and quality-gate succeeded. Passed: 35 unit/config/security/ledger tests + 59 PostgreSQL/API tests; separate legacy-upgrade harness through migration 013; all 26 desktop/mobile Playwright executions, including E2E-JRN-02-009 in 11.0s/12.6s; generated-ledger UI; all existing browser/workflow/PWA/installability checks; formatting/typecheck/build; dependency audit with zero known vulnerabilities; actual Docker build/start, container database/unit/API/upgrade checks, proxy/login/capture/idempotency and retained-volume persistence after recreation. Actual ledger: 122 passed/40 untested item/project rows (61 mapped assertions/20 gaps across two projects), not whole-product coverage.
+
+The new journey reached an assigned estate outside the 200-estate setup overview and created a field/block using parents beyond the old 500-unit list. It retained selected IDs and typed fields through an injected correlated search failure followed by a real retry, recovered a real concurrent-edit conflict via Refresh hierarchy lists → Find Existing unit → Load selected Existing unit, created a configured task and explicitly linked an exact-code legacy task, then persisted work with the correct estate/task/block/legal-company identities. The synthetic browser fixture starts with 201 estates and 1,002 units. API cases additionally verified negative customer/account/estate pins, parent/type/exclusion/exact-code filters, cursor binding, live revisions/ineligible pins and membership revocation without read-side history mutation. This is functional limit evidence, not a production load benchmark.
+
+Candidate source `aadc7cc3fcfa112b745836f7aefc0a7652032c6c` / CI 39028819063 passed API/legacy browser checks but failed both new viewport cases because the controlled Unit reason field lacked a stable accessible name after text entry. An explicit accessible label fixed the contract. Source `81f891b5f00f60d08d33f8df4ace814469bd3a6a` / CI 39054836196 progressed through retained fields and a real conflict, then failed because the new test used the shortened button label Refresh lists instead of the actual Refresh hierarchy lists. The test/guide now use the actual action; assertions and timeout thresholds were not weakened. An explicit selected-unit reload makes review of the latest saved version possible without changing the dropdown choice. The complete final suite above passed. This evidence follow-up changes documentation only.
+
+F06.3d2a is verified; F06 remains In progress. Continue the ordered F06.3d2b queue in [F06 acceptance matrix](docs/F06-ACCEPTANCE-MATRIX.md): remaining context/configuration selectors, dedicated decision-ledger pagination and then F06.4 acceptance/dependency reconciliation. The full F07–F25 delivery and parallel visible testing/recording/dashboard plan remain in force. Owner-desktop observation, production volume/performance, full persona/permission/offline acceptance and release readiness remain open. Keep the current draft PR/F05 owner exception; no merge/deployment.
+
+## Verified F06.3d2b1 — 18 October 2026 (India)
+
+Customer/company/group selection now uses RLS-scoped search and keyset pages with safe projected fields, literal text matching, route/actor/customer/filter-bound cursors and independently rechecked selected-record pins. Company reads retain existing membership/responsibility visibility; setup authority does not imply visibility of every company. No provisioning or new grants are introduced. The Organization guide reaches permitted customers outside the 200-estate overview. Searching the same customer keeps its setup mounted and retains the draft, while temporarily disabling setup actions until the selected customer is verified. Choosing another customer opens that customer's setup. Company/group choices reach outside the 200-row overview, retain selected IDs/reasons through search/retry, preserve a deep company after saving and retain the editor's optimistic version until explicit review/reload. Refresh hierarchy lists → Find Hierarchy company → Load selected Hierarchy company loads the latest version and explicitly replaces the group draft/clears its reason.
+
+[CI run 39058099828](https://github.com/kunal1274/ssjns-eoms/actions/runs/39058099828), attempt 1, passed on branch source `0bba9a7bc27f997f74463d435f52fb6d300128c1` (the PR workflow checks its generated merge with the base). Both verify and quality-gate succeeded. Passed: 35 unit/config/security/ledger tests + 62 PostgreSQL/API tests; migration-013 legacy upgrade harness; all 28 desktop/mobile Playwright executions; generated-ledger UI; all prior browser/workflow/PWA/installability checks; formatting/typecheck/build; dependency audit with zero known vulnerabilities; actual Docker build/start, container unit/API/upgrade/build checks, proxy/login/capture/idempotency and retained-volume persistence after recreation. Actual ledger: 130 passed/40 untested item/project rows (65 mappings/20 gaps across two projects), not whole-product coverage. E2E-JRN-02-010 passed in 10.9s desktop/17.1s mobile on the first CI candidate.
+
+The new browser fixture creates 201 customer roots and 201 extra assigned companies plus 201 groups in the target customer. The journey selects records outside legacy windows, retains a same-customer draft through search, injects one correlated group-search failure then performs a real retry, creates a real stale-version conflict, explicitly reloads and saves the latest company group, checks actual before/after actor/reference provenance and denies an unassigned customer's selected pin. API cases prove complete unique pages, literal search, wrong route/filter/account/customer rejection, pinned current revision, invalid cross-customer group rollback and membership revocation. Synthetic DB fixtures and direct fixture session creation are isolated test setup; production provisioning/login and target 5–10 lakh-row performance are not certified. This later evidence update changes documentation only.
+
+The owner accepted F06.3d2a and authorized this next increment on 17 October 2026 at 23:51 India time. This records acceptance of that slice, not full F06/client UAT or production release. F06.3d2b1 is verified; F06 remains In progress. Next F06.3d2b2: operating placement/responsibility choices, followed by availability/main estate header, dedicated decision-ledger navigation and F06.4 acceptance/dependency reconciliation. F07–F25 and owner-desktop visible testing, reviewed recordings and the reusable one-click runner dashboard remain open. Keep current draft PR and F05 owner exception; no merge/deployment.

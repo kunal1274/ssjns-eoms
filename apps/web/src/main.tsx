@@ -1,3 +1,7 @@
+import { WorkAvailability } from "./EstateLifecycle";
+import { Organization } from "./Organization";
+import { AuditTrail } from "./AuditTrail";
+import { requestFailure, connectionFailure } from "./feedback";
 import React, { useEffect, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
@@ -111,21 +115,29 @@ function App() {
       throw Error(
         "Reconnect for this action. You can save a device draft using references already loaded.",
       );
-    const r = await fetch("/api" + path, {
-      method: body === undefined ? "GET" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": csrf,
-        ...(key ? { "Idempotency-Key": key } : {}),
-      },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
+    let r: Response;
+    try {
+      r = await fetch("/api" + path, {
+        method: body === undefined ? "GET" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrf,
+          ...(key ? { "Idempotency-Key": key } : {}),
+        },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+    } catch {
+      throw new Error(connectionFailure);
+    }
     if (r.status === 204) return null;
-    const value = await r.json();
+    const value = await r.json().catch(() => null);
     if (!r.ok) {
       if (r.status === 401) setUser(null);
-      throw new Error(value.error || "Request failed");
+      throw new Error(
+        requestFailure(r.status, value, r.headers.get("X-Request-ID")),
+      );
     }
+    if (value === null) throw new Error(connectionFailure);
     return value;
   }
   async function act(fn: () => Promise<void>) {
@@ -274,6 +286,7 @@ function App() {
         <small>WORKSPACE</small>
         {[
           "Muster register",
+          "Organization",
           "Task capacity",
           "Workers",
           "Gangs",
@@ -369,6 +382,19 @@ function App() {
             {online ? "Online" : "Offline — local draft capture only"}
           </div>
           <PwaInstall />
+          {estate && tab === "Muster register" && (
+            <WorkAvailability
+              api={api}
+              online={online}
+              estate={estate}
+              onSetup={() => {
+                setTab("Organization");
+                setDetail(null);
+                setReviewAction(null);
+                setCreating(false);
+              }}
+            />
+          )}
           {deviceMessage && <p role="status">{deviceMessage}</p>}
           {!online && (
             <p className="notice">
@@ -390,8 +416,9 @@ function App() {
               <p className="eyebrow">FIELD OPERATIONS</p>
               <h1>{tab}</h1>
               <p>
-                Record work with clear ownership and a traceable approval
-                history.
+                {tab === "Organization"
+                  ? "Review your assigned customer, company and estate, then continue to operations."
+                  : "Record work with clear ownership and a traceable approval history."}
               </p>
             </div>
             {canWrite && tab === "Muster register" && (
@@ -510,6 +537,12 @@ function App() {
                   )}
                 </div>
                 <div className="grid">
+                  <p>
+                    Only available tasks are listed. Reactivate paused
+                    estates/blocks in Organization → Estate and unit
+                    availability, then search tasks again. Legacy unlinked tasks
+                    are governed by estate availability.
+                  </p>
                   <label>
                     Task / activity
                     <select name="task" aria-label="Task / activity" required>
@@ -761,6 +794,11 @@ function App() {
                 {detail.business_date} · {detail.gang_code} ·{" "}
                 {detail.quantity_ha} Ha
               </p>
+              <p data-work-attribution="true">
+                {detail.legal_company_id
+                  ? `Recorded responsible company: ${detail.legal_company_name} · ${detail.legal_responsibility_id ? "Dated assignment" : "Baseline assignment"}`
+                  : "Legacy record: company attribution was not captured."}
+              </p>
               <table>
                 <thead>
                   <tr>
@@ -888,6 +926,7 @@ function App() {
           {["Task capacity", "Workers", "Operational periods"].includes(tab) &&
             estate && (
               <Maintenance
+                onOpenHierarchy={() => setTab("Organization")}
                 key={estate + tab}
                 base={base}
                 api={api}
@@ -909,26 +948,20 @@ function App() {
               manager={role === "manager"}
             />
           )}
+          {tab === "Organization" && (
+            <Organization
+              api={api}
+              onOpenEstate={(id) => {
+                setEstate(id);
+                setTab("Muster register");
+                setDetail(null);
+                setCreating(false);
+                setReviewAction(null);
+              }}
+            />
+          )}
           {tab === "Audit trail" && (
-            <section className="card">
-              <h2>Latest 50 estate events</h2>
-              {!audit.length && (
-                <p className="empty">Events appear when work is recorded.</p>
-              )}
-              {audit.map((a) => (
-                <div className="event" key={a.id}>
-                  <span className="dot" />
-                  <div>
-                    <strong>{a.action}</strong>
-                    <small>
-                      {a.actor} · {new Date(a.created_at).toLocaleString()}
-                    </small>
-                    <code>{a.record_id || a.detail?.month}</code>
-                    {a.detail?.reason && <p>{a.detail.reason}</p>}
-                  </div>
-                </div>
-              ))}
-            </section>
+            <AuditTrail events={audit as import("./AuditTrail").AuditEvent[]} />
           )}
         </main>
       </div>

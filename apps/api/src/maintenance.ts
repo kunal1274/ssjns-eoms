@@ -1,3 +1,4 @@
+import { assertTaskAvailable } from "./lifecycle";
 import type { Express, Request, Response } from "express";
 import type { PoolClient } from "pg";
 import { z } from "zod";
@@ -19,7 +20,10 @@ export function maintenanceRoutes(
   app: Express,
   estateTx: EstateTx,
   audit: Audit,
-  ApiError: new (status: number, message: string) => Error,
+  ApiError: new (
+    status: 400 | 401 | 403 | 404 | 409 | 413 | 422 | 429 | 500 | 503,
+    message: string,
+  ) => Error,
 ) {
   const uuid = z.string().uuid(),
     text = z.string().trim().min(1).max(100),
@@ -108,7 +112,7 @@ export function maintenanceRoutes(
             ).rows
           : (
               await c.query(
-                "SELECT o.*,(SELECT coalesce(sum(m.quantity_ha),0)::text FROM eoms.musters m WHERE m.estate_id=o.estate_id AND m.occurrence_id=o.id AND m.status='confirmed') AS confirmed_ha FROM eoms.occurrences o WHERE o.estate_id=$1 AND (block_code || ' ' || task_code || ' ' || activity || ' ' || round_code) ILIKE $2 AND ($3::text IS NULL OR (block_code,task_code,id)>($3,$4,$5::uuid)) ORDER BY block_code,task_code,id LIMIT $6",
+                "SELECT o.*,eoms.task_is_available(o.estate_id,o.block_unit_id) AS available,u.code AS linked_block_code,u.name AS linked_block_name,(SELECT coalesce(sum(m.quantity_ha),0)::text FROM eoms.musters m WHERE m.estate_id=o.estate_id AND m.occurrence_id=o.id AND m.status='confirmed') AS confirmed_ha FROM eoms.occurrences o LEFT JOIN eoms.operating_units u ON u.id=o.block_unit_id AND u.estate_id=o.estate_id WHERE o.estate_id=$1 AND ($7::boolean OR eoms.task_is_available(o.estate_id,o.block_unit_id)) AND (block_code || ' ' || task_code || ' ' || activity || ' ' || round_code) ILIKE $2 AND ($3::text IS NULL OR (o.block_code,o.task_code,o.id)>($3,$4,$5::uuid)) ORDER BY o.block_code,o.task_code,o.id LIMIT $6",
                 [
                   id,
                   pattern,
@@ -116,6 +120,7 @@ export function maintenanceRoutes(
                   last?.b ?? null,
                   last?.id ?? null,
                   q.limit + 1,
+                  q.includeInactive === "true",
                 ],
               )
             ).rows,
@@ -188,25 +193,54 @@ export function maintenanceRoutes(
   app.post("/api/estates/:estateId/occurrences", async (req, res) => {
     const input = z
       .object({
-        blockCode: text,
+        blockCode: text.optional(),
+        blockId: uuid.optional(),
+        reason: z.string().trim().min(3).max(500).optional(),
         taskCode: text,
         activity: text,
         roundCode: text,
         capacityHa: area,
       })
       .strict()
+      .refine(
+        (input) => Boolean(input.blockCode) !== Boolean(input.blockId),
+        "Choose one block reference mode",
+      )
+      .refine(
+        (input) => !input.blockId || Boolean(input.reason),
+        "A block link reason is required",
+      )
       .parse(req.body);
     const row = await manager(req, res, async (c, id) => {
+      await assertTaskAvailable(c, id, null);
+      let blockCode = input.blockCode;
+      if (input.blockId) {
+        const block = (
+          await c.query(
+            "SELECT code FROM eoms.operating_units WHERE id=$1 AND estate_id=$2 AND kind='block' FOR SHARE",
+            [input.blockId, id],
+          )
+        ).rows[0];
+        if (!block)
+          throw new ApiError(422, "Choose a configured block in this estate.");
+        await assertTaskAvailable(c, id, input.blockId);
+        blockCode = block.code;
+        await c.query(
+          "SELECT set_config('app.change_reason',$1,true),set_config('app.request_id',$2,true)",
+          [input.reason, res.locals.requestId],
+        );
+      }
       const row = (
         await c.query(
-          "INSERT INTO eoms.occurrences(estate_id,block_code,task_code,activity,round_code,capacity_ha) VALUES($1,$2,$3,$4,$5,$6) RETURNING *",
+          "INSERT INTO eoms.occurrences(estate_id,block_code,task_code,activity,round_code,capacity_ha,block_unit_id) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *",
           [
             id,
-            input.blockCode,
+            blockCode,
             input.taskCode,
             input.activity,
             input.roundCode,
             input.capacityHa.toFixed(2),
+            input.blockId ?? null,
           ],
         )
       ).rows[0];
@@ -215,6 +249,71 @@ export function maintenanceRoutes(
     });
     res.status(201).json(row);
   });
+  app.post(
+    "/api/estates/:estateId/occurrences/:id/block-link",
+    async (req, res) => {
+      const record = uuid.parse(req.params.id),
+        input = z
+          .object({
+            blockId: uuid,
+            version,
+            reason: z.string().trim().min(3).max(500),
+          })
+          .strict()
+          .parse(req.body);
+      res.json(
+        await manager(req, res, async (c, id) => {
+          const before = (
+            await c.query(
+              "SELECT * FROM eoms.occurrences WHERE estate_id=$1 AND id=$2 FOR UPDATE",
+              [id, record],
+            )
+          ).rows[0];
+          if (!before) throw new ApiError(404, "Task not found");
+          if (before.version !== input.version)
+            throw new ApiError(
+              409,
+              "Task changed. Refresh the list and review the link again.",
+            );
+          if (before.block_unit_id)
+            throw new ApiError(
+              409,
+              "This task already has a recorded block link. It cannot be reassigned.",
+            );
+          const block = (
+            await c.query(
+              "SELECT code FROM eoms.operating_units WHERE id=$1 AND estate_id=$2 AND kind='block' FOR SHARE",
+              [input.blockId, id],
+            )
+          ).rows[0];
+          if (!block || block.code !== before.block_code)
+            throw new ApiError(
+              422,
+              "Choose a configured block with exactly the task's recorded block code in this estate. Review hierarchy setup if none matches.",
+            );
+          await assertTaskAvailable(c, id, input.blockId);
+          await c.query(
+            "SELECT set_config('app.change_reason',$1,true),set_config('app.request_id',$2,true)",
+            [input.reason, res.locals.requestId],
+          );
+          const row = (
+            await c.query(
+              "UPDATE eoms.occurrences SET block_unit_id=$3,version=version+1 WHERE estate_id=$1 AND id=$2 RETURNING *",
+              [id, record, input.blockId],
+            )
+          ).rows[0];
+          await audit(c, id, res, "task.block-linked", record, {
+            reason: input.reason,
+            blockCode: row.block_code,
+            blockId: input.blockId,
+            previousVersion: before.version,
+            version: row.version,
+          });
+          return row;
+        }),
+      );
+    },
+  );
   app.post("/api/estates/:estateId/occurrences/:id", async (req, res) => {
     const record = uuid.parse(req.params.id),
       input = z.object({ capacityHa: area, version }).strict().parse(req.body);
@@ -229,6 +328,7 @@ export function maintenanceRoutes(
         if (!before) throw new ApiError(404, "Task not found");
         if (before.version !== input.version)
           throw new ApiError(409, "Task changed. Refresh before saving.");
+        await assertTaskAvailable(c, id, before.block_unit_id);
         const used = (
           await c.query(
             "SELECT coalesce(sum(quantity_ha),0)::text AS total FROM eoms.musters WHERE estate_id=$1 AND occurrence_id=$2 AND status='confirmed'",

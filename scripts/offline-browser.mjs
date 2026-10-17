@@ -1,3 +1,4 @@
+import { browserOptions } from "./browser-options.mjs";
 import { chromium } from "playwright";
 import { readFile } from "node:fs/promises";
 import { loadEnvFile } from "node:process";
@@ -23,12 +24,17 @@ await admin.query(
   [estate, marker],
 );
 const accounts = JSON.parse(await readFile(".local/dev-accounts.json", "utf8"));
-const browser = await chromium.launch({ headless: true, channel: "chrome" }),
+const browser = await chromium.launch(browserOptions()),
   context = await browser.newContext({
     viewport: { width: 1440, height: 1100 },
   }),
   page = await context.newPage();
 const errors = [];
+let availabilityRequests = 0;
+page.on("request", (request) => {
+  if (new URL(request.url()).pathname.endsWith("/lifecycle"))
+    availabilityRequests++;
+});
 page.on("pageerror", (e) => errors.push(e.message));
 async function login(email = "supervisor@eoms.local") {
   const a = accounts.find((a) => a.email === email);
@@ -115,6 +121,26 @@ try {
   await page
     .getByRole("heading", { name: "Device drafts (1)", exact: true })
     .waitFor();
+  // Server failures must retain the draft and explain recovery without private bodies.
+  await page.route("**/api/estates/*/musters", (route) =>
+    route.request().method() === "POST"
+      ? route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({
+            error: "PRIVATE-SYNC-DETAIL",
+            requestId: "12345678-1234-1234-1234-123456789abc",
+          }),
+        })
+      : route.continue(),
+  );
+  await page.getByRole("button", { name: "Sync drafts", exact: true }).click();
+  const pause = page.getByRole("status").filter({ hasText: "Sync paused" });
+  await pause.filter({ hasText: "Support reference:" }).waitFor();
+  assert.doesNotMatch(await pause.innerText(), /PRIVATE-SYNC-DETAIL/);
+  assert.equal((await deviceRows())[0].id, key);
+  assert.equal((await deviceRows())[0].status, "pending");
+  await page.unroute("**/api/estates/*/musters");
   let intercepted = false;
   await page.route("**/api/estates/*/musters", async (route) => {
     if (route.request().method() === "POST" && !intercepted) {
@@ -142,12 +168,35 @@ try {
   );
   assert.equal(saved.rows[0].status, "draft");
   await queueOne();
+  const availability = page.getByRole("note", {
+    name: "Work availability",
+    exact: true,
+  });
+  await availability
+    .getByText(/Offline — availability may have changed/)
+    .waitFor();
+  const beforeReconnect = availabilityRequests;
   await context.setOffline(false);
+  await page.waitForFunction(() => {
+    const text =
+      document.querySelector('[aria-label="Work availability"]')?.textContent ||
+      "";
+    return (
+      text.includes("Estate active.") &&
+      !text.includes("Offline — availability may have changed")
+    );
+  });
+  assert.equal(
+    availabilityRequests,
+    beforeReconnect,
+    "Reconnect must not remount/probe availability before explicit sync session validation",
+  );
   await context.clearCookies();
   await page.getByRole("button", { name: "Sync drafts", exact: true }).click();
   await page
-    .getByText("Sign in again before syncing. Your drafts are retained.", {
-      exact: true,
+    .getByRole("status")
+    .filter({
+      hasText: "Sign in again before syncing. Your drafts are retained.",
     })
     .waitFor();
   assert.equal((await deviceRows()).length, 1);
@@ -169,12 +218,14 @@ try {
   );
   await page.getByRole("button", { name: "Sync drafts", exact: true }).click();
   await page
-    .getByText("This operational period is locked", { exact: true })
+    .getByRole("alert")
+    .filter({ hasText: "This operational period is locked" })
     .waitFor();
   assert.equal((await deviceRows())[0].status, "blocked");
   await page.reload();
   await page
-    .getByText("This operational period is locked", { exact: true })
+    .getByRole("alert")
+    .filter({ hasText: "This operational period is locked" })
     .waitFor();
   await admin.query(
     "UPDATE eoms.periods SET locked=false WHERE estate_id=$1 AND month=$2",
