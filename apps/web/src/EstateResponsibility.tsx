@@ -256,6 +256,7 @@ export function EstateResponsibility({
                 <label>
                   Responsibility reason
                   <textarea
+                    aria-label="Responsibility reason"
                     required
                     minLength={3}
                     maxLength={500}
