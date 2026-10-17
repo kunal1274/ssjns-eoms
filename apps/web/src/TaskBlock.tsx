@@ -1,3 +1,4 @@
+import { SearchSelect } from "./SearchSelect";
 import { useEffect, useState } from "react";
 type Api = (path: string, body?: unknown) => Promise<any>;
 type Block = {
@@ -7,7 +8,7 @@ type Block = {
   name: string;
   active: boolean;
 };
-function useBlocks(base: string, api: Api) {
+function useBlocks(base: string, api: Api, exactCode?: string) {
   const [blocks, setBlocks] = useState<Block[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
@@ -17,7 +18,12 @@ function useBlocks(base: string, api: Api) {
     let active = true;
     setLoading(true);
     setError("");
-    api(base + "/units")
+    api(
+      "/navigation" +
+        base +
+        "/units?kind=block&status=active&limit=25" +
+        (exactCode ? "&exactCode=" + encodeURIComponent(exactCode) : ""),
+    )
       .then((data) => {
         if (active) {
           setBlocks(
@@ -25,7 +31,7 @@ function useBlocks(base: string, api: Api) {
               (row: Block) => row.kind === "block" && row.active,
             ),
           );
-          setTruncated(data.truncated);
+          setTruncated(!!data.nextCursor);
         }
       })
       .catch((e) => {
@@ -37,7 +43,7 @@ function useBlocks(base: string, api: Api) {
     return () => {
       active = false;
     };
-  }, [base, attempt]);
+  }, [base, attempt, exactCode]);
   return {
     blocks,
     loading,
@@ -56,11 +62,13 @@ export function TaskBlockFields({
   onReady: (ready: boolean) => void;
 }) {
   const { blocks, loading, error, truncated, retry } = useBlocks(base, api);
-  const [mode, setMode] = useState("");
-  useEffect(() => {
-    onReady(!loading && !error);
-  }, [loading, error, onReady]);
+  const [mode, setMode] = useState(""),
+    [block, setBlock] = useState(""),
+    [ready, setReady] = useState(false);
   const selectedMode = mode || (blocks.length ? "configured" : "legacy");
+  useEffect(() => {
+    onReady(!loading && !error && (selectedMode !== "configured" || ready));
+  }, [loading, error, onReady, selectedMode, ready]);
   return (
     <fieldset>
       <legend>1. Choose the task's block</legend>
@@ -80,9 +88,8 @@ export function TaskBlockFields({
       )}
       {truncated && (
         <p>
-          Only a bounded unit list is available. If the required block is
-          missing, review hierarchy setup; complete large-data selection remains
-          pending.
+          More configured blocks are available. Search or load more choices
+          below.
         </p>
       )}
       {!loading && !error && (
@@ -100,22 +107,18 @@ export function TaskBlockFields({
           </label>
           {selectedMode === "configured" ? (
             <>
-              <label>
-                Configured block
-                <select
-                  aria-label="Configured block"
-                  name="blockId"
-                  required
-                  defaultValue=""
-                >
-                  <option value="">Choose a block in this estate</option>
-                  {blocks.map((block) => (
-                    <option key={block.id} value={block.id}>
-                      {block.code} · {block.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <SearchSelect
+                api={api}
+                path={"/navigation" + base + "/units?kind=block&status=active"}
+                label="Configured block"
+                name="blockId"
+                value={block}
+                onChange={setBlock}
+                seed={blocks}
+                required
+                placeholder="Choose a block in this estate"
+                onReady={setReady}
+              />
               {!blocks.length && (
                 <p>
                   No configured blocks are available. Open hierarchy setup, or
@@ -169,10 +172,12 @@ export function TaskBlockLink({
     error: listError,
     truncated,
     retry,
-  } = useBlocks(base, api);
+  } = useBlocks(base, api, task.block_code);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
-    [committed, setCommitted] = useState(false);
+    [committed, setCommitted] = useState(false),
+    [block, setBlock] = useState(""),
+    [ready, setReady] = useState(false);
   const matches = blocks.filter((block) => block.code === task.block_code);
   async function refreshSaved() {
     setBusy(true);
@@ -238,8 +243,8 @@ export function TaskBlockLink({
       {error && <p role="alert">{error}</p>}
       {truncated && (
         <p>
-          The list is bounded. Review hierarchy setup if the matching block is
-          missing.
+          Search or load more matching choices below; the exact recorded code
+          remains required.
         </p>
       )}
       {!loading && !listError && !matches.length && (
@@ -249,27 +254,29 @@ export function TaskBlockLink({
         </p>
       )}
       <fieldset disabled={busy || committed}>
-        <label>
-          Matching configured block
-          <select
-            aria-label="Matching configured block"
-            name="blockId"
-            required
-            defaultValue=""
-          >
-            <option value="">Choose the reviewed block</option>
-            {matches.map((block) => (
-              <option key={block.id} value={block.id}>
-                {block.code} · {block.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <SearchSelect
+          api={api}
+          path={
+            "/navigation" +
+            base +
+            "/units?kind=block&status=active&exactCode=" +
+            encodeURIComponent(task.block_code)
+          }
+          label="Matching configured block"
+          name="blockId"
+          value={block}
+          onChange={setBlock}
+          seed={matches}
+          required
+          disabled={busy || committed}
+          placeholder="Choose the reviewed block"
+          onReady={setReady}
+        />
         <label>
           Link review reason
           <textarea name="reason" required minLength={3} maxLength={500} />
         </label>
-        <button disabled={loading || !!listError || !matches.length}>
+        <button disabled={loading || !!listError || !block || !ready}>
           Confirm block link
         </button>
       </fieldset>

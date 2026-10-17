@@ -834,6 +834,66 @@
         "caseId": "E2E-JRN-02-008",
         "step": "Deny unassigned scope and continue from explorer into estate work"
       }
+    },
+    {
+      "id": "COV-SELECTOR-ESTATE",
+      "journey": "JRN-02",
+      "screen": "Connected hierarchy configuration",
+      "category": "navigation",
+      "control": "Hierarchy estate",
+      "assertion": "Find assigned estate beyond overview and retain explicit scope",
+      "binding": {
+        "caseId": "E2E-JRN-02-009",
+        "step": "Find and retain an assigned estate outside the bounded setup overview"
+      }
+    },
+    {
+      "id": "COV-SELECTOR-PARENT",
+      "journey": "JRN-02",
+      "screen": "Connected hierarchy configuration",
+      "category": "form",
+      "control": "Unit parent and unit creation",
+      "assertion": "Retain chosen parent and inputs through correlated 503 and retry then persist field/block relationships",
+      "binding": {
+        "caseId": "E2E-JRN-02-009",
+        "step": "Recover parent search without discarding fields then create a field and block beyond 500"
+      }
+    },
+    {
+      "id": "COV-SELECTOR-EDIT",
+      "journey": "JRN-02",
+      "screen": "Connected hierarchy configuration",
+      "category": "form",
+      "control": "Existing unit",
+      "assertion": "Find deep record recover real version conflict and explicitly reload current revision",
+      "binding": {
+        "caseId": "E2E-JRN-02-009",
+        "step": "Refresh and explicitly reload a deep existing unit after a real version conflict"
+      }
+    },
+    {
+      "id": "COV-SELECTOR-TASK",
+      "journey": "JRN-02",
+      "screen": "Connected hierarchy configuration",
+      "category": "action",
+      "control": "Configured and matching block",
+      "assertion": "Create configured task and explicitly review exact-code legacy link beyond old unit cap",
+      "binding": {
+        "caseId": "E2E-JRN-02-009",
+        "step": "Choose a deep configured block and review exact-code legacy linking"
+      }
+    },
+    {
+      "id": "COV-SELECTOR-CAPTURE",
+      "journey": "JRN-02",
+      "screen": "Connected hierarchy configuration",
+      "category": "journey",
+      "control": "Muster capture",
+      "assertion": "Persist selected estate occurrence block and legal company identities",
+      "binding": {
+        "caseId": "E2E-JRN-02-009",
+        "step": "Capture work with the selected estate task block and company identities intact"
+      }
     }
   ]
 }

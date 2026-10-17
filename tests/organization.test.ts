@@ -456,3 +456,196 @@ test("customer display history is searchable beyond the recent window with preci
   assert.equal(creation.items[0].before.name, null);
   assert.match(creation.items[0].after.name, /ZZZ Navigation fixture/);
 });
+
+test("estate selector pins an assigned choice outside search without widening customer or account scope", async () => {
+  const f = await navigationData();
+  const page = await navGet("estates", {
+    customerId: f.customer,
+    q: "no-such-estate",
+    selectedId: f.estate.id,
+    limit: 1,
+  });
+  assert.deepEqual(page.items, []);
+  assert.equal(page.selected.id, f.estate.id);
+  assert.equal(page.selected.eligible, true);
+  for (const selectedId of [foreignEstate, randomUUID()]) {
+    assert.equal(
+      (
+        await manager.agent
+          .get("/api/navigation/estates")
+          .query({ customerId: f.customer, selectedId })
+      ).status,
+      404,
+    );
+  }
+  assert.equal(
+    (
+      await supervisor.agent
+        .get("/api/navigation/estates")
+        .query({ selectedId: f.estate.id })
+    ).status,
+    404,
+  );
+  assert.equal(
+    (
+      await manager.agent
+        .get("/api/navigation/estates")
+        .query({ customerId: customer, selectedId: f.estate.id })
+    ).status,
+    404,
+  );
+});
+
+test("unit selectors enforce parent types exact code exclusions and bound pagination while retaining ineligible pins", async () => {
+  const f = await navigationData(),
+    path = `estates/${f.estate.id}/units`;
+  const parent = f.units[0];
+  const field = (
+    await admin.query(
+      "INSERT INTO eoms.operating_units(customer_id,estate_id,kind,code,name,parent_id) VALUES($1,$2,'field','SEL-F','Selector field',$3) RETURNING id",
+      [f.customer, f.estate.id, parent.id],
+    )
+  ).rows[0];
+  const block = (
+    await admin.query(
+      "INSERT INTO eoms.operating_units(customer_id,estate_id,kind,code,name,parent_id) VALUES($1,$2,'block','ZZ-SEL-B','Selector block',$3) RETURNING id",
+      [f.customer, f.estate.id, field.id],
+    )
+  ).rows[0];
+  const fields = await navGet(path, {
+    kind: "parent-field",
+    status: "active",
+    selectedId: field.id,
+    limit: 5,
+  });
+  assert.ok(fields.items.every((r: any) => r.kind === "division"));
+  assert.equal(fields.selected.id, field.id);
+  assert.equal(fields.selected.eligible, false);
+  const parents = await navGet(path, {
+    kind: "parent-block",
+    q: "SEL-F",
+    excludeId: field.id,
+    selectedId: field.id,
+  });
+  assert.deepEqual(parents.items, []);
+  assert.equal(parents.selected.eligible, false);
+  const exact = await navGet(path, {
+    kind: "block",
+    status: "active",
+    exactCode: "ZZ-SEL-B",
+  });
+  assert.deepEqual(
+    exact.items.map((r: any) => r.id),
+    [block.id],
+  );
+  assert.deepEqual(
+    (await navGet(path, { kind: "block", exactCode: "zz-sel-b" })).items,
+    [],
+  );
+  const pin = await navGet(path, {
+    kind: "block",
+    q: "no-such-unit",
+    selectedId: block.id,
+  });
+  assert.deepEqual(pin.items, []);
+  assert.equal(pin.selected.eligible, true);
+  for (const params of [
+    { kind: "parent-block" },
+    { exactCode: "ZZ-SEL-B" },
+    { excludeId: parent.id },
+  ]) {
+    assert.equal(
+      (
+        await manager.agent.get("/api/navigation/" + path).query({
+          kind: "parent-field",
+          status: "active",
+          limit: 5,
+          cursor: fields.nextCursor,
+          ...params,
+        })
+      ).status,
+      422,
+    );
+  }
+  assert.equal(
+    (
+      await manager.agent
+        .get(`/api/navigation/estates/${f.estates[0].id}/units`)
+        .query({ selectedId: block.id })
+    ).status,
+    404,
+  );
+  assert.equal(
+    (
+      await supervisor.agent
+        .get("/api/navigation/" + path)
+        .query({ selectedId: block.id })
+    ).status,
+    404,
+  );
+});
+
+test("selected unit reads report current revision availability and revoked membership without mutating history", async () => {
+  const f = await navigationData(),
+    selected = f.units[1],
+    path = `estates/${f.estate.id}/units`;
+  await admin.query(
+    "UPDATE eoms.operating_units SET name='Selector refreshed revision',version=version+1 WHERE id=$1",
+    [selected.id],
+  );
+  const before = (
+    await admin.query(
+      "SELECT count(*)::int AS n FROM eoms.hierarchy_history WHERE estate_id=$1",
+      [f.estate.id],
+    )
+  ).rows[0].n;
+  const live = await navGet(path, {
+    selectedId: selected.id,
+    kind: "parent-field",
+    status: "active",
+    q: "unmatched",
+  });
+  assert.equal(live.selected.name, "Selector refreshed revision");
+  assert.equal(live.selected.version, 2);
+  assert.equal(live.selected.eligible, true);
+  const inactive = await navGet(path, {
+    selectedId: f.units[500].id,
+    status: "active",
+  });
+  assert.equal(inactive.selected.active, false);
+  assert.equal(inactive.selected.eligible, false);
+  await admin.query(
+    "DELETE FROM eoms.memberships WHERE user_id=$1 AND estate_id=$2",
+    [manager.id, f.estate.id],
+  );
+  try {
+    assert.equal(
+      (
+        await manager.agent
+          .get("/api/navigation/" + path)
+          .query({ selectedId: selected.id })
+      ).status,
+      404,
+    );
+    assert.equal(
+      (
+        await manager.agent
+          .get("/api/navigation/estates")
+          .query({ selectedId: f.estate.id })
+      ).status,
+      404,
+    );
+  } finally {
+    await admin.query(
+      "INSERT INTO eoms.memberships(user_id,estate_id,role) VALUES($1,$2,'manager')",
+      [manager.id, f.estate.id],
+    );
+  }
+  const after = (
+    await admin.query(
+      "SELECT count(*)::int AS n FROM eoms.hierarchy_history WHERE estate_id=$1",
+      [f.estate.id],
+    )
+  ).rows[0].n;
+  assert.equal(after, before);
+});

@@ -1,3 +1,4 @@
+import { SearchSelect } from "./SearchSelect";
 import { EstateLifecycle } from "./EstateLifecycle";
 import { EstateResponsibility } from "./EstateResponsibility";
 import { OperatingPlacement } from "./OperatingPlacement";
@@ -72,7 +73,10 @@ export function HierarchySetup({
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
-    [truncated, setTruncated] = useState(false);
+    [truncated, setTruncated] = useState(false),
+    [needsRefresh, setNeedsRefresh] = useState(false),
+    [estateReady, setEstateReady] = useState(false),
+    [parentReady, setParentReady] = useState(false);
   const [editing, setEditing] = useState<Unit | null>(null),
     [kind, setKind] = useState("division"),
     [code, setCode] = useState(""),
@@ -100,11 +104,9 @@ export function HierarchySetup({
     setData(context);
     setChanges(history.items);
     setTruncated(history.truncated);
-    setEstate((current) =>
-      context.estates.some((row: any) => row.id === current)
-        ? current
-        : context.estates[0]?.id || "",
-    );
+    // Preserve an explicitly searched estate beyond the bounded overview.
+    // The selected-record API and unit reads revalidate access; never fall back to a different estate after a write.
+    setEstate((current) => current || context.estates[0]?.id || "");
     setCompany((current) =>
       context.companies.some((row: any) => row.id === current)
         ? current
@@ -182,10 +184,12 @@ export function HierarchySetup({
       reset();
       await loadContext();
       await loadUnits(estate);
+      setNeedsRefresh(false);
     } catch (e) {
+      if (committed) setNeedsRefresh(true);
       setError(
         (committed
-          ? "Change saved, but refreshing the lists failed. Check saved records before retrying. "
+          ? "Change saved, but refreshing the lists failed. Refresh lists before another write. "
           : "") + (e as Error).message,
       );
     } finally {
@@ -198,6 +202,7 @@ export function HierarchySetup({
     try {
       await loadContext();
       await loadUnits(estate);
+      setNeedsRefresh(false);
       setMessage(
         "Lists reloaded. Choose Edit again to load the latest saved version.",
       );
@@ -207,9 +212,18 @@ export function HierarchySetup({
       setBusy(false);
     }
   }
+  function editUnit(row: Unit) {
+    setEditing(row);
+    setKind(row.kind);
+    setCode(row.code);
+    setName(row.name);
+    setParent(row.parent_id || "");
+    setUnitReason("");
+  }
   const parents = units.filter(
     (row) =>
       row.active &&
+      row.id !== editing?.id &&
       (kind === "field"
         ? row.kind === "division"
         : kind === "block"
@@ -245,8 +259,10 @@ export function HierarchySetup({
       {message && <p role="status">{message}</p>}
       {truncated || data.truncated ? (
         <p>
-          Only a bounded portion of the hierarchy/history is shown. Complete
-          large-data navigation remains pending.
+          The overview tables show a bounded portion of the hierarchy/history.
+          Search Hierarchy estate, Existing unit or Unit parent to find other
+          records. Other configuration and decision-ledger navigation remains
+          pending.
         </p>
       ) : null}
       {!loading && (
@@ -314,7 +330,7 @@ export function HierarchySetup({
                     onChange={(e) => setGroupReason(e.target.value)}
                   />
                 </label>
-                <button disabled={busy}>Save group</button>
+                <button disabled={busy || needsRefresh}>Save group</button>
               </form>
               <form
                 onSubmit={(e) => {
@@ -377,28 +393,38 @@ export function HierarchySetup({
                     onChange={(e) => setAssignmentReason(e.target.value)}
                   />
                 </label>
-                <button disabled={busy || !selectedCompany}>
+                <button disabled={busy || needsRefresh || !selectedCompany}>
                   Save company group
                 </button>
               </form>
             </div>
           )}
           <h4>3. Review or configure operating units</h4>
-          <label>
-            Hierarchy estate
-            <select
-              aria-label="Hierarchy estate"
-              value={estate}
+          <SearchSelect
+            api={api}
+            path={`/navigation/estates?customerId=${customerId}`}
+            label="Hierarchy estate"
+            onReady={setEstateReady}
+            value={estate}
+            onChange={setEstate}
+            seed={data.estates}
+            disabled={busy}
+          />
+          {data.canConfigure && estate && (
+            <SearchSelect
+              key={"edit-" + estate}
+              api={api}
+              path={`/navigation/estates/${estate}/units?status=all`}
+              label="Existing unit"
+              value={editing?.id || ""}
+              onChange={(_id, row) =>
+                row ? editUnit(row as Unit) : resetUnit()
+              }
+              seed={units}
               disabled={busy}
-              onChange={(e) => setEstate(e.target.value)}
-            >
-              {data.estates.map((row) => (
-                <option key={row.id} value={row.id}>
-                  {row.name}
-                </option>
-              ))}
-            </select>
-          </label>
+              placeholder="Choose a unit to edit, or create below"
+            />
+          )}
           {unitsLoading && <p role="status">Loading operating units…</p>}
           {!unitsLoading && !error && !units.length && (
             <p>
@@ -436,7 +462,8 @@ export function HierarchySetup({
                     " · saved version " +
                     editing.version
                   : "Create a new unit"}
-                . After a conflict, refresh lists and choose Edit again.
+                . After a conflict, refresh lists, search Existing unit and
+                choose the record again, or use its Edit button.
               </p>
               <div className="grid">
                 <label>
@@ -455,27 +482,28 @@ export function HierarchySetup({
                     <option value="block">Block</option>
                   </select>
                 </label>
-                <label>
-                  Unit parent
-                  <select
-                    aria-label="Unit parent"
-                    value={parent}
-                    required={kind !== "division"}
-                    disabled={busy || kind === "division"}
-                    onChange={(e) => setParent(e.target.value)}
-                  >
-                    <option value="">
-                      {kind === "division"
-                        ? "Estate root"
-                        : "Choose an allowed parent"}
-                    </option>
-                    {parents.map((row) => (
-                      <option key={row.id} value={row.id}>
-                        {row.code} · {row.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <SearchSelect
+                  key={estate + "-" + kind + "-" + (editing?.id || "new")}
+                  api={api}
+                  path={
+                    kind === "division"
+                      ? null
+                      : `/navigation/estates/${estate}/units?kind=parent-${kind}&status=active` +
+                        (editing ? `&excludeId=${editing.id}` : "")
+                  }
+                  label="Unit parent"
+                  onReady={setParentReady}
+                  value={parent}
+                  onChange={setParent}
+                  seed={parents}
+                  required={kind !== "division"}
+                  disabled={busy || kind === "division"}
+                  placeholder={
+                    kind === "division"
+                      ? "Estate root"
+                      : "Choose an allowed parent"
+                  }
+                />
                 <label>
                   Unit code
                   <input
@@ -506,7 +534,17 @@ export function HierarchySetup({
                 />
               </label>
               <div className="actions">
-                <button disabled={busy || unitsLoading}>Save unit</button>
+                <button
+                  disabled={
+                    busy ||
+                    needsRefresh ||
+                    unitsLoading ||
+                    !estateReady ||
+                    (kind !== "division" && !parentReady)
+                  }
+                >
+                  Save unit
+                </button>
                 <button
                   type="button"
                   className="secondary"
@@ -549,12 +587,7 @@ export function HierarchySetup({
                             type="button"
                             disabled={busy}
                             onClick={() => {
-                              setEditing(row);
-                              setKind(row.kind);
-                              setCode(row.code);
-                              setName(row.name);
-                              setParent(row.parent_id || "");
-                              setUnitReason("");
+                              editUnit(row);
                             }}
                           >
                             Edit

@@ -24,7 +24,11 @@ const uuid = z.string().uuid(),
 export function navigationRoutes(app: Express, tx: Transaction) {
   app.get("/api/navigation/estates", async (req, res) => {
     const q = z
-        .object({ ...pageFields, customerId: uuid.optional() })
+        .object({
+          ...pageFields,
+          customerId: uuid.optional(),
+          selectedId: uuid.optional(),
+        })
         .strict()
         .parse(req.query),
       binding = {
@@ -51,7 +55,23 @@ export function navigationRoutes(app: Express, tx: Transaction) {
             ],
           )
         ).rows;
-        return pageResult(rows, q.limit, binding, (r) => r.id);
+        const selected = q.selectedId
+          ? (
+              await c.query(
+                `SELECT e.id,e.code,e.name,e.active,e.customer_id,e.company_id FROM eoms.memberships m JOIN eoms.estates e ON e.id=m.estate_id WHERE m.user_id=$1 AND e.id=$2 AND ($3::uuid IS NULL OR e.customer_id=$3)`,
+                [res.locals.user.id, q.selectedId, q.customerId ?? null],
+              )
+            ).rows[0]
+          : null;
+        if (q.selectedId && !selected)
+          throw new ApiError(
+            404,
+            "Selected estate is not available in this customer and account. Refresh the selector and review access.",
+          );
+        return {
+          ...pageResult(rows, q.limit, binding, (r) => r.id),
+          selected: selected ? { ...selected, eligible: true } : null,
+        };
       }),
     );
   });
@@ -60,7 +80,19 @@ export function navigationRoutes(app: Express, tx: Transaction) {
       q = z
         .object({
           ...pageFields,
-          kind: z.enum(["all", "division", "field", "block"]).default("all"),
+          kind: z
+            .enum([
+              "all",
+              "division",
+              "field",
+              "block",
+              "parent-field",
+              "parent-block",
+            ])
+            .default("all"),
+          selectedId: uuid.optional(),
+          exactCode: z.string().trim().min(1).max(100).optional(),
+          excludeId: uuid.optional(),
           status: z.enum(["all", "active", "inactive"]).default("all"),
         })
         .strict()
@@ -72,26 +104,64 @@ export function navigationRoutes(app: Express, tx: Transaction) {
         q: q.q,
         kind: q.kind,
         status: q.status,
+        exactCode: q.exactCode ?? null,
+        excludeId: q.excludeId ?? null,
       },
       page = readPage(q.cursor, binding);
     res.json(
       await tx(res, async (c) => {
         await estateContext(c, estate);
+        const kinds =
+          q.kind === "all"
+            ? ["division", "field", "block"]
+            : q.kind === "parent-field"
+              ? ["division"]
+              : q.kind === "parent-block"
+                ? ["division", "field"]
+                : [q.kind];
         const rows = (
           await c.query(
             `SELECT u.id,u.kind,u.code,u.name,u.parent_id,p.code AS parent_code,u.active,u.version FROM eoms.operating_units u LEFT JOIN eoms.operating_units p ON p.id=u.parent_id AND p.estate_id=u.estate_id
- WHERE u.estate_id=$1 AND ($2='all' OR u.kind=$2) AND ($3='all' OR u.active=($3='active')) AND (u.code||' '||u.name) ILIKE $4 AND ($5::uuid IS NULL OR u.id>$5) ORDER BY u.id LIMIT $6`,
+ WHERE u.estate_id=$1 AND u.kind=ANY($2::text[]) AND ($3='all' OR u.active=($3='active')) AND (u.code||' '||u.name) ILIKE $4 AND ($5::uuid IS NULL OR u.id>$5) AND ($7::text IS NULL OR u.code=$7) AND ($8::uuid IS NULL OR u.id<>$8) ORDER BY u.id LIMIT $6`,
             [
               estate,
-              q.kind,
+              kinds,
               q.status,
               literalPattern(q.q),
               page?.key ?? null,
               q.limit + 1,
+              q.exactCode ?? null,
+              q.excludeId ?? null,
             ],
           )
         ).rows;
-        return pageResult(rows, q.limit, binding, (r) => r.id);
+        const selected = q.selectedId
+          ? (
+              await c.query(
+                "SELECT id,kind,code,name,parent_id,active,version FROM eoms.operating_units WHERE estate_id=$1 AND id=$2",
+                [estate, q.selectedId],
+              )
+            ).rows[0]
+          : null;
+        if (q.selectedId && !selected)
+          throw new ApiError(
+            404,
+            "Selected unit is not available in this estate. Refresh the selector and review access.",
+          );
+        return {
+          ...pageResult(rows, q.limit, binding, (r) => r.id),
+          selected: selected
+            ? {
+                ...selected,
+                eligible:
+                  kinds.includes(selected.kind) &&
+                  (q.status === "all" ||
+                    selected.active === (q.status === "active")) &&
+                  selected.id !== q.excludeId &&
+                  (!q.exactCode || selected.code === q.exactCode),
+              }
+            : null,
+        };
       }),
     );
   });
