@@ -30,6 +30,11 @@ const browser = await chromium.launch(browserOptions()),
   }),
   page = await context.newPage();
 const errors = [];
+let availabilityRequests = 0;
+page.on("request", (request) => {
+  if (new URL(request.url()).pathname.endsWith("/lifecycle"))
+    availabilityRequests++;
+});
 page.on("pageerror", (e) => errors.push(e.message));
 async function login(email = "supervisor@eoms.local") {
   const a = accounts.find((a) => a.email === email);
@@ -163,7 +168,29 @@ try {
   );
   assert.equal(saved.rows[0].status, "draft");
   await queueOne();
+  const availability = page.getByRole("note", {
+    name: "Work availability",
+    exact: true,
+  });
+  await availability
+    .getByText(/Offline — availability may have changed/)
+    .waitFor();
+  const beforeReconnect = availabilityRequests;
   await context.setOffline(false);
+  await page.waitForFunction(() => {
+    const text =
+      document.querySelector('[aria-label="Work availability"]')?.textContent ||
+      "";
+    return (
+      text.includes("Estate active.") &&
+      !text.includes("Offline — availability may have changed")
+    );
+  });
+  assert.equal(
+    availabilityRequests,
+    beforeReconnect,
+    "Reconnect must not remount/probe availability before explicit sync session validation",
+  );
   await context.clearCookies();
   await page.getByRole("button", { name: "Sync drafts", exact: true }).click();
   await page

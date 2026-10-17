@@ -382,9 +382,10 @@ function App() {
             {online ? "Online" : "Offline — local draft capture only"}
           </div>
           <PwaInstall />
-          {estate && online && tab === "Muster register" && (
+          {estate && tab === "Muster register" && (
             <WorkAvailability
               api={api}
+              online={online}
               estate={estate}
               onSetup={() => {
                 setTab("Organization");

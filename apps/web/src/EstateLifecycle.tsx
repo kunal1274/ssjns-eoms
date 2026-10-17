@@ -294,10 +294,12 @@ export function EstateLifecycle({
 export function WorkAvailability({
   api,
   estate,
+  online,
   onSetup,
 }: {
   api: Api;
   estate: string;
+  online: boolean;
   onSetup: () => void;
 }) {
   const [value, setValue] = useState<any>(null),
@@ -320,6 +322,12 @@ export function WorkAvailability({
   }, [estate, attempt]);
   return (
     <div className="notice" role="note" aria-label="Work availability">
+      {!online && (
+        <p>
+          Offline — availability may have changed. Server checks run when drafts
+          sync.
+        </p>
+      )}
       {value
         ? value.active
           ? "Estate active. Task choices exclude inactive configured blocks."
@@ -330,6 +338,7 @@ export function WorkAvailability({
       <button
         type="button"
         className="secondary"
+        disabled={!online}
         onClick={() => setAttempt((x) => x + 1)}
       >
         Refresh work availability
