@@ -149,6 +149,56 @@ try {
         .rowCount,
       0,
     );
+    const legacyArea = (
+      await c.query(
+        "INSERT INTO eoms.operating_areas(customer_id,kind,code,name) SELECT customer_id,'region','OLD-AREA','Legacy operating area' FROM eoms.estates WHERE id=$1 RETURNING id",
+        [estate],
+      )
+    ).rows[0].id;
+    const areaHistoryBefore = (
+      await c.query(
+        "SELECT count(*)::int AS n FROM eoms.hierarchy_history WHERE record_id=$1",
+        [legacyArea],
+      )
+    ).rows[0].n;
+    await c.query(
+      await readFile("db/migrations/011_operating_movement.sql", "utf8"),
+    );
+    assert.deepEqual(
+      (
+        await c.query(
+          "SELECT id,active,version FROM eoms.operating_areas WHERE id=$1",
+          [legacyArea],
+        )
+      ).rows[0],
+      { id: legacyArea, active: true, version: 1 },
+    );
+    assert.equal(
+      (
+        await c.query(
+          "SELECT count(*)::int AS n FROM eoms.hierarchy_history WHERE record_id=$1",
+          [legacyArea],
+        )
+      ).rows[0].n,
+      areaHistoryBefore,
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.placement_move_requests")).rowCount,
+      0,
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.placement_move_decisions")).rowCount,
+      0,
+    );
+    assert.deepEqual(
+      (
+        await c.query(
+          "SELECT area_id,placement_version,company_id FROM eoms.estates WHERE id=$1",
+          [estate],
+        )
+      ).rows[0],
+      oldPlacement,
+    );
     const preservedTask = (
       await c.query(
         "SELECT id,block_code,block_unit_id,version FROM eoms.occurrences WHERE id=$1",

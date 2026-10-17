@@ -666,6 +666,54 @@
         "caseId": "E2E-JRN-02-005",
         "step": "Capture replacement work and deny cancellation with retained recovery guidance"
       }
+    },
+    {
+      "id": "COV-MOVE-REQUEST",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "action",
+      "control": "Request/self-review guard",
+      "assertion": "Pending move leaves current area unchanged; real self-review denied",
+      "binding": {
+        "caseId": "E2E-JRN-02-006",
+        "step": "Request a move and retain current placement until independent review"
+      }
+    },
+    {
+      "id": "COV-MOVE-DEPENDENCIES",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "action",
+      "control": "Dependency recovery",
+      "assertion": "Assigned area blocks deactivation, retaining reason/reference and active state",
+      "binding": {
+        "caseId": "E2E-JRN-02-006",
+        "step": "Block area deactivation with retained reason and support reference"
+      }
+    },
+    {
+      "id": "COV-MOVE-APPROVE",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "action",
+      "control": "Independent move review",
+      "assertion": "Distinct reviewer moves estate, preserves company/version and request/decision provenance",
+      "binding": {
+        "caseId": "E2E-JRN-02-006",
+        "step": "Independent approval moves estate and preserves legal identity with audit references"
+      }
+    },
+    {
+      "id": "COV-MOVE-LIFECYCLE",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "action",
+      "control": "Area lifecycle",
+      "assertion": "Vacated area deactivates, inactive target denied, reactivation records before/after state",
+      "binding": {
+        "caseId": "E2E-JRN-02-006",
+        "step": "Deactivate emptied source prevent reuse and reactivate with lifecycle history"
+      }
     }
   ]
 }

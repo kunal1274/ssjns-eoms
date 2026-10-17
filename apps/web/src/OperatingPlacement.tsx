@@ -1,3 +1,4 @@
+import { PlacementGovernance } from "./PlacementGovernance";
 import { useEffect, useState } from "react";
 type Api = (path: string, body?: unknown) => Promise<any>;
 type Area = {
@@ -7,6 +8,7 @@ type Area = {
   name: string;
   parent_id: string | null;
   version: number;
+  active: boolean;
 };
 type Estate = {
   id: string;
@@ -27,6 +29,12 @@ export function OperatingPlacement({
     canConfigure: boolean;
     truncated: boolean;
   }>({ areas: [], estates: [], canConfigure: false, truncated: false });
+  const [moves, setMoves] = useState<any>({
+    items: [],
+    actorId: "",
+    truncated: false,
+  });
+  const [needsRefresh, setNeedsRefresh] = useState(false);
   const [changes, setChanges] = useState<any[]>([]),
     [loading, setLoading] = useState(true),
     [busy, setBusy] = useState(false),
@@ -44,14 +52,17 @@ export function OperatingPlacement({
     [placementReason, setPlacementReason] = useState("");
   const path = `/customers/${customerId}/placements`;
   async function read() {
-    const [value, history] = await Promise.all([
+    const [value, history, moves] = await Promise.all([
       api(path),
       api(`/customers/${customerId}/hierarchy/history`),
+      api(`/customers/${customerId}/placement-moves`),
     ]);
-    return { value, history };
+    return { value, history, moves };
   }
   function apply(result: any) {
     setData(result.value);
+    setMoves(result.moves);
+    setNeedsRefresh(false);
     setChanges(
       result.history.items.filter((row: any) =>
         ["area", "estate-placement"].includes(row.record_type),
@@ -105,6 +116,7 @@ export function OperatingPlacement({
       reset();
       apply(await read());
     } catch (e) {
+      if (committed) setNeedsRefresh(true);
       setError(
         (committed
           ? "Change saved, but refresh failed. Refresh before retrying. "
@@ -115,7 +127,7 @@ export function OperatingPlacement({
     }
   }
   const selected = data.estates.find((row) => row.id === estate),
-    regions = data.areas.filter((row) => row.kind === "region");
+    regions = data.areas.filter((row) => row.kind === "region" && row.active);
   return (
     <section className="editor" aria-label="Operating placement">
       <h3>Operating placement</h3>
@@ -126,7 +138,10 @@ export function OperatingPlacement({
       </p>
       <ol>
         <li>Create an optional region or business unit.</li>
-        <li>Review the estate and choose its initial operating area.</li>
+        <li>
+          Review the estate and choose its initial operating area; use
+          independent review for later moves.
+        </li>
         <li>
           Review the saved relationship and change history, then open the estate
           above to continue work.
@@ -200,7 +215,7 @@ export function OperatingPlacement({
                   can be edited with a reason. After a conflict, refresh and
                   choose Edit again.
                 </p>
-                <fieldset disabled={busy}>
+                <fieldset disabled={busy || needsRefresh}>
                   <label>
                     Area type
                     <select
@@ -291,11 +306,10 @@ export function OperatingPlacement({
               >
                 <h4>2. Place an estate</h4>
                 <p>
-                  Leaving an estate at the customer root is valid. Once placed,
-                  reassignment/removal requires the governed move workflow
-                  planned next.
+                  Leaving an estate at the customer root is valid. Later
+                  reassignment/removal uses the independent move review below.
                 </p>
-                <fieldset disabled={busy}>
+                <fieldset disabled={busy || needsRefresh}>
                   <label>
                     Placement estate
                     <select
@@ -314,11 +328,12 @@ export function OperatingPlacement({
                       ))}
                     </select>
                   </label>
-                  {selected?.area_id ? (
+                  {selected &&
+                  (selected.area_id || selected.placement_version !== 1) ? (
                     <p>
-                      This estate is already placed. Version{" "}
-                      {selected.placement_version}. Reassignment is not
-                      available in this increment.
+                      This estate has placement history. Version{" "}
+                      {selected.placement_version}. Use the move review below
+                      for reassignment or removal.
                     </p>
                   ) : (
                     <>
@@ -333,11 +348,13 @@ export function OperatingPlacement({
                           <option value="">
                             Choose a region or business unit
                           </option>
-                          {data.areas.map((row) => (
-                            <option key={row.id} value={row.id}>
-                              {row.kind} · {row.code} · {row.name}
-                            </option>
-                          ))}
+                          {data.areas
+                            .filter((row) => row.active)
+                            .map((row) => (
+                              <option key={row.id} value={row.id}>
+                                {row.kind} · {row.code} · {row.name}
+                              </option>
+                            ))}
                         </select>
                       </label>
                       <label>
@@ -359,6 +376,15 @@ export function OperatingPlacement({
               </form>
             </div>
           )}
+          <PlacementGovernance
+            api={api}
+            customerId={customerId}
+            data={data}
+            moves={moves}
+            onChanged={async () => apply(await read())}
+            busy={busy || needsRefresh}
+            onBusy={setBusy}
+          />
           <h4>Operating areas</h4>
           {!data.areas.length && (
             <p>
@@ -376,12 +402,12 @@ export function OperatingPlacement({
                   Parent:{" "}
                   {data.areas.find((p) => p.id === row.parent_id)?.code ||
                     "Customer root"}{" "}
-                  · Version {row.version}
+                  · Version {row.version} · {row.active ? "Active" : "Inactive"}
                 </p>
                 {data.canConfigure && (
                   <button
                     type="button"
-                    disabled={busy}
+                    disabled={busy || needsRefresh}
                     onClick={() => {
                       setEditing(row);
                       setKind(row.kind);
@@ -451,6 +477,26 @@ export function OperatingPlacement({
                     <dd>
                       {change.before.parentId || "Customer root"} →{" "}
                       {change.after.parentId || "Customer root"}
+                    </dd>
+                    <dt>Before / after availability</dt>
+                    <dd>
+                      {change.before.active === null ||
+                      change.before.active === undefined
+                        ? "Not recorded"
+                        : change.before.active
+                          ? "Active"
+                          : "Inactive"}{" "}
+                      →{" "}
+                      {change.after.active === null ||
+                      change.after.active === undefined
+                        ? "Not recorded"
+                        : change.after.active
+                          ? "Active"
+                          : "Inactive"}
+                    </dd>
+                    <dt>Approved move decision</dt>
+                    <dd>
+                      {change.after.moveDecisionId || "Not a reviewed move"}
                     </dd>
                     <dt>Support reference</dt>
                     <dd>{change.request_id || "Not recorded"}</dd>

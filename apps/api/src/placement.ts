@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import { placementLock } from "./placement-governance";
 import { z } from "zod";
 import { ApiError } from "./http";
 import type { Transaction } from "./organization";
@@ -24,7 +25,7 @@ export function placementRoutes(app: Express, tx: Transaction) {
         await visibleCustomer(c, customer);
         const areas = (
           await c.query(
-            "SELECT id,kind,code,name,parent_id,version FROM eoms.operating_areas WHERE customer_id=$1 ORDER BY kind,code,id LIMIT 201",
+            "SELECT id,kind,code,name,parent_id,version,active FROM eoms.operating_areas WHERE customer_id=$1 ORDER BY kind,code,id LIMIT 201",
             [customer],
           )
         ).rows;
@@ -62,6 +63,7 @@ export function placementRoutes(app: Express, tx: Transaction) {
     const row = await tx(res, async (c) => {
       await administrator(c, customer);
       await visibleCustomer(c, customer);
+      await placementLock(c, customer);
       await context(c, res, input.reason);
       return (
         await c.query(
@@ -83,6 +85,7 @@ export function placementRoutes(app: Express, tx: Transaction) {
       await tx(res, async (c) => {
         await administrator(c, customer);
         await visibleCustomer(c, customer);
+        await placementLock(c, customer);
         await context(c, res, input.reason);
         const current = (
           await c.query(
@@ -120,6 +123,7 @@ export function placementRoutes(app: Express, tx: Transaction) {
       await tx(res, async (c) => {
         const estate = await estateContext(c, id);
         await administrator(c, estate.customer_id);
+        await placementLock(c, estate.customer_id);
         await context(c, res, input.reason);
         const before = (
           await c.query(
@@ -132,7 +136,7 @@ export function placementRoutes(app: Express, tx: Transaction) {
             409,
             "Estate placement changed. Refresh and review again.",
           );
-        if (before.area_id)
+        if (before.area_id || before.placement_version !== 1)
           throw new ApiError(
             409,
             "This estate already has a placement. Reassignment requires the planned governed move workflow.",
@@ -140,14 +144,14 @@ export function placementRoutes(app: Express, tx: Transaction) {
         if (
           !(
             await c.query(
-              "SELECT id FROM eoms.operating_areas WHERE id=$1 AND customer_id=$2 FOR SHARE",
+              "SELECT id FROM eoms.operating_areas WHERE id=$1 AND customer_id=$2 AND active FOR SHARE",
               [input.areaId, estate.customer_id],
             )
           ).rowCount
         )
           throw new ApiError(
             422,
-            "Choose a region or business unit in this customer.",
+            "Choose an active region or business unit in this customer.",
           );
         return (
           await c.query(

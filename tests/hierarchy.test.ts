@@ -1695,3 +1695,410 @@ test("database cancellation guards enforce independent actor append-only history
     direct.release();
   }
 });
+
+async function moveFixture() {
+  const own = await placementEstate(true),
+    source = await areaNode("business-unit"),
+    target = await areaNode("business-unit"),
+    reviewer = await reviewerFor(own.id);
+  const placed = await post(manager, `/estates/${own.id}/placement`, {
+    areaId: source.id,
+    version: 1,
+    reason: "Initial movement fixture",
+  });
+  assert.equal(placed.status, 200, JSON.stringify(placed.body));
+  return { own, source, target, reviewer };
+}
+async function requestMove(
+  f: any,
+  toAreaId: string | null = f.target.id,
+  version = 2,
+) {
+  const r = await post(manager, `/estates/${f.own.id}/placement-moves`, {
+    toAreaId,
+    version,
+    reason: "Request reviewed operating move",
+  });
+  assert.equal(r.status, 201, JSON.stringify(r.body));
+  return r;
+}
+function moveDecision(
+  f: any,
+  id: string,
+  decision = "approved",
+  version = 2,
+  actor = f.reviewer,
+) {
+  return post(actor, `/estates/${f.own.id}/placement-moves/${id}/decision`, {
+    decision,
+    version,
+    reason: "Independent operating move review",
+  });
+}
+function lifecycle(id: string, active: boolean, version = 1, actor = manager) {
+  return post(actor, `/customers/${customer}/areas/${id}/lifecycle`, {
+    active,
+    version,
+    reason: "Review area availability",
+  });
+}
+test("independent placement move preserves identity work membership and append-only provenance", async () => {
+  const f = await moveFixture();
+  const task = (
+    await admin.query(
+      "INSERT INTO eoms.occurrences(estate_id,block_code,task_code,activity,round_code,capacity_ha) VALUES($1,'MOVE','MOVE','Movement fixture','M',1) RETURNING id",
+      [f.own.id],
+    )
+  ).rows[0].id;
+  await admin.query(
+    "INSERT INTO eoms.gangs(estate_id,code,name) VALUES($1,'G-01','Move work fixture')",
+    [f.own.id],
+  );
+  const worker = (
+    await admin.query(
+      "INSERT INTO eoms.workers(estate_id,code,name) VALUES($1,'MV','Move worker') RETURNING id",
+      [f.own.id],
+    )
+  ).rows[0].id;
+  const captured = await legalWork(
+    { own: f.own, worker, occurrence: task },
+    "2103-01-15",
+  );
+  const savedWork = (
+    await admin.query("SELECT * FROM eoms.musters WHERE id=$1", [
+      captured.body.id,
+    ])
+  ).rows[0];
+  const beforeMembers = (
+    await admin.query(
+      "SELECT user_id,role FROM eoms.memberships WHERE estate_id=$1 ORDER BY user_id",
+      [f.own.id],
+    )
+  ).rows;
+  const q = await requestMove(f);
+  assert.equal(
+    (
+      await admin.query("SELECT area_id FROM eoms.estates WHERE id=$1", [
+        f.own.id,
+      ])
+    ).rows[0].area_id,
+    f.source.id,
+  );
+  assert.equal(
+    (await moveDecision(f, q.body.id, "approved", 2, manager)).status,
+    403,
+  );
+  assert.equal((await moveDecision(f, q.body.id, "rejected")).status, 201);
+  assert.equal((await moveDecision(f, q.body.id)).status, 409);
+  const q2 = await requestMove(f),
+    approved = await moveDecision(f, q2.body.id);
+  assert.equal(approved.status, 201, JSON.stringify(approved.body));
+  const saved = (
+    await admin.query(
+      "SELECT id,area_id,company_id,placement_version FROM eoms.estates WHERE id=$1",
+      [f.own.id],
+    )
+  ).rows[0];
+  assert.deepEqual(saved, {
+    id: f.own.id,
+    area_id: f.target.id,
+    company_id: f.own.company_id,
+    placement_version: 3,
+  });
+  assert.deepEqual(
+    (
+      await admin.query(
+        "SELECT user_id,role FROM eoms.memberships WHERE estate_id=$1 ORDER BY user_id",
+        [f.own.id],
+      )
+    ).rows,
+    beforeMembers,
+  );
+  assert.equal(
+    (
+      await admin.query("SELECT estate_id FROM eoms.occurrences WHERE id=$1", [
+        task,
+      ])
+    ).rows[0].estate_id,
+    f.own.id,
+  );
+  assert.deepEqual(
+    (
+      await admin.query("SELECT * FROM eoms.musters WHERE id=$1", [
+        captured.body.id,
+      ])
+    ).rows[0],
+    savedWork,
+  );
+  const history = (
+    await admin.query(
+      "SELECT * FROM eoms.hierarchy_history WHERE record_id=$1 AND record_type='estate-placement' ORDER BY id DESC LIMIT 1",
+      [f.own.id],
+    )
+  ).rows[0];
+  assert.equal(history.before_state.parentId, f.source.id);
+  assert.equal(history.after_state.parentId, f.target.id);
+  assert.equal(history.after_state.moveDecisionId, approved.body.id);
+  assert.equal(history.actor_id, f.reviewer.id);
+  assert.equal(history.request_id, approved.headers["x-request-id"]);
+  const view = await f.reviewer.agent.get(
+    `/api/customers/${customer}/placement-moves`,
+  );
+  const item = view.body.items.find((r: any) => r.id === q2.body.id);
+  assert.equal(item.requester_id, manager.id);
+  assert.equal(item.reviewer_id, f.reviewer.id);
+  assert.equal(item.request_id, q2.headers["x-request-id"]);
+  assert.equal(item.decision_request_id, approved.headers["x-request-id"]);
+  const back = await requestMove(f, null, 3);
+  assert.equal(
+    (await moveDecision(f, back.body.id, "approved", 3)).status,
+    201,
+  );
+  assert.equal(
+    (
+      await admin.query(
+        "SELECT area_id,placement_version FROM eoms.estates WHERE id=$1",
+        [f.own.id],
+      )
+    ).rows[0].area_id,
+    null,
+  );
+  assert.equal(
+    (
+      await post(manager, `/estates/${f.own.id}/placement`, {
+        areaId: f.source.id,
+        version: 4,
+        reason: "Must use review after returning root",
+      })
+    ).status,
+    409,
+  );
+});
+test("move guards reject stale duplicates hidden targets scope and inactive destinations", async () => {
+  const f = await moveFixture();
+  assert.equal(
+    (
+      await post(manager, `/estates/${f.own.id}/placement-moves`, {
+        toAreaId: f.target.id,
+        version: 1,
+        reason: "Stale move",
+      })
+    ).status,
+    409,
+  );
+  assert.equal(
+    (
+      await post(manager, `/estates/${f.own.id}/placement-moves`, {
+        toAreaId: f.source.id,
+        version: 2,
+        reason: "Same destination",
+      })
+    ).status,
+    422,
+  );
+  assert.equal(
+    (
+      await post(readonlyManager, `/estates/${f.own.id}/placement-moves`, {
+        toAreaId: f.target.id,
+        version: 2,
+        reason: "No setup grant",
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await post(supervisor, `/estates/${f.own.id}/placement-moves`, {
+        toAreaId: f.target.id,
+        version: 2,
+        reason: "Not assigned",
+      })
+    ).status,
+    404,
+  );
+  const foreign = (
+    await admin.query(
+      "INSERT INTO eoms.operating_areas(customer_id,kind,code,name) VALUES($1,'region',$2,'Foreign move area') RETURNING id",
+      [foreignCustomer, "FM-" + suffix()],
+    )
+  ).rows[0].id;
+  assert.equal(
+    (
+      await post(manager, `/estates/${f.own.id}/placement-moves`, {
+        toAreaId: foreign,
+        version: 2,
+        reason: "Cross customer denied",
+      })
+    ).status,
+    409,
+  );
+  const q = await requestMove(f);
+  assert.equal(
+    (
+      await post(manager, `/estates/${f.own.id}/placement-moves`, {
+        toAreaId: null,
+        version: 2,
+        reason: "Duplicate pending",
+      })
+    ).status,
+    409,
+  );
+  assert.equal((await lifecycle(f.target.id, false)).status, 200);
+  assert.equal((await moveDecision(f, q.body.id)).status, 409);
+  assert.equal((await moveDecision(f, q.body.id, "rejected")).status, 201);
+  assert.equal(
+    (
+      await admin.query("SELECT area_id FROM eoms.estates WHERE id=$1", [
+        f.own.id,
+      ])
+    ).rows[0].area_id,
+    f.source.id,
+  );
+  assert.equal(
+    (
+      await supervisor.agent.get(`/api/customers/${customer}/placement-moves`)
+    ).body.items.some((r: any) => r.estate_id === f.own.id),
+    false,
+  );
+  assert.equal(
+    (await request(app).get(`/api/customers/${customer}/placement-moves`))
+      .status,
+    401,
+  );
+  assert.equal(
+    (
+      await manager.agent.get(
+        `/api/customers/${foreignCustomer}/placement-moves`,
+      )
+    ).status,
+    404,
+  );
+});
+test("area lifecycle blocks hidden dependencies and orders deactivation and reactivation", async () => {
+  const region = await areaNode("region"),
+    child = await areaNode("business-unit", region.id),
+    own = await placementEstate();
+  assert.equal((await lifecycle(region.id, false)).status, 409);
+  assert.equal(
+    (
+      await post(manager, `/estates/${own.id}/placement`, {
+        areaId: child.id,
+        version: 1,
+        reason: "Hidden dependency fixture",
+      })
+    ).status,
+    200,
+  );
+  // Setup authority survives, but this particular estate is no longer in actor read scope.
+  await admin.query(
+    "DELETE FROM eoms.memberships WHERE user_id=$1 AND estate_id=$2",
+    [manager.id, own.id],
+  );
+  const hidden = await lifecycle(child.id, false);
+  assert.equal(hidden.status, 409);
+  assert.match(hidden.body.error, /outside your estate access/);
+  assert.equal(JSON.stringify(hidden.body).includes(own.id), false);
+  await admin.query(
+    "INSERT INTO eoms.memberships(user_id,estate_id,role) VALUES($1,$2,'manager')",
+    [manager.id, own.id],
+  );
+  const reviewer = await reviewerFor(own.id),
+    f = { own, source: child, target: region, reviewer };
+  const q = await requestMove(f, null);
+  assert.equal((await moveDecision(f, q.body.id)).status, 201);
+  assert.equal((await lifecycle(child.id, false)).status, 200);
+  assert.equal((await lifecycle(region.id, false)).status, 200);
+  assert.equal((await lifecycle(child.id, true, 2)).status, 409);
+  assert.equal((await lifecycle(region.id, true, 1)).status, 409);
+  assert.equal((await lifecycle(region.id, true, 2)).status, 200);
+  const reactivated = await lifecycle(child.id, true, 2);
+  assert.equal(reactivated.status, 200);
+  assert.equal(
+    (await lifecycle(child.id, false, 3, readonlyManager)).status,
+    403,
+  );
+  const history = (
+    await admin.query(
+      "SELECT * FROM eoms.hierarchy_history WHERE record_id=$1 AND record_type='area' ORDER BY id",
+      [child.id],
+    )
+  ).rows;
+  assert.equal(history[1].before_state.active, true);
+  assert.equal(history[1].after_state.active, false);
+  assert.equal(history[2].after_state.active, true);
+  assert.equal(history[2].request_id, reactivated.headers["x-request-id"]);
+});
+test("direct database cannot bypass independent move review area dependencies or rewrite provenance", async () => {
+  const f = await moveFixture(),
+    q = await requestMove(f),
+    c = await pool.connect();
+  async function rejected(
+    sql: string,
+    args: unknown[],
+    expected: string,
+    actor = manager.id,
+  ) {
+    try {
+      await c.query("BEGIN");
+      await c.query(
+        "SELECT set_config('app.user_id',$1,true),set_config('app.change_reason','Direct lifecycle guard',true)",
+        [actor],
+      );
+      await assert.rejects(
+        () => c.query(sql, args),
+        (e: any) => e.code === expected,
+      );
+    } finally {
+      await c.query("ROLLBACK");
+    }
+  }
+  try {
+    await rejected(
+      "INSERT INTO eoms.placement_move_decisions(move_request_id,estate_id,customer_id,decision,reason) VALUES($1,$2,$3,'approved','Self review forbidden')",
+      [q.body.id, f.own.id, customer],
+      "42501",
+    );
+    await rejected(
+      "UPDATE eoms.estates SET area_id=$2,placement_version=placement_version+1 WHERE id=$1",
+      [f.own.id, f.target.id],
+      "23514",
+    );
+    await rejected(
+      "UPDATE eoms.operating_areas SET active=false,version=version+1 WHERE id=$1",
+      [f.source.id],
+      "23514",
+    );
+    for (const table of [
+      "placement_move_requests",
+      "placement_move_decisions",
+    ]) {
+      await rejected(`DELETE FROM eoms.${table}`, [], "42501");
+      await rejected(`UPDATE eoms.${table} SET reason='Rewrite'`, [], "42501");
+      assert.equal(
+        (await pool.query(`SELECT * FROM eoms.${table}`)).rowCount,
+        0,
+      );
+    }
+    assert.equal((await moveDecision(f, q.body.id)).status, 201);
+    // Reusing an old approved decision cannot authorize another move/version.
+    try {
+      await c.query("BEGIN");
+      await c.query(
+        "SELECT set_config('app.user_id',$1,true),set_config('app.move_decision_id',(SELECT id::text FROM eoms.placement_move_decisions WHERE move_request_id=$2),true),set_config('app.change_reason','Replay denied',true)",
+        [f.reviewer.id, q.body.id],
+      );
+      await assert.rejects(
+        () =>
+          c.query(
+            "UPDATE eoms.estates SET area_id=$2,placement_version=placement_version+1 WHERE id=$1",
+            [f.own.id, f.source.id],
+          ),
+        (e: any) => e.code === "23514",
+      );
+    } finally {
+      await c.query("ROLLBACK");
+    }
+  } finally {
+    c.release();
+  }
+});

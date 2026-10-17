@@ -26,7 +26,7 @@ Generated evidence/reports are ignored, not committed as sample passes. With no 
 
 ## Initial scope and honest gaps
 
-The current inventory has 62 items: 42 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (124 rows). The initial ledger before F06 had 39 items. It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
+The current inventory has 66 items: 46 assertion mappings and 20 unmapped control/journey gaps, each displayed for desktop/mobile Chrome viewport projects (132 rows). The initial ledger before F06 had 39 items. It represents all 16 accepted journey IDs through specific assertions or explicit gaps, but is **not** a complete enumeration of every EOMS control. Counts are inventory items × projects, not a product coverage percentage.
 
 The mapped controls include email/password prevention, safe login recovery, date/gang/area validation, missing-worker disabled Save, retained input after a rejected submission, exactly-once corrected save/audit, confirmation/reload, selected audit disclosure, cross-estate denial, audit-screen overflow and logout navigation. Existing browser/API scripts cover additional behavior; that evidence is separate and is not silently imported as a runner pass. An untested row means no executed assertion mapping in this ledger, not proof that no other test exists.
 
@@ -87,3 +87,5 @@ F06.3c1 adds four precise E2E-JRN-02-004 mappings for baseline boundary review, 
 F06.3c1 executed evidence: [CI 39007971408](https://github.com/kunal1274/ssjns-eoms/actions/runs/39007971408), source `bb4eebe9aa1c37140f1d4933c2287dd624ea9d11`. The fixture directory refresh and stable reason-field accessible name preserve the original assertion contract. All sixteen executions and ledger UI passed. Later evidence updates are documentation only.
 
 F06.3c2a adds four precise E2E-JRN-02-005 mappings for cancellation/self-review denial, independent review/provenance, linked replacement and replacement work/conflict recovery. Verified eighteen viewport executions and 84 passed/40 untested rows by CI 39014863357 on source `1e17700a68d0fdaf0033d64445a7af4ebe659f35`. Full JRN-02 and full SoD remain gaps.
+
+F06.3c2b1 adds four E2E-JRN-02-006 assertion mappings: pending placement/self-review, deactivation dependency recovery, independent move/provenance, area lifecycle/inactive destination rejection. Expected 20 viewport executions, 92 passed/40 untested rows; real CI pending. These mappings do not close full JRN-02, full SoD or every lifecycle gap.

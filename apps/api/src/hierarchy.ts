@@ -241,8 +241,8 @@ export function hierarchyRoutes(app: Express, tx: Transaction) {
         const rows = (
           await c.query(
             `SELECT h.id,h.record_id,h.record_type,h.action,h.reason,h.request_id,h.created_at,coalesce(u.display_name,'System / migration') AS actor,
- jsonb_build_object('code',h.before_state->'code','name',h.before_state->'name','kind',h.before_state->'kind','parentId',h.before_state->'parentId','groupId',h.before_state->'groupId','version',h.before_state->'version') AS before,
- jsonb_build_object('code',h.after_state->'code','name',h.after_state->'name','kind',h.after_state->'kind','parentId',h.after_state->'parentId','groupId',h.after_state->'groupId','version',h.after_state->'version') AS after
+ jsonb_build_object('code',h.before_state->'code','name',h.before_state->'name','kind',h.before_state->'kind','parentId',h.before_state->'parentId','groupId',h.before_state->'groupId','version',h.before_state->'version','active',h.before_state->'active','moveDecisionId',h.before_state->'moveDecisionId') AS before,
+ jsonb_build_object('code',h.after_state->'code','name',h.after_state->'name','kind',h.after_state->'kind','parentId',h.after_state->'parentId','groupId',h.after_state->'groupId','version',h.after_state->'version','active',h.after_state->'active','moveDecisionId',h.after_state->'moveDecisionId') AS after
  FROM eoms.hierarchy_history h LEFT JOIN eoms.users u ON u.id=h.actor_id WHERE h.customer_id=$1 ORDER BY h.id DESC LIMIT 51`,
             [id],
           )
