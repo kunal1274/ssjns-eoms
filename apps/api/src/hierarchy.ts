@@ -70,7 +70,7 @@ export function hierarchyRoutes(app: Express, tx: Transaction) {
         ).rows;
         const estates = (
           await c.query(
-            "SELECT id,code,name FROM eoms.estates WHERE customer_id=$1 ORDER BY name,id LIMIT 201",
+            "SELECT id,code,name,active,lifecycle_version FROM eoms.estates WHERE customer_id=$1 ORDER BY name,id LIMIT 201",
             [id],
           )
         ).rows;
@@ -96,7 +96,7 @@ export function hierarchyRoutes(app: Express, tx: Transaction) {
         await estateContext(c, id);
         const rows = (
           await c.query(
-            "SELECT id,kind,code,name,parent_id,version FROM eoms.operating_units WHERE estate_id=$1 ORDER BY kind,code,id LIMIT 501",
+            "SELECT id,kind,code,name,parent_id,version,active FROM eoms.operating_units WHERE estate_id=$1 ORDER BY kind,code,id LIMIT 501",
             [id],
           )
         ).rows;

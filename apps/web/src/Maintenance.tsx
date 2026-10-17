@@ -373,6 +373,12 @@ export function Maintenance({
                   <>
                     <td>
                       {r.block_code} / {r.task_code}
+                      {r.available === false && (
+                        <small>
+                          Unavailable — reactivate the estate/configured block
+                          in Organization before task changes or work capture.
+                        </small>
+                      )}
                       <small>
                         {r.block_unit_id
                           ? `Linked block: ${r.linked_block_code} · ${r.linked_block_name}`

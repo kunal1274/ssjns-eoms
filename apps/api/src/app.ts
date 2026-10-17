@@ -1,3 +1,8 @@
+import {
+  lifecycleRoutes,
+  lifecycleLock,
+  assertTaskAvailable,
+} from "./lifecycle";
 import { responsibilityGovernanceRoutes } from "./responsibility-governance";
 import { responsibilityRoutes } from "./responsibility";
 import { placementGovernanceRoutes } from "./placement-governance";
@@ -177,6 +182,7 @@ export function createApp(pool: Pool, options: { log?: FailureLogger } = {}) {
   }
   organizationRoutes(app, tx);
   hierarchyRoutes(app, tx);
+  lifecycleRoutes(app, tx);
   placementRoutes(app, tx);
   placementGovernanceRoutes(app, tx);
   responsibilityRoutes(app, tx);
@@ -196,6 +202,7 @@ export function createApp(pool: Pool, options: { log?: FailureLogger } = {}) {
       if (!m.rowCount) throw new ApiError(403, "Estate access denied");
       if (write && !["manager", "supervisor"].includes(m.rows[0].role))
         throw new ApiError(403, "Your role cannot record or confirm muster");
+      if (write) await lifecycleLock(c, id);
       return fn(c, id);
     });
   }
@@ -238,7 +245,7 @@ export function createApp(pool: Pool, options: { log?: FailureLogger } = {}) {
         async (c) =>
           (
             await c.query(
-              "SELECT e.id,e.code,e.name,m.role FROM eoms.estates e JOIN eoms.memberships m ON m.estate_id=e.id WHERE m.user_id=$1 ORDER BY e.name",
+              "SELECT e.id,e.code,e.name,e.active,m.role FROM eoms.estates e JOIN eoms.memberships m ON m.estate_id=e.id WHERE m.user_id=$1 ORDER BY e.name",
               [res.locals.user.id],
             )
           ).rows,
@@ -362,12 +369,13 @@ export function createApp(pool: Pool, options: { log?: FailureLogger } = {}) {
       await assertGangAllowed(c, res, id, input.gangCode, ApiError);
       const occurrence = (
         await c.query(
-          "SELECT id,capacity_ha FROM eoms.occurrences WHERE estate_id=$1 AND id=$2",
+          "SELECT id,capacity_ha,block_unit_id FROM eoms.occurrences WHERE estate_id=$1 AND id=$2",
           [id, input.occurrenceId],
         )
       ).rows[0];
       if (!occurrence)
         throw new ApiError(422, "Task does not belong to this estate");
+      await assertTaskAvailable(c, id, occurrence.block_unit_id);
       if (input.quantityHa > Number(occurrence.capacity_ha))
         throw new ApiError(422, "Work exceeds registered task area");
       const workers = (
@@ -435,6 +443,13 @@ export function createApp(pool: Pool, options: { log?: FailureLogger } = {}) {
         await openPeriod(c, id, first.business_date);
         await assertGangAllowed(c, res, id, first.gang_code, ApiError);
         if (first.status === "confirmed") return first;
+        const block = (
+          await c.query(
+            "SELECT block_unit_id FROM eoms.occurrences WHERE estate_id=$1 AND id=$2",
+            [id, first.occurrence_id],
+          )
+        ).rows[0];
+        await assertTaskAvailable(c, id, block?.block_unit_id ?? null);
         const occurrence = (
           await c.query(
             "SELECT capacity_ha FROM eoms.occurrences WHERE estate_id=$1 AND id=$2 FOR UPDATE",

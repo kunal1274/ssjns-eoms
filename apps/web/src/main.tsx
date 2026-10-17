@@ -1,3 +1,4 @@
+import { WorkAvailability } from "./EstateLifecycle";
 import { Organization } from "./Organization";
 import { AuditTrail } from "./AuditTrail";
 import { requestFailure, connectionFailure } from "./feedback";
@@ -381,6 +382,16 @@ function App() {
             {online ? "Online" : "Offline — local draft capture only"}
           </div>
           <PwaInstall />
+          {estate && online && tab === "Muster register" && (
+            <WorkAvailability
+              api={api}
+              estate={estate}
+              onSetup={() => {
+                setTab("Organization");
+                setCreating(false);
+              }}
+            />
+          )}
           {deviceMessage && <p role="status">{deviceMessage}</p>}
           {!online && (
             <p className="notice">
@@ -523,6 +534,12 @@ function App() {
                   )}
                 </div>
                 <div className="grid">
+                  <p>
+                    Only available tasks are listed. Reactivate paused
+                    estates/blocks in Organization → Estate and unit
+                    availability, then search tasks again. Legacy unlinked tasks
+                    are governed by estate availability.
+                  </p>
                   <label>
                     Task / activity
                     <select name="task" aria-label="Task / activity" required>

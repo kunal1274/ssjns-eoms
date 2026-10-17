@@ -1,3 +1,4 @@
+import { EstateLifecycle } from "./EstateLifecycle";
 import { EstateResponsibility } from "./EstateResponsibility";
 import { OperatingPlacement } from "./OperatingPlacement";
 import { useEffect, useState } from "react";
@@ -8,6 +9,7 @@ type Unit = {
   name: string;
   parent_id: string | null;
   version: number;
+  active: boolean;
 };
 type Context = {
   canConfigure: boolean;
@@ -205,12 +207,14 @@ export function HierarchySetup({
       setBusy(false);
     }
   }
-  const parents = units.filter((row) =>
-    kind === "field"
-      ? row.kind === "division"
-      : kind === "block"
-        ? ["division", "field"].includes(row.kind)
-        : false,
+  const parents = units.filter(
+    (row) =>
+      row.active &&
+      (kind === "field"
+        ? row.kind === "division"
+        : kind === "block"
+          ? ["division", "field"].includes(row.kind)
+          : false),
   );
   const selectedCompany = data.companies.find((row) => row.id === company);
   return (
@@ -222,6 +226,11 @@ export function HierarchySetup({
         customerId={customerId}
       />
       <OperatingPlacement key={customerId} api={api} customerId={customerId} />
+      <EstateLifecycle
+        key={"availability-" + customerId}
+        api={api}
+        estates={data.estates}
+      />
       <p>
         Optional legal group → company. Within each assigned estate: division →
         optional field → block. Structure does not grant operational access.
@@ -526,7 +535,9 @@ export function HierarchySetup({
                       <td>
                         {row.kind} · {row.code}
                       </td>
-                      <td>{row.name}</td>
+                      <td>
+                        {row.name} · {row.active ? "Active" : "Inactive"}
+                      </td>
                       <td>
                         {units.find((p) => p.id === row.parent_id)?.code ||
                           "Estate root"}

@@ -199,6 +199,50 @@ try {
       ).rows[0],
       oldPlacement,
     );
+    const legacyDivision = (
+      await c.query(
+        "INSERT INTO eoms.operating_units(customer_id,estate_id,kind,code,name) SELECT customer_id,id,'division','OLD-DIVISION','Legacy division' FROM eoms.estates WHERE id=$1 RETURNING id",
+        [estate],
+      )
+    ).rows[0].id;
+    const lifecycleHistoryBefore = (
+      await c.query("SELECT count(*)::int AS n FROM eoms.hierarchy_history")
+    ).rows[0].n;
+    await c.query(
+      await readFile("db/migrations/012_estate_unit_lifecycle.sql", "utf8"),
+    );
+    assert.deepEqual(
+      (
+        await c.query(
+          "SELECT active,lifecycle_version FROM eoms.estates WHERE id=$1",
+          [estate],
+        )
+      ).rows[0],
+      { active: true, lifecycle_version: 1 },
+    );
+    assert.deepEqual(
+      (
+        await c.query(
+          "SELECT active,version FROM eoms.operating_units WHERE id=$1",
+          [legacyDivision],
+        )
+      ).rows[0],
+      { active: true, version: 1 },
+    );
+    assert.equal(
+      (await c.query("SELECT count(*)::int AS n FROM eoms.hierarchy_history"))
+        .rows[0].n,
+      lifecycleHistoryBefore,
+    );
+    assert.deepEqual(
+      (
+        await c.query(
+          "SELECT legal_company_id,legal_company_name,legal_responsibility_id FROM eoms.musters WHERE id=$1",
+          [legacyWork],
+        )
+      ).rows[0],
+      oldAttribution,
+    );
     const preservedTask = (
       await c.query(
         "SELECT id,block_code,block_unit_id,version FROM eoms.occurrences WHERE id=$1",

@@ -1,3 +1,4 @@
+import { assertTaskAvailable } from "./lifecycle";
 import type { Express, Request, Response } from "express";
 import type { PoolClient } from "pg";
 import { z } from "zod";
@@ -111,7 +112,7 @@ export function maintenanceRoutes(
             ).rows
           : (
               await c.query(
-                "SELECT o.*,u.code AS linked_block_code,u.name AS linked_block_name,(SELECT coalesce(sum(m.quantity_ha),0)::text FROM eoms.musters m WHERE m.estate_id=o.estate_id AND m.occurrence_id=o.id AND m.status='confirmed') AS confirmed_ha FROM eoms.occurrences o LEFT JOIN eoms.operating_units u ON u.id=o.block_unit_id AND u.estate_id=o.estate_id WHERE o.estate_id=$1 AND (block_code || ' ' || task_code || ' ' || activity || ' ' || round_code) ILIKE $2 AND ($3::text IS NULL OR (o.block_code,o.task_code,o.id)>($3,$4,$5::uuid)) ORDER BY o.block_code,o.task_code,o.id LIMIT $6",
+                "SELECT o.*,eoms.task_is_available(o.estate_id,o.block_unit_id) AS available,u.code AS linked_block_code,u.name AS linked_block_name,(SELECT coalesce(sum(m.quantity_ha),0)::text FROM eoms.musters m WHERE m.estate_id=o.estate_id AND m.occurrence_id=o.id AND m.status='confirmed') AS confirmed_ha FROM eoms.occurrences o LEFT JOIN eoms.operating_units u ON u.id=o.block_unit_id AND u.estate_id=o.estate_id WHERE o.estate_id=$1 AND ($7::boolean OR eoms.task_is_available(o.estate_id,o.block_unit_id)) AND (block_code || ' ' || task_code || ' ' || activity || ' ' || round_code) ILIKE $2 AND ($3::text IS NULL OR (o.block_code,o.task_code,o.id)>($3,$4,$5::uuid)) ORDER BY o.block_code,o.task_code,o.id LIMIT $6",
                 [
                   id,
                   pattern,
@@ -119,6 +120,7 @@ export function maintenanceRoutes(
                   last?.b ?? null,
                   last?.id ?? null,
                   q.limit + 1,
+                  q.includeInactive === "true",
                 ],
               )
             ).rows,
@@ -210,6 +212,7 @@ export function maintenanceRoutes(
       )
       .parse(req.body);
     const row = await manager(req, res, async (c, id) => {
+      await assertTaskAvailable(c, id, null);
       let blockCode = input.blockCode;
       if (input.blockId) {
         const block = (
@@ -220,6 +223,7 @@ export function maintenanceRoutes(
         ).rows[0];
         if (!block)
           throw new ApiError(422, "Choose a configured block in this estate.");
+        await assertTaskAvailable(c, id, input.blockId);
         blockCode = block.code;
         await c.query(
           "SELECT set_config('app.change_reason',$1,true),set_config('app.request_id',$2,true)",
@@ -287,6 +291,7 @@ export function maintenanceRoutes(
               422,
               "Choose a configured block with exactly the task's recorded block code in this estate. Review hierarchy setup if none matches.",
             );
+          await assertTaskAvailable(c, id, input.blockId);
           await c.query(
             "SELECT set_config('app.change_reason',$1,true),set_config('app.request_id',$2,true)",
             [input.reason, res.locals.requestId],
@@ -323,6 +328,7 @@ export function maintenanceRoutes(
         if (!before) throw new ApiError(404, "Task not found");
         if (before.version !== input.version)
           throw new ApiError(409, "Task changed. Refresh before saving.");
+        await assertTaskAvailable(c, id, before.block_unit_id);
         const used = (
           await c.query(
             "SELECT coalesce(sum(quantity_ha),0)::text AS total FROM eoms.musters WHERE estate_id=$1 AND occurrence_id=$2 AND status='confirmed'",

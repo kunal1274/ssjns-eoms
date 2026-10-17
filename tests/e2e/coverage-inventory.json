@@ -714,6 +714,66 @@
         "caseId": "E2E-JRN-02-006",
         "step": "Deactivate emptied source prevent reuse and reactivate with lifecycle history"
       }
+    },
+    {
+      "id": "COV-LIFECYCLE-DEPENDENCY",
+      "journey": "JRN-02",
+      "screen": "Estate and unit availability",
+      "category": "action",
+      "control": "Child dependency recovery",
+      "assertion": "Active child blocks parent pause with retained reason and reference",
+      "binding": {
+        "caseId": "E2E-JRN-02-007",
+        "step": "Guide child dependency recovery and retain reason with support reference"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-DRAFT",
+      "journey": "JRN-02",
+      "screen": "Estate and unit availability",
+      "category": "action",
+      "control": "Open draft safeguards",
+      "assertion": "UI capture creates a draft that blocks block/estate pause",
+      "binding": {
+        "caseId": "E2E-JRN-02-007",
+        "step": "Capture a linked draft and block both unit and estate deactivation"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-HISTORY",
+      "journey": "JRN-02",
+      "screen": "Estate and unit availability",
+      "category": "action",
+      "control": "Preserved work and audit",
+      "assertion": "Confirmed work remains intact, linked task disappears from capture, real new POST denied and before/after audit retained",
+      "binding": {
+        "caseId": "E2E-JRN-02-007",
+        "step": "Confirm draft then deactivate hierarchy while retaining work and audit"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-ESTATE",
+      "journey": "JRN-02",
+      "screen": "Estate and unit availability",
+      "category": "action",
+      "control": "Estate pause guidance",
+      "assertion": "Inactive banner, retained readable work and navigation back to availability",
+      "binding": {
+        "caseId": "E2E-JRN-02-007",
+        "step": "Pause estate and keep confirmed history readable with clear work guidance"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-RESUME",
+      "journey": "JRN-02",
+      "screen": "Estate and unit availability",
+      "category": "action",
+      "control": "Ordered reactivation",
+      "assertion": "Parent-first guard retains input, ordered resume restores UI capture",
+      "binding": {
+        "caseId": "E2E-JRN-02-007",
+        "step": "Reactivate estate and parents before block then resume linked capture"
+      }
     }
   ]
 }

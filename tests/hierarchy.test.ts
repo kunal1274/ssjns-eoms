@@ -2102,3 +2102,350 @@ test("direct database cannot bypass independent move review area dependencies or
     c.release();
   }
 });
+
+async function availabilityFixture() {
+  const f = await legalFixture(),
+    division = await createUnit("division", null, f.own.id),
+    field = await createUnit("field", division.id, f.own.id),
+    block = await createUnit("block", field.id, f.own.id, "LW");
+  const linked = await post(
+    manager,
+    `/estates/${f.own.id}/occurrences/${f.occurrence}/block-link`,
+    { blockId: block.id, version: 1, reason: "Link lifecycle fixture block" },
+  );
+  assert.equal(linked.status, 200, JSON.stringify(linked.body));
+  await admin.query(
+    "INSERT INTO eoms.periods(estate_id,month) VALUES($1,'2104-01-01')",
+    [f.own.id],
+  );
+  return { ...f, division, field, block };
+}
+function availability(
+  f: any,
+  target: any,
+  active: boolean,
+  version = 1,
+  actor = manager,
+  reason = "Review estate unit availability",
+) {
+  return post(
+    actor,
+    `/estates/${f.own.id}` +
+      (target ? `/units/${target.id}` : "") +
+      "/lifecycle",
+    { active, version, reason },
+  );
+}
+function availabilityWork(f: any, key = randomUUID()) {
+  return manager.agent
+    .post(`/api/estates/${f.own.id}/musters`)
+    .set("Origin", origin)
+    .set("X-CSRF-Token", manager.csrf)
+    .set("Idempotency-Key", key)
+    .send({
+      occurrenceId: f.occurrence,
+      businessDate: "2104-01-15",
+      gangCode: "G-01",
+      quantityHa: 0.1,
+      workerIds: [f.worker],
+    });
+}
+test("unit availability blocks open drafts then preserves confirmed work and idempotent replay", async () => {
+  const f = await availabilityFixture(),
+    key = randomUUID(),
+    captured = await availabilityWork(f, key);
+  assert.equal(captured.status, 201);
+  assert.equal((await availability(f, f.block, false)).status, 409);
+  assert.equal((await availability(f, null, false)).status, 409);
+  const confirmed = await post(
+    manager,
+    `/estates/${f.own.id}/musters/${captured.body.id}/confirm`,
+    { version: 1 },
+  );
+  assert.equal(confirmed.status, 200, JSON.stringify(confirmed.body));
+  const before = (
+    await admin.query("SELECT * FROM eoms.musters WHERE id=$1", [
+      captured.body.id,
+    ])
+  ).rows[0];
+  const paused = await availability(f, f.block, false);
+  assert.equal(paused.status, 200, JSON.stringify(paused.body));
+  const denied = await availabilityWork(f);
+  assert.equal(denied.status, 409);
+  assert.match(denied.body.error, /Work is paused/);
+  const replay = await availabilityWork(f, key);
+  assert.equal(replay.status, 201);
+  assert.equal(replay.body.id, captured.body.id);
+  assert.deepEqual(
+    (
+      await admin.query("SELECT * FROM eoms.musters WHERE id=$1", [
+        captured.body.id,
+      ])
+    ).rows[0],
+    before,
+  );
+  const catalog = await manager.agent.get(
+    `/api/estates/${f.own.id}/catalog/occurrences`,
+  );
+  assert.equal(
+    catalog.body.items.some((t: any) => t.id === f.occurrence),
+    false,
+  );
+  const maintained = await manager.agent.get(
+    `/api/estates/${f.own.id}/catalog/occurrences?includeInactive=true`,
+  );
+  assert.equal(
+    maintained.body.items.find((t: any) => t.id === f.occurrence).available,
+    false,
+  );
+  assert.equal(
+    (
+      await post(manager, `/estates/${f.own.id}/occurrences/${f.occurrence}`, {
+        capacityHa: 2,
+        version: 2,
+      })
+    ).status,
+    409,
+  );
+  const history = (
+    await manager.agent.get(`/api/estates/${f.own.id}/lifecycle`)
+  ).body.history.find((h: any) => h.record_id === f.block.id);
+  assert.equal(history.before.active, true);
+  assert.equal(history.after.active, false);
+  assert.equal(history.request_id, paused.headers["x-request-id"]);
+  assert.equal((await availability(f, f.block, true, 1)).status, 409);
+  assert.equal((await availability(f, f.block, true, 2)).status, 200);
+  assert.equal((await availabilityWork(f)).status, 201);
+});
+test("estate pause preserves access attribution and review while hierarchy reactivation follows parents", async () => {
+  const f = await availabilityFixture(),
+    captured = await availabilityWork(f);
+  assert.equal(captured.status, 201);
+  assert.equal(
+    (
+      await post(
+        manager,
+        `/estates/${f.own.id}/musters/${captured.body.id}/confirm`,
+        { version: 1 },
+      )
+    ).status,
+    200,
+  );
+  assert.equal((await availability(f, f.field, false)).status, 409);
+  assert.equal((await availability(f, f.block, false)).status, 200);
+  assert.equal((await availability(f, f.field, false)).status, 200);
+  assert.equal((await availability(f, f.division, false)).status, 200);
+  assert.equal((await availability(f, f.block, true, 2)).status, 409);
+  assert.equal((await availability(f, f.field, true, 2)).status, 409);
+  const members = (
+    await admin.query(
+      "SELECT user_id,role FROM eoms.memberships WHERE estate_id=$1 ORDER BY user_id",
+      [f.own.id],
+    )
+  ).rows;
+  const paused = await availability(f, null, false);
+  assert.equal(paused.status, 200, JSON.stringify(paused.body));
+  assert.equal((await availability(f, f.division, true, 2)).status, 409);
+  const view = await manager.agent.get(
+    `/api/estates/${f.own.id}/musters/${captured.body.id}`,
+  );
+  assert.equal(view.status, 200);
+  assert.equal(view.body.legal_company_id, f.own.company_id);
+  assert.equal(
+    (
+      await post(
+        manager,
+        `/estates/${f.own.id}/musters/${captured.body.id}/approve`,
+        { version: 2, reason: "Review retained historical work" },
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await post(
+        manager,
+        `/estates/${f.own.id}/musters/${captured.body.id}/reverse`,
+        { version: 3, reason: "Reverse historical work after review" },
+      )
+    ).status,
+    200,
+  );
+  assert.equal((await availabilityWork(f)).status, 409);
+  assert.deepEqual(
+    (
+      await admin.query(
+        "SELECT user_id,role FROM eoms.memberships WHERE estate_id=$1 ORDER BY user_id",
+        [f.own.id],
+      )
+    ).rows,
+    members,
+  );
+  const history = (
+    await manager.agent.get(`/api/estates/${f.own.id}/lifecycle`)
+  ).body.history.find((h: any) => h.record_type === "estate-lifecycle");
+  assert.equal(history.request_id, paused.headers["x-request-id"]);
+  assert.equal((await availability(f, null, true, 2)).status, 200);
+  assert.equal((await availability(f, f.division, true, 2)).status, 200);
+  assert.equal((await availability(f, f.field, true, 2)).status, 200);
+  assert.equal((await availability(f, f.block, true, 2)).status, 200);
+  assert.equal((await availabilityWork(f)).status, 201);
+});
+test("lifecycle authority scope reason and inactive parent creation are enforced", async () => {
+  const f = await availabilityFixture();
+  await admin.query(
+    "INSERT INTO eoms.memberships(user_id,estate_id,role) VALUES($1,$2,'manager')",
+    [readonlyManager.id, f.own.id],
+  );
+  assert.equal(
+    (await availability(f, null, false, 1, readonlyManager)).status,
+    403,
+  );
+  assert.equal((await availability(f, null, false, 1, supervisor)).status, 404);
+  assert.equal(
+    (await request(app).get(`/api/estates/${f.own.id}/lifecycle`)).status,
+    401,
+  );
+  assert.equal(
+    (await manager.agent.get(`/api/estates/${foreignEstate}/lifecycle`)).status,
+    404,
+  );
+  assert.equal(
+    (await availability(f, f.block, false, 1, manager, "")).status,
+    422,
+  );
+  assert.equal(
+    (
+      await post(
+        manager,
+        `/estates/${f.own.id}/units/${randomUUID()}/lifecycle`,
+        { active: false, version: 1, reason: "Unknown unit" },
+      )
+    ).status,
+    404,
+  );
+  assert.equal((await availability(f, null, false)).status, 200);
+  assert.equal(
+    (
+      await post(manager, `/estates/${f.own.id}/units`, {
+        kind: "division",
+        code: "BAD-" + suffix(),
+        name: "Inactive estate unit",
+        parentId: null,
+        reason: "Cannot create active unit",
+      })
+    ).status,
+    422,
+  );
+  assert.equal(
+    (
+      await post(manager, `/estates/${f.own.id}/occurrences`, {
+        blockCode: "LEGACY",
+        taskCode: "PAUSED",
+        activity: "Test",
+        roundCode: "P",
+        capacityHa: 1,
+      })
+    ).status,
+    409,
+  );
+  assert.equal((await availability(f, null, false, 2)).status, 409);
+  const view = await readonlyManager.agent.get(
+    `/api/estates/${f.own.id}/lifecycle`,
+  );
+  assert.equal(view.status, 200);
+  assert.equal(view.body.canConfigure, false);
+  assert.equal(view.body.estate.active, false);
+});
+test("database blocks unaudited lifecycle bypass and work in paused estate or configured block", async () => {
+  const f = await availabilityFixture(),
+    c = await pool.connect();
+  async function rejected(
+    sql: string,
+    args: unknown[],
+    code: string,
+    reason = "Database lifecycle guard",
+  ) {
+    try {
+      await c.query("BEGIN");
+      await c.query(
+        "SELECT set_config('app.user_id',$1,true),set_config('app.change_reason',$2,true)",
+        [manager.id, reason],
+      );
+      await assert.rejects(
+        () => c.query(sql, args),
+        (e: any) => e.code === code,
+      );
+    } finally {
+      await c.query("ROLLBACK");
+    }
+  }
+  try {
+    await rejected(
+      "UPDATE eoms.estates SET active=false WHERE id=$1",
+      [f.own.id],
+      "23514",
+    );
+    await rejected(
+      "UPDATE eoms.estates SET active=false,lifecycle_version=lifecycle_version+1 WHERE id=$1",
+      [f.own.id],
+      "23514",
+      "",
+    );
+    await rejected(
+      "UPDATE eoms.operating_units SET active=false,version=version+1 WHERE id=$1",
+      [f.field.id],
+      "23514",
+    );
+    assert.equal((await availability(f, f.block, false)).status, 200);
+    await rejected(
+      "INSERT INTO eoms.musters(estate_id,occurrence_id,business_date,gang_code,quantity_ha,created_by) VALUES($1,$2,'2104-01-15','G-01',0.1,$3)",
+      [f.own.id, f.occurrence, manager.id],
+      "23514",
+    );
+    await rejected(
+      "UPDATE eoms.occurrences SET capacity_ha=2,version=version+1 WHERE id=$1",
+      [f.occurrence],
+      "23514",
+    );
+    await rejected(
+      "UPDATE eoms.operating_units SET active=true,version=version+1 WHERE id=$1",
+      [f.block.id],
+      "23514",
+      "",
+    );
+    assert.equal((await availability(f, null, false)).status, 200);
+    await rejected(
+      "INSERT INTO eoms.occurrences(estate_id,block_code,task_code,activity,round_code,capacity_ha) VALUES($1,'L','NEW','Test','L',1)",
+      [f.own.id],
+      "23514",
+    );
+    assert.equal(
+      (await pool.query("SELECT * FROM eoms.hierarchy_history")).rowCount,
+      0,
+    );
+  } finally {
+    c.release();
+  }
+});
+test("concurrent capture and estate deactivation cannot commit an inactive estate with open draft", async () => {
+  const f = await availabilityFixture();
+  const results = await Promise.all([
+    availabilityWork(f),
+    availability(f, null, false),
+  ]);
+  const state = (
+    await admin.query(
+      "SELECT e.active,(SELECT count(*)::int FROM eoms.musters m WHERE m.estate_id=e.id AND m.status='draft') AS drafts FROM eoms.estates e WHERE e.id=$1",
+      [f.own.id],
+    )
+  ).rows[0];
+  assert.ok(
+    (state.active && state.drafts === 1) ||
+      (!state.active && state.drafts === 0),
+  );
+  assert.deepEqual(
+    results.map((r) => r.status).sort(),
+    state.active ? [201, 409] : [200, 409],
+  );
+});

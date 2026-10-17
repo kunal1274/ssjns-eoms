@@ -106,3 +106,16 @@ Use synthetic development data and an estate explicitly assigned to both develop
 8. To remove operating placement, request **Customer root** and obtain independent approval. Later reattachment must also use the reviewed move form. Returning to root does not make the initial-placement shortcut available again.
 
 Repeat automatically with `npm run test:e2e:headed -- --grep E2E-JRN-02-006`. This creates its own isolated synthetic fixture and valid requester/reviewer test sessions. It exercises the operational forms; it does not replay your last manual recording. Recording review/conversion and the custom one-click execution dashboard remain planned.
+
+### Estate and unit availability demo
+
+Current increment F06.3c2b2 adds `E2E-JRN-02-007`. Run visibly against the isolated synthetic test database with `npm run test:e2e:headed -- --grep E2E-JRN-02-007`. It prepares one valid setup-principal test-DB session and its own estate/units/tasks. Authentication remains separately covered. Current inventory expects eleven scenarios × two projects; CI and owner-desktop observation remain pending.
+
+1. Open **Organization → Estate and unit availability**, choose an assigned synthetic estate, and inspect availability/version/open drafts. Setup changes require explicit customer authority.
+2. With a configured block containing draft work, try pausing it. Expect retained reason, draft guidance and support reference. Pausing a field/division with active children also blocks; estate pause checks all its drafts, including unlinked legacy work.
+3. Return to **Muster register** and inspect/confirm valid draft work under the existing period/capacity rules. There is no automatic deletion or cancellation. If a draft cannot validly confirm, retain it and resolve its business discrepancy before pausing.
+4. Deactivate the block, then its field/division with separate reasons. Expand **View availability audit details** to inspect before/after status/version, actor/time and support reference. Capture choices exclude the configured task, while historical work/maintenance retain it.
+5. Deactivate the estate once no drafts remain. It stays assigned/readable and the Muster register shows **Estate inactive — new work is paused**. Existing historical review/reversal remains governed by the original period/access rules.
+6. Use **Open availability setup**, reactivate estate first, then division → field → block. Attempting a child too early returns recovery guidance and keeps your reason. Refresh task lists and capture again.
+
+An estate pause preserves individual unit flags; reactivating the estate resumes only units that are themselves active. Legacy unlinked task codes do not establish a block relationship; use the existing explicit link-review journey for attribution. Offline drafts may require review after availability changes. The headed journey is automated regression; arbitrary manual-recording conversion and the one-click reusable runner dashboard remain planned.

@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 type Api = (path: string, body?: unknown) => Promise<any>;
-type Block = { id: string; kind: string; code: string; name: string };
+type Block = {
+  id: string;
+  kind: string;
+  code: string;
+  name: string;
+  active: boolean;
+};
 function useBlocks(base: string, api: Api) {
   const [blocks, setBlocks] = useState<Block[]>([]),
     [loading, setLoading] = useState(true),
@@ -14,7 +20,11 @@ function useBlocks(base: string, api: Api) {
     api(base + "/units")
       .then((data) => {
         if (active) {
-          setBlocks(data.items.filter((row: Block) => row.kind === "block"));
+          setBlocks(
+            data.items.filter(
+              (row: Block) => row.kind === "block" && row.active,
+            ),
+          );
           setTruncated(data.truncated);
         }
       })
