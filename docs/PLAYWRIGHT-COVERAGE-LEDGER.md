@@ -82,4 +82,6 @@ F06.3b adds four exact E2E-JRN-02-003 mappings for optional area setup, persiste
 
 F06.3b executed proof: [CI run 38999436012](https://github.com/kunal1274/ssjns-eoms/actions/runs/38999436012), attempt 2, source `3ba0b5d41f7c45cdb3178a74d227bb89e6f09ce0`. All fourteen executions and ledger UI passed. The first attempt had an occupied Docker port after browser success; the full rerun passed. Later evidence changes are documentation only.
 
-F06.3c1 adds four precise E2E-JRN-02-004 mappings for baseline boundary review, dated scheduling/detail, captured work identity and real recorded-work conflict/recovery. Expected sixteen viewport executions and 76 passed/40 untested rows; fresh execution evidence pending. Full JRN-02 remains a gap.
+F06.3c1 adds four precise E2E-JRN-02-004 mappings for baseline boundary review, dated scheduling/detail, captured work identity and real recorded-work conflict/recovery. Actual sixteen viewport executions and 76 passed/40 untested rows in CI 39007971408. Full JRN-02 remains a gap.
+
+F06.3c1 executed evidence: [CI 39007971408](https://github.com/kunal1274/ssjns-eoms/actions/runs/39007971408), source `bb4eebe9aa1c37140f1d4933c2287dd624ea9d11`. The fixture directory refresh and stable reason-field accessible name preserve the original assertion contract. All sixteen executions and ledger UI passed. Later evidence updates are documentation only.
