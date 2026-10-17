@@ -86,4 +86,4 @@ F06.3c1 adds four precise E2E-JRN-02-004 mappings for baseline boundary review, 
 
 F06.3c1 executed evidence: [CI 39007971408](https://github.com/kunal1274/ssjns-eoms/actions/runs/39007971408), source `bb4eebe9aa1c37140f1d4933c2287dd624ea9d11`. The fixture directory refresh and stable reason-field accessible name preserve the original assertion contract. All sixteen executions and ledger UI passed. Later evidence updates are documentation only.
 
-F06.3c2a adds four precise E2E-JRN-02-005 mappings for cancellation/self-review denial, independent review/provenance, linked replacement and replacement work/conflict recovery. Expected eighteen viewport executions and 84 passed/40 untested rows; real CI pending. Full JRN-02 and full SoD remain gaps.
+F06.3c2a adds four precise E2E-JRN-02-005 mappings for cancellation/self-review denial, independent review/provenance, linked replacement and replacement work/conflict recovery. Verified eighteen viewport executions and 84 passed/40 untested rows by CI 39014863357 on source `1e17700a68d0fdaf0033d64445a7af4ebe659f35`. Full JRN-02 and full SoD remain gaps.
