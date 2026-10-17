@@ -181,9 +181,12 @@ test("E2E-JRN-02-005 @regression independent cancellation and linked correction"
       ]);
       const review = await context.newPage();
       await review.goto("/");
-      await expect(
-        review.getByText(reviewer.display_name, { exact: true }),
-      ).toBeVisible();
+      await expect(review.locator("header")).toContainText(
+        reviewer.display_name,
+      );
+      expect(
+        (await (await review.request.get("/api/auth/session")).json()).user.id,
+      ).toBe(reviewer.id);
       await review
         .getByRole("button", { name: "Organization", exact: true })
         .click();

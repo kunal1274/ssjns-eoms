@@ -59,9 +59,10 @@ test("E2E-JRN-02-006 @regression independent movement and safe area lifecycle", 
   }
   const csrf = await session(page.context(), manager.id);
   await page.goto("/");
-  await expect(
-    page.getByText(manager.display_name, { exact: true }),
-  ).toBeVisible();
+  await expect(page.locator("header")).toContainText(manager.display_name);
+  expect(
+    (await (await page.request.get("/api/auth/session")).json()).user.id,
+  ).toBe(manager.id);
   await page.getByRole("button", { name: "Organization", exact: true }).click();
   const placement = page.getByRole("region", {
       name: "Operating placement",
@@ -198,9 +199,12 @@ test("E2E-JRN-02-006 @regression independent movement and safe area lifecycle", 
       await session(context, reviewer.id);
       const review = await context.newPage();
       await review.goto("/");
-      await expect(
-        review.getByText(reviewer.display_name, { exact: true }),
-      ).toBeVisible();
+      await expect(review.locator("header")).toContainText(
+        reviewer.display_name,
+      );
+      expect(
+        (await (await review.request.get("/api/auth/session")).json()).user.id,
+      ).toBe(reviewer.id);
       await review
         .getByRole("button", { name: "Organization", exact: true })
         .click();
