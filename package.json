@@ -11,7 +11,7 @@
     "dev:web": "vite --config apps/web/vite.config.ts",
     "build": "tsc --noEmit && vite build --config apps/web/vite.config.ts && node scripts/build-sw.mjs",
     "check": "tsc --noEmit",
-    "test": "node --import tsx --test tests/allocation.test.ts tests/sync.test.ts tests/docker-config.test.ts tests/http-errors.test.ts tests/repository-gates.test.ts tests/user-feedback.test.tsx tests/browser-options.test.mjs tests/coverage-ledger.test.ts",
+    "test": "node --import tsx --test tests/allocation.test.ts tests/sync.test.ts tests/docker-config.test.ts tests/http-errors.test.ts tests/repository-gates.test.ts tests/user-feedback.test.tsx tests/browser-options.test.mjs tests/coverage-ledger.test.ts tests/decision-ledger.test.ts",
     "db:migrate": "node --import tsx scripts/migrate.ts",
     "db:seed": "node --import tsx scripts/seed.ts",
     "test:integration": "node --import tsx --test --test-concurrency=1 tests/api.test.ts tests/workflow.test.ts tests/organization.test.ts tests/hierarchy.test.ts && node --import tsx scripts/test-hierarchy-upgrade.ts",

@@ -1,3 +1,4 @@
+import { DecisionLedger } from "./DecisionLedger";
 import { SearchSelect } from "./SearchSelect";
 import { useEffect, useState } from "react";
 type Api = (path: string, body?: unknown) => Promise<any>;
@@ -36,7 +37,9 @@ export function PlacementGovernance({
     [areaReady, setAreaReady] = useState(false),
     [reviewPin, setReviewPin] = useState<any>(null),
     [reviewError, setReviewError] = useState(""),
-    [reviewAttempt, setReviewAttempt] = useState(0);
+    [reviewAttempt, setReviewAttempt] = useState(0),
+    [requestRecord, setRequestRecord] = useState<any>(null),
+    [requestReady, setRequestReady] = useState(false);
   const selected =
       estateRecord?.id === estate
         ? estateRecord
@@ -47,7 +50,10 @@ export function PlacementGovernance({
         : data.areas.find((a: any) => a.id === area),
     pending = moves.items.filter((q: any) => !q.decision),
     reviewable = pending.filter((q: any) => q.requester_id !== moves.actorId),
-    item = reviewable.find((q: any) => q.id === request),
+    item =
+      requestRecord?.id === request
+        ? requestRecord
+        : reviewable.find((q: any) => q.id === request),
     reviewEstate = reviewPin?.id === item?.estate_id ? reviewPin : null;
   useEffect(() => {
     let active = true;
@@ -117,8 +123,9 @@ export function PlacementGovernance({
       <p>
         Estate identity, memberships, legal company, tasks and recorded work
         stay attached to the same estate. Operating placement grants no
-        additional access. These are immediate changes; scheduled moves and
-        estate/field/block deactivation remain planned.
+        additional access. These are immediate changes. Scheduled moves remain
+        planned; estate/unit pause and resume are available in Estate and unit
+        availability.
       </p>
       {error && (
         <p role="alert" className="error">
@@ -148,9 +155,8 @@ export function PlacementGovernance({
       )}
       {moves.truncated && (
         <p>
-          Only the latest 50 permitted move requests are shown. Older pending
-          requests may require administrator assistance; full history navigation
-          remains planned.
+          The summary shows the latest 50 permitted move requests. Use Move
+          ledger or Move request search to reach older permitted records.
         </p>
       )}
       {data.canConfigure ? (
@@ -276,7 +282,7 @@ export function PlacementGovernance({
                 </p>
               )}
             </form>
-            {reviewable.length > 0 && (
+            {data.canConfigure && (
               <form
                 aria-label="Independent move decision"
                 onSubmit={(e) => {
@@ -318,28 +324,30 @@ export function PlacementGovernance({
                     </button>
                   </p>
                 )}
-                <label>
-                  Move request
-                  <select
-                    aria-label="Move request"
-                    required
-                    value={request}
-                    onChange={(e) => {
-                      setRequest(e.target.value);
-                      setDecision("");
-                      setReviewReason("");
-                    }}
-                  >
-                    <option value="">Choose pending request</option>
-                    {reviewable.map((q: any) => (
-                      <option key={q.id} value={q.id}>
-                        {data.estates.find((e: any) => e.id === q.estate_id)
-                          ?.name || q.estate_id}{" "}
-                        · {q.reason}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <SearchSelect
+                  api={api}
+                  path={`/navigation/customers/${customerId}/moves?purpose=choice&status=pending`}
+                  label="Move request"
+                  value={request}
+                  onChange={(id, row) => {
+                    setRequest(id);
+                    setRequestRecord(row || null);
+                    setDecision("");
+                    setReviewReason("");
+                  }}
+                  onReady={setRequestReady}
+                  seed={reviewable.map((q: any) => ({
+                    ...q,
+                    name:
+                      (data.estates.find((e: any) => e.id === q.estate_id)
+                        ?.name || q.estate_id) +
+                      " · " +
+                      q.reason,
+                  }))}
+                  refreshKey={JSON.stringify(moves)}
+                  required
+                  placeholder="Choose pending request"
+                />
                 {item && (
                   <p>
                     Requested: {label(item.from_area_id)} →{" "}
@@ -377,7 +385,7 @@ export function PlacementGovernance({
                     onChange={(e) => setReviewReason(e.target.value)}
                   />
                 </label>
-                <button disabled={!item || !reviewEstate}>
+                <button disabled={!item || !reviewEstate || !requestReady}>
                   Record move decision
                 </button>
               </form>
@@ -477,7 +485,26 @@ export function PlacementGovernance({
           setup administrator with this estate assigned.
         </p>
       )}
-      <h4>Move requests and decisions</h4>
+      <DecisionLedger
+        api={api}
+        path={`/navigation/customers/${customerId}/moves`}
+        label="Move ledger"
+        disabled={busy || needsRefresh}
+        kind="move"
+        refreshKey={JSON.stringify(moves)}
+        onChoose={
+          data.canConfigure
+            ? (row) => {
+                setRequest(row.id);
+                setRequestRecord(row);
+                setDecision("");
+                setReviewReason("");
+              }
+            : undefined
+        }
+        choiceLabel="Review move"
+      />
+      <h4>Recent move requests and decisions</h4>
       {!moves.items.length && (
         <p>No permitted move requests in the recent window.</p>
       )}

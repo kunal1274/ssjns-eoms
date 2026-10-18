@@ -59,7 +59,7 @@ export function responsibilityRoutes(app: Express, tx: Transaction) {
         ).rows[0].revision;
         const lastActive = (
           await c.query(
-            "SELECT company_id,id FROM eoms.active_estate_responsibilities WHERE estate_id=$1 ORDER BY effective_from DESC LIMIT 1",
+            "SELECT r.company_id,r.id,r.effective_from::text AS effective_from,c.name AS company_name FROM eoms.active_estate_responsibilities r JOIN eoms.companies c ON c.id=r.company_id WHERE r.estate_id=$1 ORDER BY r.effective_from DESC LIMIT 1",
             [estate],
           )
         ).rows[0];
@@ -73,6 +73,7 @@ export function responsibilityRoutes(app: Express, tx: Transaction) {
           actorId: res.locals.user.id,
           lastActiveCompanyId: lastActive?.company_id || baseline.id,
           lastActiveId: lastActive?.id || null,
+          lastActive: lastActive || null,
           requests: requests.slice(0, 50),
           today,
           asOf,

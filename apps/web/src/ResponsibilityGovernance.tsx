@@ -1,3 +1,5 @@
+import { SearchSelect } from "./SearchSelect";
+import { DecisionLedger } from "./DecisionLedger";
 import { useState } from "react";
 type Api = (path: string, body?: unknown) => Promise<any>;
 export function ResponsibilityGovernance({
@@ -21,13 +23,16 @@ export function ResponsibilityGovernance({
     [decision, setDecision] = useState(""),
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
-    [needsRefresh, setNeedsRefresh] = useState(false);
+    [needsRefresh, setNeedsRefresh] = useState(false),
+    [requestReady, setRequestReady] = useState(false);
   const requests = data.requests || [],
     pending = requests.filter((row: any) => !row.decision),
     reviewable = pending.filter(
       (row: any) => row.requester_id !== data.actorId,
     ),
-    last = data.items.find((row: any) => row.id === data.lastActiveId);
+    last =
+      data.lastActive ||
+      data.items.find((row: any) => row.id === data.lastActiveId);
   async function act(
     action: () => Promise<any>,
     success: string,
@@ -144,7 +149,7 @@ export function ResponsibilityGovernance({
           request.
         </p>
       )}
-      {data.canConfigure && reviewable.length > 0 && (
+      {data.canConfigure && (
         <form
           aria-label="Independent cancellation decision"
           onSubmit={(e) => {
@@ -165,24 +170,25 @@ export function ResponsibilityGovernance({
           }}
         >
           <fieldset disabled={busy || needsRefresh}>
-            <label>
-              Cancellation request
-              <select
-                aria-label="Cancellation request"
-                required
-                value={request}
-                onChange={(e) => setRequest(e.target.value)}
-              >
-                <option value="">
-                  Choose a pending request from another administrator
-                </option>
-                {reviewable.map((row: any) => (
-                  <option key={row.id} value={row.id}>
-                    {row.requester} · {row.reason}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <SearchSelect
+              api={api}
+              path={`/navigation/estates/${estate}/cancellations?purpose=choice&status=pending`}
+              label="Cancellation request"
+              value={request}
+              onChange={(id) => {
+                setRequest(id);
+                setDecision("");
+                setReviewReason("");
+              }}
+              onReady={setRequestReady}
+              seed={reviewable.map((r: any) => ({
+                ...r,
+                name: r.requester + " · " + r.reason,
+              }))}
+              refreshKey={JSON.stringify([data.revision, data.requests])}
+              required
+              placeholder="Choose a pending request from another administrator"
+            />
             <label>
               Cancellation decision
               <select
@@ -207,11 +213,31 @@ export function ResponsibilityGovernance({
                 onChange={(e) => setReviewReason(e.target.value)}
               />
             </label>
-            <button>Record independent decision</button>
+            <button disabled={!request || !requestReady}>
+              Record independent decision
+            </button>
           </fieldset>
         </form>
       )}
-      <h4>Cancellation request and decision history</h4>
+      <DecisionLedger
+        api={api}
+        path={`/navigation/estates/${estate}/cancellations`}
+        label="Cancellation ledger"
+        disabled={busy || needsRefresh}
+        kind="cancellation"
+        refreshKey={JSON.stringify([data.revision, data.requests])}
+        onChoose={
+          data.canConfigure
+            ? (row) => {
+                setRequest(row.id);
+                setDecision("");
+                setReviewReason("");
+              }
+            : undefined
+        }
+        choiceLabel="Review cancellation"
+      />
+      <h4>Recent cancellation requests and decisions</h4>
       {!requests.length && (
         <p>No permitted cancellation requests in this history window.</p>
       )}

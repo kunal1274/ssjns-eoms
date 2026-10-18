@@ -1,3 +1,4 @@
+import { DecisionLedger } from "./DecisionLedger";
 import { SearchSelect } from "./SearchSelect";
 import { ResponsibilityGovernance } from "./ResponsibilityGovernance";
 import { useEffect, useState } from "react";
@@ -13,6 +14,7 @@ export function EstateResponsibility({
     [estate, setEstate] = useState(""),
     [estateReady, setEstateReady] = useState(false),
     [companyReady, setCompanyReady] = useState(false),
+    [correctionReady, setCorrectionReady] = useState(false),
     [needsRefresh, setNeedsRefresh] = useState(false),
     [data, setData] = useState<any>(null),
     [loading, setLoading] = useState(true),
@@ -225,35 +227,25 @@ export function EstateResponsibility({
                 Use a date later than the latest change. Any work already
                 recorded on or after the proposed date blocks scheduling. Saved
                 changes are append-only. Future cancellation requires
-                independent review below; retroactive correction and
-                movement/deactivation approvals remain planned.
+                independent review below. Retroactive correction and
+                configurable approval policies remain planned; immediate moves
+                and availability have their own setup flows.
               </p>
               <fieldset disabled={busy || needsRefresh || !estateReady}>
-                <label>
-                  Correction source
-                  <select
-                    aria-label="Correction source"
-                    value={replaces}
-                    onChange={(e) => setReplaces(e.target.value)}
-                  >
-                    <option value="">New schedule (no replacement)</option>
-                    {data.items
-                      .filter(
-                        (row: any) =>
-                          row.cancelled &&
-                          !data.items.some(
-                            (other: any) =>
-                              other.replaces_responsibility_id === row.id,
-                          ),
-                      )
-                      .map((row: any) => (
-                        <option key={row.id} value={row.id}>
-                          {row.effective_from} · {row.company_name} · approved
-                          cancellation
-                        </option>
-                      ))}
-                  </select>
-                </label>
+                <SearchSelect
+                  api={api}
+                  path={`/navigation/estates/${estate}/responsibilities?purpose=choice&status=cancelled`}
+                  label="Correction source"
+                  value={replaces}
+                  onChange={setReplaces}
+                  onReady={setCorrectionReady}
+                  refreshKey={
+                    data.revision +
+                    ":" +
+                    data.requests.map((r: any) => [r.id, r.decision]).join(",")
+                  }
+                  placeholder="New schedule (no replacement)"
+                />
                 <p>
                   Search for a different accessible company in this customer. A
                   company label does not grant access to its other estates;
@@ -293,7 +285,13 @@ export function EstateResponsibility({
                     onChange={(e) => setReason(e.target.value)}
                   />
                 </label>
-                <button disabled={!company || !companyReady}>
+                <button
+                  disabled={
+                    !company ||
+                    !companyReady ||
+                    (!!replaces && !correctionReady)
+                  }
+                >
                   Save responsibility change
                 </button>
               </fieldset>
@@ -301,9 +299,9 @@ export function EstateResponsibility({
           )}
           {data.truncated && (
             <p>
-              The recent history/correction-source window is bounded. Searchable
-              company choices are available above; dedicated ledger navigation
-              and provisioning remain pending.
+              The summary is bounded. Use the searchable ledgers below for older
+              permitted records and the correction-source search for older
+              eligible cancellations. Provisioning remains separate.
             </p>
           )}
           <ResponsibilityGovernance
@@ -319,7 +317,19 @@ export function EstateResponsibility({
               setReview(value.asOf);
             }}
           />
-          <h4>Recorded responsibility changes</h4>
+          <DecisionLedger
+            api={api}
+            path={`/navigation/estates/${estate}/responsibilities`}
+            label="Responsibility ledger"
+            disabled={busy || needsRefresh || !estateReady}
+            kind="responsibility"
+            refreshKey={JSON.stringify([data.revision, data.requests])}
+            onChoose={
+              data.canConfigure ? (row) => setReplaces(row.id) : undefined
+            }
+            choiceLabel="Use for correction"
+          />
+          <h4>Recent responsibility changes</h4>
           <p>
             Each date applies until the next recorded change. Capture time and
             business-effective date are separate. Existing work with a saved

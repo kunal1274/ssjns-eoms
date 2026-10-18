@@ -1,4 +1,5 @@
 import "../apps/api/src/config";
+import { seedDecisionLedger } from "./ledger-fixture";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import request from "supertest";
@@ -60,6 +61,16 @@ before(async () => {
   ).rows[0].id;
 });
 after(async () => {
+  if (ledgerFixture) {
+    await admin.query(
+      "DELETE FROM eoms.memberships WHERE user_id=$1 AND estate_id IN ($2,$3)",
+      [supervisor.id, ledgerFixture.own.id, ledgerFixture.other.id],
+    );
+    await admin.query(
+      "DELETE FROM eoms.organization_admins WHERE customer_id=$1 AND user_id=$2",
+      [ledgerFixture.customer, supervisor.id],
+    );
+  }
   await pool.end();
   await admin.end();
 });
@@ -1171,4 +1182,252 @@ test("deep availability pins support reasoned optimistic writes and real history
         h.actor,
     ),
   );
+});
+
+let ledgerFixture: any;
+async function ledgerData() {
+  if (ledgerFixture) return ledgerFixture;
+  ledgerFixture = await seedDecisionLedger(
+    admin,
+    manager.id,
+    supervisor.id,
+    async (actor, path, data) => {
+      const a = actor === "manager" ? manager : supervisor;
+      const r = await a.agent
+        .post("/api" + path)
+        .set("Origin", "http://localhost:5174")
+        .set("X-CSRF-Token", a.csrf)
+        .send(data);
+      assert.ok(
+        r.status === 200 || r.status === 201,
+        JSON.stringify({ path, status: r.status, body: r.body }),
+      );
+      return r.body;
+    },
+  );
+  return ledgerFixture;
+}
+test("decision ledgers page complete permitted history beyond 50 with literal filters provenance and filter-bound cursors", async () => {
+  const f = await ledgerData();
+  for (const path of [
+    `estates/${f.own.id}/responsibilities`,
+    `estates/${f.own.id}/cancellations`,
+    `customers/${f.customer}/moves`,
+  ]) {
+    let cursor: any = undefined,
+      seen: string[] = [];
+    do {
+      const r = await navGet(path, { limit: 7, ...(cursor ? { cursor } : {}) });
+      seen.push(...r.items.map((x: any) => x.id));
+      cursor = r.nextCursor;
+    } while (cursor);
+    assert.equal(seen.length, 56);
+    assert.equal(new Set(seen).size, 56);
+    const r = await navGet(path, { q: "%_ exact", limit: 5 });
+    assert.equal(r.items.length, 5);
+    assert.ok(r.nextCursor);
+    assert.ok(
+      r.items.every(
+        (x: any) =>
+          x.request_id &&
+          x.estate_id &&
+          x.reason &&
+          !("searchtext" in x) &&
+          !("page_time" in x),
+      ),
+    );
+    assert.equal(
+      (
+        await manager.agent
+          .get("/api/navigation/" + path)
+          .query({ cursor: r.nextCursor, q: "other" })
+      ).status,
+      422,
+    );
+    assert.equal(
+      (
+        await supervisor.agent
+          .get("/api/navigation/" + path)
+          .query({ cursor: r.nextCursor, q: "%_ exact" })
+      ).status,
+      422,
+    );
+  }
+  const moves = await navGet(`customers/${f.customer}/moves`, {
+    status: "rejected",
+    q: "Independent ledger move 1",
+  });
+  assert.ok(
+    moves.items.some(
+      (r: any) =>
+        r.decision_reference &&
+        r.reviewer_id === supervisor.id &&
+        r.requester_id === manager.id,
+    ),
+  );
+});
+test("ledger selected records reach old correction and review choices but do not grant self review or cross-estate access", async () => {
+  const f = await ledgerData(),
+    source = f.responsibilities[1];
+  const correction = await navGet(`estates/${f.own.id}/responsibilities`, {
+    purpose: "choice",
+    status: "cancelled",
+    selectedId: source.id,
+    q: "unmatched",
+  });
+  assert.equal(correction.selected.eligible, true);
+  assert.equal(correction.selected.revision, 2);
+  assert.deepEqual(correction.items, []);
+  for (const [path, id] of [
+    [`estates/${f.own.id}/cancellations`, f.cancellations[0].id],
+    [`customers/${f.customer}/moves`, f.moves[0].id],
+  ]) {
+    const own = await navGet(path, {
+      purpose: "choice",
+      status: "pending",
+      selectedId: id,
+    });
+    assert.equal(own.selected.eligible, false);
+    const review = await navGet(
+      path,
+      { purpose: "choice", status: "pending", selectedId: id },
+      supervisor,
+    );
+    assert.equal(review.selected.eligible, true);
+  }
+  assert.equal(
+    (
+      await manager.agent
+        .get(`/api/navigation/estates/${f.other.id}/responsibilities`)
+        .query({ selectedId: source.id })
+    ).status,
+    404,
+  );
+  assert.equal(
+    (
+      await supervisor.agent.get(
+        `/api/navigation/estates/${foreignEstate}/cancellations`,
+      )
+    ).status,
+    404,
+  );
+  const current = (
+    await manager.agent.get(`/api/estates/${f.own.id}/responsibility`)
+  ).body;
+  assert.equal(current.lastActive.id, f.responsibilities[0].id);
+  assert.equal(
+    current.items.some((r: any) => r.id === current.lastActive.id),
+    false,
+  );
+});
+test("ledger page boundary excludes newer requests and scope is checked again after revocation", async () => {
+  const f = await ledgerData(),
+    path = `customers/${f.customer}/moves`,
+    first = await navGet(path, { limit: 7, status: "rejected" });
+  const request = await manager.agent
+    .post(`/api/estates/${f.other.id}/placement-moves`)
+    .set("Origin", "http://localhost:5174")
+    .set("X-CSRF-Token", manager.csrf)
+    .send({
+      toAreaId: f.area.id,
+      version: 1,
+      reason: "New request after ledger first page",
+    });
+  assert.equal(request.status, 201, JSON.stringify(request.body));
+  const decision = await supervisor.agent
+    .post(
+      `/api/estates/${f.other.id}/placement-moves/${request.body.id}/decision`,
+    )
+    .set("Origin", "http://localhost:5174")
+    .set("X-CSRF-Token", supervisor.csrf)
+    .send({
+      decision: "rejected",
+      version: 1,
+      reason: "New independent decision after boundary",
+    });
+  assert.equal(decision.status, 201, JSON.stringify(decision.body));
+  let cursor = first.nextCursor,
+    seen = first.items.map((r: any) => r.id);
+  while (cursor) {
+    const r = await navGet(path, { limit: 7, status: "rejected", cursor });
+    seen.push(...r.items.map((x: any) => x.id));
+    cursor = r.nextCursor;
+  }
+  assert.equal(seen.length, 55);
+  assert.equal(seen.includes(request.body.id), false);
+  const fresh = await navGet(path, { status: "rejected" });
+  assert.equal(fresh.items[0].id, request.body.id);
+  await admin.query(
+    "DELETE FROM eoms.memberships WHERE user_id=$1 AND estate_id=$2",
+    [manager.id, f.own.id],
+  );
+  try {
+    assert.equal(
+      (
+        await manager.agent
+          .get("/api/navigation/" + path)
+          .query({ selectedId: f.moves[0].id })
+      ).status,
+      404,
+    );
+    assert.equal(
+      (
+        await manager.agent.get(
+          `/api/navigation/estates/${f.own.id}/cancellations`,
+        )
+      ).status,
+      404,
+    );
+  } finally {
+    await admin.query(
+      "INSERT INTO eoms.memberships(user_id,estate_id,role) VALUES($1,$2,'manager')",
+      [manager.id, f.own.id],
+    );
+  }
+});
+
+test("older correction sources remain governed by revision and replacement-once guards with current eligibility pins", async () => {
+  const f = await ledgerData(),
+    source = f.responsibilities[1];
+  const data = {
+    companyId: f.company,
+    effectiveFrom: source.effective_from,
+    revision: 56,
+    reason: "Explicit older approved-cancelled correction",
+    replacesId: source.id,
+  };
+  const save = () =>
+    manager.agent
+      .post(`/api/estates/${f.own.id}/responsibility`)
+      .set("Origin", "http://localhost:5174")
+      .set("X-CSRF-Token", manager.csrf)
+      .send(data);
+  const saved = await save();
+  assert.equal(saved.status, 201, JSON.stringify(saved.body));
+  assert.equal(saved.body.revision, 57);
+  const used = await navGet(`estates/${f.own.id}/responsibilities`, {
+    purpose: "choice",
+    status: "cancelled",
+    selectedId: source.id,
+  });
+  assert.equal(used.selected.eligible, false);
+  assert.equal((await save()).status, 409);
+  const support = await navGet(`estates/${f.own.id}/responsibilities`, {
+    requestId: saved.body.request_id,
+  });
+  assert.deepEqual(
+    support.items.map((r: any) => r.id),
+    [saved.body.id],
+  );
+  assert.equal(support.items[0].replaces_responsibility_id, source.id);
+  const ownReview = await manager.agent
+    .post(`/api/estates/${f.own.id}/placement-moves/${f.moves[0].id}/decision`)
+    .set("Origin", "http://localhost:5174")
+    .set("X-CSRF-Token", manager.csrf)
+    .send({
+      decision: "approved",
+      version: 1,
+      reason: "Self review must remain denied",
+    });
+  assert.equal(ownReview.status, 403);
 });

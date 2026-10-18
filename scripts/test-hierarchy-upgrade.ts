@@ -273,6 +273,30 @@ try {
       ).rows[0],
       navigationCounts,
     );
+    const ledgerCounts = (
+      await c.query(
+        "SELECT (SELECT count(*) FROM eoms.estate_responsibilities)::int AS responsibility,(SELECT count(*) FROM eoms.responsibility_cancel_requests)::int AS cancellations,(SELECT count(*) FROM eoms.placement_move_requests)::int AS moves",
+      )
+    ).rows[0];
+    await c.query(
+      await readFile("db/migrations/015_decision_ledger_indexes.sql", "utf8"),
+    );
+    assert.equal(
+      (
+        await c.query(
+          "SELECT count(*)::int AS n FROM pg_indexes WHERE schemaname='eoms' AND indexname IN ('responsibility_ledger_page','cancellation_ledger_page','move_ledger_page')",
+        )
+      ).rows[0].n,
+      3,
+    );
+    assert.deepEqual(
+      (
+        await c.query(
+          "SELECT (SELECT count(*) FROM eoms.estate_responsibilities)::int AS responsibility,(SELECT count(*) FROM eoms.responsibility_cancel_requests)::int AS cancellations,(SELECT count(*) FROM eoms.placement_move_requests)::int AS moves",
+        )
+      ).rows[0],
+      ledgerCounts,
+    );
     const preservedTask = (
       await c.query(
         "SELECT id,block_code,block_unit_id,version FROM eoms.occurrences WHERE id=$1",

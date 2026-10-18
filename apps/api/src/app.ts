@@ -1,3 +1,4 @@
+import { decisionLedgerRoutes } from "./decision-ledgers";
 import { navigationRoutes } from "./navigation";
 import {
   lifecycleRoutes,
@@ -183,6 +184,7 @@ export function createApp(pool: Pool, options: { log?: FailureLogger } = {}) {
   }
   organizationRoutes(app, tx);
   navigationRoutes(app, tx);
+  decisionLedgerRoutes(app, tx);
   hierarchyRoutes(app, tx);
   lifecycleRoutes(app, tx);
   placementRoutes(app, tx);

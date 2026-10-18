@@ -1074,6 +1074,78 @@
         "caseId": "E2E-JRN-02-012",
         "step": "Deny a revoked preferred estate without silently choosing another context"
       }
+    },
+    {
+      "id": "COV-DECISION-LEDGER-HISTORY",
+      "journey": "JRN-02",
+      "screen": "Organization / Decision ledgers",
+      "category": "audit",
+      "control": "Older ledger details",
+      "assertion": "Page all three ledgers and find older records with actual actor, reviewer and support references",
+      "binding": {
+        "caseId": "E2E-JRN-02-013",
+        "step": "Page older responsibility cancellation and move history with actual audit provenance"
+      }
+    },
+    {
+      "id": "COV-DECISION-LEDGER-RECOVERY",
+      "journey": "JRN-02",
+      "screen": "Organization / Decision ledgers",
+      "category": "form",
+      "control": "Ledger retry with correction draft",
+      "assertion": "Retain linked correction fields and existing rows through failed-page recovery without duplicates",
+      "binding": {
+        "caseId": "E2E-JRN-02-013",
+        "step": "Retry a failed older ledger page while retaining the linked correction draft"
+      }
+    },
+    {
+      "id": "COV-DECISION-LEDGER-CORRECTION",
+      "journey": "JRN-02",
+      "screen": "Organization / Decision ledgers",
+      "category": "action",
+      "control": "Older correction source",
+      "assertion": "Save a deep approved-cancelled correction with immutable lineage; used source becomes ineligible",
+      "binding": {
+        "caseId": "E2E-JRN-02-013",
+        "step": "Save an older approved-cancelled correction with immutable lineage and current eligibility"
+      }
+    },
+    {
+      "id": "COV-DECISION-LEDGER-CANCELLATION",
+      "journey": "JRN-02",
+      "screen": "Organization / Decision ledgers",
+      "category": "action",
+      "control": "Independent older cancellation",
+      "assertion": "Deny self review, retain reason after stale approval, and independently reject the older request",
+      "binding": {
+        "caseId": "E2E-JRN-02-013",
+        "step": "Review an older pending cancellation independently and retain reason after stale approval"
+      }
+    },
+    {
+      "id": "COV-DECISION-LEDGER-MOVE",
+      "journey": "JRN-02",
+      "screen": "Organization / Decision ledgers",
+      "category": "navigation",
+      "control": "Older move handoff",
+      "assertion": "Send an older ledger request to independent review and apply the current versioned estate move",
+      "binding": {
+        "caseId": "E2E-JRN-02-013",
+        "step": "Approve an older move through ledger handoff with estate version and independent audit"
+      }
+    },
+    {
+      "id": "COV-DECISION-LEDGER-SCOPE",
+      "journey": "JRN-02",
+      "screen": "Organization / Decision ledgers",
+      "category": "navigation",
+      "control": "Ledger revocation",
+      "assertion": "Recheck estate access on refresh after membership revocation and remove previous record rows",
+      "binding": {
+        "caseId": "E2E-JRN-02-013",
+        "step": "Recheck access on ledger refresh after membership revocation"
+      }
     }
   ]
 }
