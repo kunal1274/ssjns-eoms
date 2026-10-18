@@ -1362,6 +1362,54 @@
         "caseId": "E2E-JRN-06-002",
         "step": "Clear revoked task review and private mapping inputs and reject an older authorized detail response"
       }
+    },
+    {
+      "id": "COV-HISTORICAL-WORK-PAGES",
+      "journey": "JRN-06",
+      "screen": "Historical work review",
+      "category": "navigation",
+      "control": "Historical work paging and literal search",
+      "assertion": "Page and literally search actual pre-attribution work while excluding modern attributed records",
+      "binding": {
+        "caseId": "E2E-JRN-06-003",
+        "step": "Page and literally search actual pre-attribution work while excluding modern attributed records"
+      }
+    },
+    {
+      "id": "COV-HISTORICAL-WORK-HANDOFF",
+      "journey": "JRN-06",
+      "screen": "Historical work review",
+      "category": "navigation",
+      "control": "Historical detail retry and return handoff",
+      "assertion": "Retain the selected historical row through a detail failure then open real detail and return to its work queue",
+      "binding": {
+        "caseId": "E2E-JRN-06-003",
+        "step": "Retain the selected historical row through a detail failure then open real detail and return to its work queue"
+      }
+    },
+    {
+      "id": "COV-HISTORICAL-WORK-PRESERVE",
+      "journey": "JRN-06",
+      "screen": "Historical work review",
+      "category": "action",
+      "control": "Historical reload and immutable provenance",
+      "assertion": "Reload and reopen the persisted historical record without changing attribution allocations state or audit",
+      "binding": {
+        "caseId": "E2E-JRN-06-003",
+        "step": "Reload and reopen the persisted historical record without changing attribution allocations state or audit"
+      }
+    },
+    {
+      "id": "COV-HISTORICAL-WORK-SCOPE",
+      "journey": "JRN-06",
+      "screen": "Historical work review",
+      "category": "action",
+      "control": "Foreign and revoked historical detail access",
+      "assertion": "Deny foreign and revoked historical reads clear cached work and recover only after explicit restored access",
+      "binding": {
+        "caseId": "E2E-JRN-06-003",
+        "step": "Deny foreign and revoked historical reads clear cached work and recover only after explicit restored access"
+      }
     }
   ]
 }

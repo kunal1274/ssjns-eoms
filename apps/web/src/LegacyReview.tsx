@@ -7,13 +7,15 @@ export function LegacyReview({
   api,
   onOpenWork,
   onOpenHierarchy,
+  initialKind = "tasks",
 }: {
   base: string;
   api: Api;
   onOpenWork?: (record: Record<string, any>) => void;
   onOpenHierarchy?: () => void;
+  initialKind?: "tasks" | "work";
 }) {
-  const [kind, setKind] = useState("tasks"),
+  const [kind, setKind] = useState<string>(initialKind),
     [term, setTerm] = useState(""),
     [query, setQuery] = useState(""),
     [attempt, setAttempt] = useState(0),
@@ -32,10 +34,12 @@ export function LegacyReview({
     detailGeneration = useRef(0),
     alive = useRef(true),
     accessEpoch = useRef(0),
-    context = useRef("");
+    context = useRef(""),
+    panel = useRef<HTMLElement>(null);
   context.current = JSON.stringify([base, kind, query]);
   useEffect(() => {
     alive.current = true;
+    if (initialKind === "work") panel.current?.focus();
     return () => {
       alive.current = false;
       generation.current++;
@@ -172,7 +176,12 @@ export function LegacyReview({
     );
   }
   return (
-    <section className="editor" aria-label="Legacy attribution review">
+    <section
+      className="editor"
+      aria-label="Legacy attribution review"
+      ref={panel}
+      tabIndex={-1}
+    >
       <h3>Review legacy attribution</h3>
       <ol>
         <li>Find unresolved records in this estate.</li>

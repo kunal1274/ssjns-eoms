@@ -10,6 +10,7 @@ export function Maintenance({
   kind,
   onOpenHierarchy,
   onOpenWork,
+  openLegacyWork = false,
 }: {
   base: string;
   api: Api;
@@ -17,6 +18,7 @@ export function Maintenance({
   kind: "workers" | "occurrences" | "periods";
   onOpenHierarchy?: () => void;
   onOpenWork?: (record: Record<string, any>) => void;
+  openLegacyWork?: boolean;
 }) {
   const [rows, setRows] = useState<Row[]>([]),
     [next, setNext] = useState<string | null>(null),
@@ -30,7 +32,7 @@ export function Maintenance({
     [blockReady, setBlockReady] = useState(false),
     [create, setCreate] = useState(false),
     [message, setMessage] = useState(""),
-    [showLegacy, setShowLegacy] = useState(false);
+    [showLegacy, setShowLegacy] = useState(openLegacyWork);
   const isWorker = kind === "workers",
     isPeriod = kind === "periods";
   async function load(cursor?: string, search = filter) {
@@ -112,6 +114,7 @@ export function Maintenance({
               api={api}
               onOpenHierarchy={onOpenHierarchy}
               onOpenWork={onOpenWork}
+              initialKind={openLegacyWork ? "work" : "tasks"}
             />
           )}
         </>

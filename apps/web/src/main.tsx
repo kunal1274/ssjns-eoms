@@ -75,6 +75,7 @@ function App() {
     [audit, setAudit] = useState<Row[]>([]),
     [cursor, setCursor] = useState<string | null>(null),
     [detail, setDetail] = useState<Row | null>(null),
+    [legacyWorkEstate, setLegacyWorkEstate] = useState(""),
     [tab, setTab] = useState("Muster register"),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
@@ -218,6 +219,7 @@ function App() {
   }
   useEffect(() => {
     setDetail(null);
+    setLegacyWorkEstate("");
     setReviewAction(null);
     setCreating(false);
     setRows([]);
@@ -227,6 +229,9 @@ function App() {
     setAudit([]);
     if (estate) void act(refresh);
   }, [estate]);
+  useEffect(() => {
+    if (detail) document.getElementById("muster-detail")?.focus();
+  }, [detail?.id]);
   const role = estates.find((e) => e.id === estate)?.role,
     canWrite = ["manager", "supervisor"].includes(role || "");
   if (!ready)
@@ -321,6 +326,7 @@ function App() {
             key={x}
             onClick={() => {
               setTab(x);
+              setLegacyWorkEstate("");
               setDetail(null);
               setReviewAction(null);
               setCreating(false);
@@ -810,7 +816,7 @@ function App() {
             </section>
           )}
           {detail && (
-            <section className="card">
+            <section className="card" id="muster-detail" tabIndex={-1}>
               <div className="cardtitle">
                 <h2>Muster detail · {detail.status}</h2>
                 <button className="secondary" onClick={() => setDetail(null)}>
@@ -826,6 +832,39 @@ function App() {
                   ? `Recorded responsible company: ${detail.legal_company_name} · ${detail.legal_responsibility_id ? "Dated assignment" : "Baseline assignment"}`
                   : "Legacy record: company attribution was not captured."}
               </p>
+              {!detail.legal_company_id && (
+                <section aria-label="Historical attribution guidance">
+                  <p>
+                    Company attribution was not recorded for this historical
+                    work. Today's company or the task's current block link
+                    cannot establish that historical fact. Ask the migration
+                    owner to reconcile the source record; opening this detail
+                    does not assign or correct attribution.
+                  </p>
+                  <details>
+                    <summary>View historical record references</summary>
+                    <dl>
+                      <dt>Work record ID</dt>
+                      <dd>{detail.id}</dd>
+                      <dt>Estate ID</dt>
+                      <dd>{detail.estate_id}</dd>
+                      <dt>Task ID</dt>
+                      <dd>{detail.occurrence_id}</dd>
+                    </dl>
+                  </details>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLegacyWorkEstate(estate);
+                      setDetail(null);
+                      setReviewAction(null);
+                      setTab("Task capacity");
+                    }}
+                  >
+                    Return to unresolved work review
+                  </button>
+                </section>
+              )}
               <table>
                 <thead>
                   <tr>
@@ -954,6 +993,7 @@ function App() {
             estate && (
               <Maintenance
                 onOpenHierarchy={() => setTab("Organization")}
+                openLegacyWork={legacyWorkEstate === estate}
                 onOpenWork={(value) => {
                   if (currentEstate.current !== estate) return;
                   setDetail(value);
