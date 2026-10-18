@@ -406,6 +406,7 @@ export function PlacementGovernance({
                 placements or approved moves.
               </p>
               <SearchSelect
+                key={area + "-" + (chosen?.version || "none")}
                 api={api}
                 path={`/navigation/customers/${customerId}/areas`}
                 label="Lifecycle area"
