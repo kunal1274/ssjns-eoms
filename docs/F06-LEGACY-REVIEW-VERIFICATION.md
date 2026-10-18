@@ -2,6 +2,10 @@
 
 18 October 2026. F06.6a scoped queues/task-link automated verification passed for the scope below. F06 remains In progress. This compact checkpoint contains technical facts and synthetic test scope, without retransmitting the blocked full client-derived tracker/handoff payload.
 
+## Later historical-work browser acceptance
+
+The positive historical-work browser gap recorded below is now verified by source `272d2d401498841f1405603276aa07d3197f31e2` / [CI 39142448119](https://github.com/kunal1274/ssjns-eoms/actions/runs/39142448119). See [historical work checkpoint](F06-HISTORICAL-WORK-VERIFICATION.md): real pre-attribution records, focused detail/return, recovery, original allocations/audit, scope loss/restoration and reload passed at both viewports. Full gate: 120 unit/API, 44 executions, ledger 208 passed/40 untested, upgrade/browser/PWA/Docker/persistence success. This supersedes only that acceptance gap; source-backed reconciliation/import and F06/manual acceptance stay open. Original F06.6a evidence below retains its tested scope.
+
 ## Verified source and full gate
 
 Branch source `e5538c2e487a58357aea7700d7496b76bd551a9e`, [CI 39133843552](https://github.com/kunal1274/ssjns-eoms/actions/runs/39133843552), attempt 1: verify and quality-gate both succeeded. The PR workflow exercises the generated merge with the base. This evidence/index follow-up changes documentation only.

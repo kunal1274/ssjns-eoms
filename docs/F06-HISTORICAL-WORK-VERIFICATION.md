@@ -1,6 +1,20 @@
 # Historical work browser acceptance: engineering checkpoint
 
-18 October 2026. Implemented; full verification pending. F06 remains In progress. This compact technical checkpoint does not retransmit the blocked full client-derived tracker/handoff payload.
+18 October 2026. F06.6b positive historical-work browser acceptance is verified for the scope below. F06 remains In progress. This compact technical checkpoint does not retransmit the blocked full client-derived tracker/handoff payload.
+
+## Verified source and full gate
+
+Branch source `272d2d401498841f1405603276aa07d3197f31e2`, [CI 39142448119](https://github.com/kunal1274/ssjns-eoms/actions/runs/39142448119), attempt 1: verify and quality-gate succeeded. The PR workflow exercises the generated merge with the base. This later evidence/index update changes documentation only.
+
+| Check | Executed result |
+| --- | --- |
+| Unit and real PostgreSQL/API | 39 + 81 = 120 passed, zero failures; same suites passed inside Docker. |
+| Playwright | All 44 desktop/mobile executions passed. New E2E-JRN-06-003: 3.6s / 3.6s, including real upgrade/API, history preservation, retry, read-only detail, return, scope revocation and explicit restoration. |
+| Ledger | 208 passed / 40 untested item/project rows; inventory 124 items, 104 mapped / 20 gaps. Not whole-product coverage. |
+| Existing regression and upgrade | Prior API/negative/journey/browser/maintenance/workflow/PWA/session/offline/installability and legacy-upgrade checks through migration 017 passed. |
+| Delivery | Generated-ledger UI, formatting/type/build, zero-known-vulnerability audit and actual Docker/database/proxy/idempotency/retained-volume persistence checks passed. |
+
+This closes the positive historical-work browser handoff gap recorded in the previous checkpoint. It does not complete historical reconciliation/import, manual UAT, F06 or the broader product. No merge/deployment or owner-visible/manual acceptance is claimed.
 
 ## Behavior and connected journey
 
@@ -14,9 +28,9 @@ E2E-JRN-06-003 creates a disposable local PostgreSQL database. It applies migrat
 
 The assigned clerk's synthetic session is isolated; UI sign-in is covered by existing journeys. The new case checks beyond-first-page historical rows, literal search, exclusion of the modern attributed record, failed-detail/retry and focused handoff, original worker allocations, missing-attribution guidance/source IDs, read-only state, return navigation, reload/reopen, forbidden sibling reads, revocation clearing, explicit restoration and exact before/after preservation of all work/shares/business audit. The fixture closes its API/pools and drops only its generated database.
 
-## Pending full verification
+## Verification scope and baseline
 
-Local: 39 unit/config/security/ledger tests, TypeScript, production build and full formatting checks passed. No new API route, migration, production grant or dependency was added. Expected full gate remains 120 unit/API tests and rises to 44 desktop/mobile executions. Inventory is 124 items / 104 mapped / 20 gaps; expected ledger is 208 passed / 40 untested item/project rows. These are expectations until execution succeeds; they are not whole-product coverage.
+Local: 39 unit/config/security/ledger tests, TypeScript, production build and full formatting checks passed. No new API route, migration, production grant or dependency was added. The full gate executed 120 unit/API tests and 44 desktop/mobile executions. Actual inventory/ledger results are recorded above; they are not whole-product coverage.
 
 Prior verified implementation: e5538c2e487a58357aea7700d7496b76bd551a9e / CI 39133843552. Documentation follow-up 2a773cfb6bd277739c3b8ff83990f7778f6e0e19 / CI 39134599066 passed. Existing regression assertions/timeouts remain active.
 
