@@ -970,10 +970,28 @@ test("operating area pages reach all 201 permitted records and pinned records do
 test("area kind availability exclusion and literal filters bind cursors and retain ineligible current pins", async () => {
   const f = await areaData(),
     path = `customers/${f.customer}/areas`;
-  await admin.query(
-    "UPDATE eoms.operating_areas SET name=$2,active=false,version=version+1 WHERE id=$1",
-    [f.areas[200].id, "Literal 50% _ slash\\ area"],
-  );
+  const areaPath = `/api/customers/${f.customer}/areas/${f.areas[200].id}`;
+  const renamed = await manager.agent
+    .post(areaPath)
+    .set("Origin", "http://localhost:5174")
+    .set("X-CSRF-Token", manager.csrf)
+    .send({
+      code: f.areas[200].code,
+      name: "Literal 50% _ slash\\ area",
+      version: 1,
+      reason: "Authorized literal area search fixture",
+    });
+  assert.equal(renamed.status, 200, JSON.stringify(renamed.body));
+  const paused = await manager.agent
+    .post(areaPath + "/lifecycle")
+    .set("Origin", "http://localhost:5174")
+    .set("X-CSRF-Token", manager.csrf)
+    .send({
+      active: false,
+      version: 2,
+      reason: "Authorized inactive area selector fixture",
+    });
+  assert.equal(paused.status, 200, JSON.stringify(paused.body));
   for (const q of ["%", "_", "\\"])
     assert.deepEqual(
       (await navGet(path, { q })).items.map((r: any) => r.id),
@@ -984,7 +1002,7 @@ test("area kind availability exclusion and literal filters bind cursors and reta
     selectedId: f.areas[200].id,
   });
   assert.equal(pin.selected.eligible, false);
-  assert.equal(pin.selected.version, 2);
+  assert.equal(pin.selected.version, 3);
   const excluded = await navGet(path, {
     q: f.areas[0].code,
     excludeId: f.areas[0].id,
@@ -1023,10 +1041,16 @@ test("area kind availability exclusion and literal filters bind cursors and reta
 test("estate pins supply current placement versions and excluded companies remain explicit ineligible choices", async () => {
   const f = await areaData(),
     own = f.estates.find((r: any) => r.code.endsWith("-201"));
-  await admin.query(
-    "UPDATE eoms.estates SET area_id=$2,placement_version=placement_version+1 WHERE id=$1",
-    [own.id, f.areas[0].id],
-  );
+  const placed = await manager.agent
+    .post(`/api/estates/${own.id}/placement`)
+    .set("Origin", "http://localhost:5174")
+    .set("X-CSRF-Token", manager.csrf)
+    .send({
+      areaId: f.areas[0].id,
+      version: 1,
+      reason: "Authorized estate placement pin fixture",
+    });
+  assert.equal(placed.status, 200, JSON.stringify(placed.body));
   const pin = await navGet("estates", {
     customerId: f.customer,
     selectedId: own.id,
