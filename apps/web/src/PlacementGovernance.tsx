@@ -221,6 +221,13 @@ export function PlacementGovernance({
                   `/navigation/customers/${customerId}/areas?status=active` +
                   (selected?.area_id ? `&excludeId=${selected.area_id}` : "")
                 }
+                refreshKey={JSON.stringify(
+                  data.areas.map((row: any) => [
+                    row.id,
+                    row.version,
+                    row.active,
+                  ]),
+                )}
                 label="Move destination"
                 value={target}
                 onChange={setTarget}
@@ -409,6 +416,13 @@ export function PlacementGovernance({
                 key={area + "-" + (chosen?.version || "none")}
                 api={api}
                 path={`/navigation/customers/${customerId}/areas`}
+                refreshKey={JSON.stringify(
+                  data.areas.map((row: any) => [
+                    row.id,
+                    row.version,
+                    row.active,
+                  ]),
+                )}
                 label="Lifecycle area"
                 value={area}
                 onChange={(id, row) => {

@@ -15,8 +15,9 @@ export function organizationRoutes(app: Express, tx: Transaction) {
           await client.query(
             `SELECT t.id AS customer_id,t.code AS customer_code,t.name AS customer_name,
        c.id AS company_id,c.name AS company_name,e.id AS estate_id,e.code AS estate_code,e.name AS estate_name
-       FROM eoms.estates e JOIN eoms.companies c ON c.id=e.company_id AND c.customer_id=e.customer_id
-       JOIN eoms.customers t ON t.id=c.customer_id ORDER BY t.name,c.name,e.name,e.id LIMIT 201`,
+       FROM eoms.memberships m JOIN eoms.estates e ON e.id=m.estate_id JOIN eoms.companies c ON c.id=e.company_id AND c.customer_id=e.customer_id
+       JOIN eoms.customers t ON t.id=c.customer_id WHERE m.user_id=$1 ORDER BY t.name,c.name,e.name,e.id LIMIT 201`,
+            [res.locals.user.id],
           )
         ).rows,
     );

@@ -254,6 +254,17 @@ try {
         "utf8",
       ),
     );
+    await c.query(
+      await readFile("db/migrations/014_scope_read_indexes.sql", "utf8"),
+    );
+    assert.equal(
+      (
+        await c.query(
+          "SELECT count(*)::int AS n FROM pg_indexes WHERE schemaname='eoms' AND indexname IN ('estate_company_read','company_customer_read','area_customer_page')",
+        )
+      ).rows[0].n,
+      3,
+    );
     assert.deepEqual(
       (
         await c.query(

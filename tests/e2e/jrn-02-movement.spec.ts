@@ -140,9 +140,9 @@ test("E2E-JRN-02-006 @regression independent movement and safe area lifecycle", 
     await gate
       .getByRole("button", { name: "Request estate move", exact: true })
       .click();
-    await expect(gate.getByRole("status")).toContainText(
-      "Current placement is unchanged",
-    );
+    await expect(
+      gate.getByRole("status").filter({ hasText: "Move requested." }),
+    ).toContainText("Current placement is unchanged");
     await expect(gate).toContainText(
       "You cannot review your own move request.",
     );
@@ -224,9 +224,11 @@ test("E2E-JRN-02-006 @regression independent movement and safe area lifecycle", 
       await panel
         .getByRole("button", { name: "Record move decision", exact: true })
         .click();
-      await expect(panel.getByRole("status")).toHaveText(
-        "Independent move decision saved.",
-      );
+      await expect(
+        panel
+          .getByRole("status")
+          .filter({ hasText: "Independent move decision saved." }),
+      ).toHaveText("Independent move decision saved.");
       const event = panel.locator(`[data-move-request-id="${requestId}"]`);
       await event.getByText("View move audit details", { exact: true }).click();
       await expect(event).toContainText(manager.display_name);
@@ -254,9 +256,9 @@ test("E2E-JRN-02-006 @regression independent movement and safe area lifecycle", 
     await gate
       .getByRole("button", { name: "Deactivate area", exact: true })
       .click();
-    await expect(gate.getByRole("status")).toHaveText(
-      "Area availability saved.",
-    );
+    await expect(
+      gate.getByRole("status").filter({ hasText: "Area availability saved." }),
+    ).toHaveText("Area availability saved.");
     await expect(
       placement.locator(`[data-area-code="${source.code}"]`),
     ).toContainText("Inactive");
@@ -276,9 +278,9 @@ test("E2E-JRN-02-006 @regression independent movement and safe area lifecycle", 
     await gate
       .getByRole("button", { name: "Reactivate area", exact: true })
       .click();
-    await expect(gate.getByRole("status")).toHaveText(
-      "Area availability saved.",
-    );
+    await expect(
+      gate.getByRole("status").filter({ hasText: "Area availability saved." }),
+    ).toHaveText("Area availability saved.");
     await expect(
       placement.locator(`[data-area-code="${source.code}"]`),
     ).toContainText("Active");

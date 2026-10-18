@@ -111,9 +111,11 @@ test("E2E-JRN-02-004 @regression dated responsibility preserves captured work", 
     await legal
       .getByRole("button", { name: "Save responsibility change", exact: true })
       .click();
-    await expect(legal.getByRole("status")).toHaveText(
-      "Responsibility change saved. Existing work retained.",
-    );
+    await expect(
+      legal
+        .getByRole("status")
+        .filter({ hasText: "Responsibility change saved." }),
+    ).toHaveText("Responsibility change saved. Existing work retained.");
     await expect(legal.locator("[data-responsibility-summary]")).toContainText(
       "2101-01-10: " + target.name,
     );

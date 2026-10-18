@@ -50,9 +50,11 @@ test("E2E-JRN-02-003 @regression optional operating placement preserves scoped a
     await placement
       .getByRole("button", { name: "Save operating area", exact: true })
       .click();
-    await expect(placement.getByRole("status")).toHaveText(
-      "Operating area saved.",
-    );
+    await expect(
+      placement
+        .getByRole("status")
+        .filter({ hasText: "Operating area saved." }),
+    ).toHaveText("Operating area saved.");
     await expect(
       placement.getByRole("button", {
         name: "Save operating area",
@@ -109,9 +111,11 @@ test("E2E-JRN-02-003 @regression optional operating placement preserves scoped a
     await placement
       .getByRole("button", { name: "Save estate placement", exact: true })
       .click();
-    await expect(placement.getByRole("status")).toHaveText(
-      "Estate placement saved.",
-    );
+    await expect(
+      placement
+        .getByRole("status")
+        .filter({ hasText: "Estate placement saved." }),
+    ).toHaveText("Estate placement saved.");
     await expect(
       placement.locator(`[data-placement-estate-id="${estate.id}"]`),
     ).toContainText(businessCode);

@@ -260,6 +260,13 @@ export function OperatingPlacement({
                         ? null
                         : `/navigation/customers/${customerId}/areas?kind=region&status=active`
                     }
+                    refreshKey={JSON.stringify(
+                      data.areas.map((row) => [
+                        row.id,
+                        row.version,
+                        row.active,
+                      ]),
+                    )}
                     label="Area parent"
                     value={parent}
                     onChange={setParent}
@@ -370,6 +377,13 @@ export function OperatingPlacement({
                       <SearchSelect
                         api={api}
                         path={`/navigation/customers/${customerId}/areas?status=active`}
+                        refreshKey={JSON.stringify(
+                          data.areas.map((row: any) => [
+                            row.id,
+                            row.version,
+                            row.active,
+                          ]),
+                        )}
                         label="Estate operating area"
                         value={area}
                         onChange={setArea}
@@ -415,6 +429,9 @@ export function OperatingPlacement({
             <SearchSelect
               api={api}
               path={`/navigation/customers/${customerId}/areas`}
+              refreshKey={JSON.stringify(
+                data.areas.map((row: any) => [row.id, row.version, row.active]),
+              )}
               label="Existing operating area"
               value={editing?.id || ""}
               onChange={(_id, row) => (row ? editArea(row) : clearArea())}

@@ -23,6 +23,7 @@ export function SearchSelect({
   onReady,
   onReview,
   localOptions = [],
+  refreshKey,
 }: {
   api: Api;
   path: string | null;
@@ -37,6 +38,7 @@ export function SearchSelect({
   onReady?: (ready: boolean) => void;
   onReview?: (row: Row) => void;
   localOptions?: Row[];
+  refreshKey?: string | number;
 }) {
   const [term, setTerm] = useState(""),
     [query, setQuery] = useState(""),
@@ -54,7 +56,7 @@ export function SearchSelect({
     readyRef = useRef(onReady);
   apiRef.current = api;
   readyRef.current = onReady;
-  const context = JSON.stringify([path, query, value]);
+  const context = JSON.stringify([path, query, value, refreshKey]);
   current.current = context;
   async function read(more = false) {
     if (!path) return;
@@ -102,7 +104,7 @@ export function SearchSelect({
     return () => {
       request.current++;
     };
-  }, [path, query, value, attempt]);
+  }, [path, query, value, attempt, refreshKey]);
   useEffect(() => {
     readyRef.current?.(
       !busy &&

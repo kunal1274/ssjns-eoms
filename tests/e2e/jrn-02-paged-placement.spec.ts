@@ -1,4 +1,4 @@
-import { test, expect, estateId } from "./fixtures";
+import { test, expect } from "./fixtures";
 import { hash, token } from "../../apps/api/src/security";
 test("E2E-JRN-02-011 @regression paged placement and responsibility preserve work alignment", async ({
   page,
@@ -13,12 +13,24 @@ test("E2E-JRN-02-011 @regression paged placement and responsibility preserve wor
     ).rows,
     manager = actors.find((r) => r.email === "manager@eoms.local"),
     reviewer = actors.find((r) => r.email === "reviewer@eoms.local");
-  const source = (
+  const customer = (
     await work.db.query(
-      "SELECT customer_id,company_id FROM eoms.estates WHERE id=$1",
-      [estateId],
+      "INSERT INTO eoms.customers(code,name) VALUES($1,$2) RETURNING id",
+      [code, "ZZZZ Paged placement " + code],
     )
-  ).rows[0];
+  ).rows[0].id;
+  const company = (
+    await work.db.query(
+      "INSERT INTO eoms.companies(customer_id,name) VALUES($1,'Paged baseline company') RETURNING id",
+      [customer],
+    )
+  ).rows[0].id;
+  const source = { customer_id: customer, company_id: company };
+  for (const actor of [manager, reviewer])
+    await work.db.query(
+      "INSERT INTO eoms.organization_admins(customer_id,user_id) VALUES($1,$2)",
+      [customer, actor.id],
+    );
   const estates = (
     await work.db.query(
       "INSERT INTO eoms.estates(customer_id,company_id,code,name) SELECT $1,$2,$3||'-'||lpad(i::text,3,'0'),'ZZZ Paged placement '||$3||' '||lpad(i::text,3,'0') FROM generate_series(1,201) i RETURNING id,code",
@@ -93,6 +105,11 @@ test("E2E-JRN-02-011 @regression paged placement and responsibility preserve wor
     await page
       .getByRole("button", { name: "Organization", exact: true })
       .click();
+    await page.getByLabel("Search Customer", { exact: true }).fill(code);
+    await page
+      .getByRole("button", { name: "Find Customer", exact: true })
+      .click();
+    await page.getByLabel("Customer", { exact: true }).selectOption(customer);
   }
   await session(manager);
   const placement = page.getByRole("region", {
