@@ -354,7 +354,7 @@ test("E2E-JRN-02-015 @regression unlinked facilities filters and paged history r
         panel
           .getByLabel("Operational site", { exact: true })
           .locator(`option[value="${target.id}"]`),
-      ).toBeDisabled();
+      ).toHaveJSProperty("disabled", true);
       await expect(
         panel.locator(`[data-site-id="${target.id}"]`),
       ).toContainText(target.code);
