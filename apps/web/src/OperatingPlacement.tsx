@@ -438,8 +438,10 @@ export function OperatingPlacement({
                 </strong>
                 <p>
                   Parent:{" "}
-                  {data.areas.find((p) => p.id === row.parent_id)?.code ||
-                    "Customer root"}{" "}
+                  {row.parent_id
+                    ? data.areas.find((p) => p.id === row.parent_id)?.code ||
+                      "Parent outside displayed window"
+                    : "Customer root"}{" "}
                   · Version {row.version} · {row.active ? "Active" : "Inactive"}
                 </p>
                 {data.canConfigure && (

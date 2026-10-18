@@ -151,6 +151,9 @@ test("E2E-JRN-02-011 @regression paged placement and responsibility preserve wor
     business = await response.json();
     expect(business.parent_id).toBe(region.id);
     await expect(
+      placement.locator(`[data-area-code="${business.code}"]`),
+    ).toContainText("Parent outside displayed window");
+    await expect(
       placement.getByLabel("Placement estate", { exact: true }),
     ).toHaveValue(own.id);
   });
