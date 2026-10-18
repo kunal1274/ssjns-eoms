@@ -146,6 +146,7 @@ test("E2E-JRN-02-013 @regression older decision ledgers connect correction and i
       "Retain older correction fields during a failed ledger page";
     await test.step("Retry a failed older ledger page while retaining the linked correction draft", async () => {
       await ledger("Responsibility ledger")
+        .locator(`[data-ledger-record="${f.responsibilities[1].id}"]`)
         .getByRole("button", { name: "Use for correction", exact: true })
         .click();
       await expect(
@@ -263,6 +264,7 @@ test("E2E-JRN-02-013 @regression older decision ledgers connect correction and i
       const panel = ledger("Cancellation ledger");
       await find(panel, "Cancellation ledger", f.cancellations[0].id);
       await panel
+        .locator(`[data-ledger-record="${f.cancellations[0].id}"]`)
         .getByRole("button", { name: "Review cancellation", exact: true })
         .click();
       await expect(
@@ -310,6 +312,7 @@ test("E2E-JRN-02-013 @regression older decision ledgers connect correction and i
         panel.locator(`[data-ledger-record="${f.cancellations[0].id}"]`),
       ).toContainText("rejected");
       await panel
+        .locator(`[data-ledger-record="${f.cancellations[0].id}"]`)
         .getByText("View ledger audit details", { exact: true })
         .click();
       await expect(panel).toContainText(reviewer.id);
@@ -318,6 +321,7 @@ test("E2E-JRN-02-013 @regression older decision ledgers connect correction and i
       const panel = ledger("Move ledger");
       await find(panel, "Move ledger", f.moves[0].id);
       await panel
+        .locator(`[data-ledger-record="${f.moves[0].id}"]`)
         .getByRole("button", { name: "Review move", exact: true })
         .click();
       await expect(
