@@ -1002,6 +1002,78 @@
         "caseId": "E2E-JRN-02-011",
         "step": "Capture work with estate identity operating placement and dated company aligned"
       }
+    },
+    {
+      "id": "COV-PAGED-AVAILABILITY-HEADER",
+      "journey": "JRN-02",
+      "screen": "Organization / Availability",
+      "category": "navigation",
+      "control": "Estate switcher",
+      "assertion": "Search, page, switch and reload a deep estate with the actual membership role",
+      "binding": {
+        "caseId": "E2E-JRN-02-012",
+        "step": "Search and page assigned estates then retain a deep header selection after reload"
+      }
+    },
+    {
+      "id": "COV-PAGED-AVAILABILITY-SEARCH",
+      "journey": "JRN-02",
+      "screen": "Organization / Availability",
+      "category": "form",
+      "control": "Availability search recovery",
+      "assertion": "Retain selected deep unit and reason through safe correlated search failure/retry",
+      "binding": {
+        "caseId": "E2E-JRN-02-012",
+        "step": "Reach deep availability records and retain reason through correlated search recovery"
+      }
+    },
+    {
+      "id": "COV-PAGED-AVAILABILITY-VERSION",
+      "journey": "JRN-02",
+      "screen": "Organization / Availability",
+      "category": "action",
+      "control": "Availability conflict reload",
+      "assertion": "Retain stale reviewed state and reason, explicitly reload, then save with real detailed audit",
+      "binding": {
+        "caseId": "E2E-JRN-02-012",
+        "step": "Reject stale availability without replacing reviewed state until explicit reload"
+      }
+    },
+    {
+      "id": "COV-PAGED-AVAILABILITY-REFRESH",
+      "journey": "JRN-02",
+      "screen": "Organization / Availability",
+      "category": "action",
+      "control": "Acknowledged change recovery",
+      "assertion": "Block repeated writes after saved-but-refresh-failed and recover without duplicate history",
+      "binding": {
+        "caseId": "E2E-JRN-02-012",
+        "step": "Block duplicate changes after acknowledged save refresh failure and recover explicitly"
+      }
+    },
+    {
+      "id": "COV-PAGED-AVAILABILITY-CONTEXT",
+      "journey": "JRN-02",
+      "screen": "Organization / Availability",
+      "category": "navigation",
+      "control": "Inactive estate context",
+      "assertion": "Keep inactive estate selected across navigation and reload; refresh resumed work guidance",
+      "binding": {
+        "caseId": "E2E-JRN-02-012",
+        "step": "Keep an inactive estate selected across navigation and restore its work guidance"
+      }
+    },
+    {
+      "id": "COV-PAGED-AVAILABILITY-REVOKED",
+      "journey": "JRN-02",
+      "screen": "Estate header",
+      "category": "navigation",
+      "control": "Revoked preferred estate",
+      "assertion": "A revoked preferred estate causes a scoped error and empty selection; another estate requires explicit choice",
+      "binding": {
+        "caseId": "E2E-JRN-02-012",
+        "step": "Deny a revoked preferred estate without silently choosing another context"
+      }
     }
   ]
 }

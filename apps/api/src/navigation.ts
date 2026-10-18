@@ -183,7 +183,7 @@ export function navigationRoutes(app: Express, tx: Transaction) {
         if (q.customerId) await visibleCustomer(c, q.customerId);
         const rows = (
           await c.query(
-            `SELECT e.id,e.code,e.name,e.active,e.area_id,e.placement_version,e.lifecycle_version,e.customer_id,t.code AS customer_code,t.name AS customer_name,e.company_id,c.name AS company_name
+            `SELECT e.id,e.code,e.name,m.role,e.active,e.area_id,e.placement_version,e.lifecycle_version,e.customer_id,t.code AS customer_code,t.name AS customer_name,e.company_id,c.name AS company_name
  FROM eoms.memberships m JOIN eoms.estates e ON e.id=m.estate_id JOIN eoms.companies c ON c.id=e.company_id AND c.customer_id=e.customer_id JOIN eoms.customers t ON t.id=e.customer_id
  WHERE m.user_id=$1 AND ($2::uuid IS NULL OR e.customer_id=$2) AND ($3::uuid IS NULL OR e.id>$3) AND ((e.code||' '||e.name) ILIKE $4 OR (t.code||' '||t.name) ILIKE $4 OR c.name ILIKE $4) ORDER BY e.id LIMIT $5`,
             [
@@ -198,7 +198,7 @@ export function navigationRoutes(app: Express, tx: Transaction) {
         const selected = q.selectedId
           ? (
               await c.query(
-                `SELECT e.id,e.code,e.name,e.active,e.area_id,e.placement_version,e.lifecycle_version,e.customer_id,e.company_id FROM eoms.memberships m JOIN eoms.estates e ON e.id=m.estate_id WHERE m.user_id=$1 AND e.id=$2 AND ($3::uuid IS NULL OR e.customer_id=$3)`,
+                `SELECT e.id,e.code,e.name,m.role,e.active,e.area_id,e.placement_version,e.lifecycle_version,e.customer_id,e.company_id FROM eoms.memberships m JOIN eoms.estates e ON e.id=m.estate_id WHERE m.user_id=$1 AND e.id=$2 AND ($3::uuid IS NULL OR e.customer_id=$3)`,
                 [res.locals.user.id, q.selectedId, q.customerId ?? null],
               )
             ).rows[0]
@@ -278,7 +278,7 @@ export function navigationRoutes(app: Express, tx: Transaction) {
         const selected = q.selectedId
           ? (
               await c.query(
-                "SELECT id,kind,code,name,parent_id,active,version FROM eoms.operating_units WHERE estate_id=$1 AND id=$2",
+                "SELECT u.id,u.kind,u.code,u.name,u.parent_id,p.code AS parent_code,u.active,u.version FROM eoms.operating_units u LEFT JOIN eoms.operating_units p ON p.id=u.parent_id AND p.estate_id=u.estate_id WHERE u.estate_id=$1 AND u.id=$2",
                 [estate, q.selectedId],
               )
             ).rows[0]

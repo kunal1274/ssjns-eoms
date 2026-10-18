@@ -249,6 +249,7 @@ export function HierarchySetup({
       <OperatingPlacement key={customerId} api={api} customerId={customerId} />
       <EstateLifecycle
         key={"availability-" + customerId}
+        customerId={customerId}
         api={api}
         estates={data.estates}
       />

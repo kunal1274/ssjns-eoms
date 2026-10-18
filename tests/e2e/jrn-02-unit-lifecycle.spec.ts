@@ -1,4 +1,4 @@
-import { test, expect, estateId } from "./fixtures";
+import { test, expect, chooseEstate, estateId } from "./fixtures";
 import { randomUUID } from "node:crypto";
 import { hash, token } from "../../apps/api/src/security";
 test("E2E-JRN-02-007 @regression estate and unit availability protects work", async ({
@@ -100,12 +100,8 @@ test("E2E-JRN-02-007 @regression estate and unit availability protects work", as
     [own.id],
   );
   await page.reload();
-  await expect(
-    page
-      .getByLabel("Estate", { exact: true })
-      .locator(`option[value="${own.id}"]`),
-  ).toBeAttached();
-  await page.getByLabel("Estate", { exact: true }).selectOption(own.id);
+  await chooseEstate(page, own.id);
+  await chooseEstate(page, own.id);
   const panel = page.getByRole("region", {
     name: "Estate and unit availability",
     exact: true,
@@ -135,9 +131,9 @@ test("E2E-JRN-02-007 @regression estate and unit availability protects work", as
         exact: true,
       })
       .click();
-    await expect(panel.getByRole("status")).toHaveText(
-      "Availability saved. History and work safeguards updated.",
-    );
+    await expect(
+      panel.getByRole("status").filter({ hasText: "Availability saved." }),
+    ).toHaveText("Availability saved. History and work safeguards updated.");
     await expect(
       panel.getByRole("button", {
         name: active ? "Deactivate unit" : "Reactivate unit",

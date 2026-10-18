@@ -126,9 +126,28 @@ header {
 }
 .estate {
   margin-right: auto;
+  min-width: 0;
+  max-width: 440px;
 }
-.estate select {
-  min-width: 220px;
+.estate select,
+.estate input {
+  width: 100%;
+  min-width: 0;
+}
+.estate .searchselect {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 6px;
+}
+.estate .searchselect > label:nth-of-type(2),
+.estate .searchselect > p {
+  grid-column: 1 / -1;
+}
+.estate .searchselect p {
+  margin: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
 }
 .role {
   text-transform: capitalize;
@@ -333,8 +352,12 @@ code {
     padding: 14px;
     gap: 12px;
   }
-  .estate select {
-    min-width: 140px;
+  header {
+    flex-wrap: wrap;
+  }
+  .estate {
+    flex-basis: 100%;
+    max-width: none;
   }
   main {
     padding: 20px 14px;

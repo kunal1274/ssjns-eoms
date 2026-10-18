@@ -1079,3 +1079,96 @@ test("estate pins supply current placement versions and excluded companies remai
     422,
   );
 });
+
+test("header estate pages and pins report only the actor's actual membership role including inactive estates", async () => {
+  const f = await navigationData();
+  const first = await navGet("estates", { limit: 25 });
+  assert.equal(first.items.length, 25);
+  assert.ok(first.nextCursor);
+  assert.ok(first.items.every((r: any) => r.role === "manager"));
+  const narrow = await navGet("estates", {}, supervisor);
+  assert.equal(narrow.items.length, 1);
+  assert.equal(narrow.items[0].role, "supervisor");
+  const own = f.estates[0];
+  await admin.query(
+    "UPDATE eoms.memberships SET role='clerk' WHERE user_id=$1 AND estate_id=$2",
+    [manager.id, own.id],
+  );
+  try {
+    const pin = await navGet("estates", {
+      selectedId: own.id,
+      q: "no matching record",
+    });
+    assert.deepEqual(pin.items, []);
+    assert.equal(pin.selected.role, "clerk");
+    assert.equal(pin.selected.eligible, true);
+    assert.equal(pin.selected.lifecycle_version, 1);
+    assert.equal(
+      (
+        await supervisor.agent
+          .get("/api/navigation/estates")
+          .query({ selectedId: own.id })
+      ).status,
+      404,
+    );
+  } finally {
+    await admin.query(
+      "UPDATE eoms.memberships SET role='manager' WHERE user_id=$1 AND estate_id=$2",
+      [manager.id, own.id],
+    );
+  }
+});
+
+test("deep availability pins support reasoned optimistic writes and real history while rejecting stale and foreign requests", async () => {
+  const f = await navigationData(),
+    unit = f.units[499],
+    path = `estates/${f.estate.id}/units`;
+  const read = await navGet(path, {
+    selectedId: unit.id,
+    q: "no matching unit",
+    status: "all",
+  });
+  assert.equal(read.selected.id, unit.id);
+  assert.equal(read.selected.parent_code, null);
+  const version = read.selected.version;
+  async function change(actor: any, v: number, active: boolean) {
+    return actor.agent
+      .post(`/api/estates/${f.estate.id}/units/${unit.id}/lifecycle`)
+      .set("Origin", "http://localhost:5174")
+      .set("X-CSRF-Token", actor.csrf)
+      .send({
+        version: v,
+        active,
+        reason: "Review deep availability revision",
+      });
+  }
+  const saved = await change(manager, version, false);
+  assert.equal(saved.status, 200, JSON.stringify(saved.body));
+  assert.equal(saved.body.version, version + 1);
+  const latest = await navGet(path, {
+    selectedId: unit.id,
+    q: "no matching unit",
+    status: "all",
+  });
+  assert.equal(latest.selected.active, false);
+  assert.equal(latest.selected.eligible, true);
+  assert.equal(latest.selected.version, version + 1);
+  assert.equal((await change(manager, version, true)).status, 409);
+  assert.equal((await change(supervisor, version + 1, true)).status, 404);
+  const restored = await change(manager, version + 1, true);
+  assert.equal(restored.status, 200, JSON.stringify(restored.body));
+  const events = (
+    await manager.agent.get(`/api/estates/${f.estate.id}/lifecycle`)
+  ).body.history.filter((h: any) => h.record_id === unit.id);
+  assert.equal(events.length, 2);
+  assert.equal(events[0].after.version, version + 2);
+  assert.equal(events[0].before.active, false);
+  assert.ok(
+    events.every(
+      (h: any) =>
+        h.reason === "Review deep availability revision" &&
+        h.request_id &&
+        h.actor,
+    ),
+  );
+});

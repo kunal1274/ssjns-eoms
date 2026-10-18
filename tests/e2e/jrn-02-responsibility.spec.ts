@@ -1,4 +1,4 @@
-import { test, expect, estateId } from "./fixtures";
+import { test, expect, chooseEstate, estateId } from "./fixtures";
 test("E2E-JRN-02-004 @regression dated responsibility preserves captured work", async ({
   page,
   setupAdmin,
@@ -61,11 +61,7 @@ test("E2E-JRN-02-004 @regression dated responsibility preserves captured work", 
   );
   // Fixtures were created after login; reload to fetch the updated estate directory.
   await page.reload();
-  await expect(
-    page
-      .getByLabel("Estate", { exact: true })
-      .locator(`option[value="${own.id}"]`),
-  ).toBeAttached();
+  await chooseEstate(page, own.id);
   await page.getByRole("button", { name: "Organization", exact: true }).click();
   const legal = page.getByRole("region", {
     name: "Estate responsibility",
@@ -136,7 +132,7 @@ test("E2E-JRN-02-004 @regression dated responsibility preserves captured work", 
     await expect(event).toContainText(data.items[0].request_id);
   });
   await test.step("Capture reload and inspect immutable responsible company snapshot", async () => {
-    await page.getByLabel("Estate", { exact: true }).selectOption(own.id);
+    await chooseEstate(page, own.id);
     await page
       .getByRole("button", { name: "Muster register", exact: true })
       .click();

@@ -24,6 +24,8 @@ export function SearchSelect({
   onReview,
   localOptions = [],
   refreshKey,
+  onResolved,
+  showCode = true,
 }: {
   api: Api;
   path: string | null;
@@ -39,6 +41,8 @@ export function SearchSelect({
   onReview?: (row: Row) => void;
   localOptions?: Row[];
   refreshKey?: string | number;
+  onResolved?: (row: Row) => void;
+  showCode?: boolean;
 }) {
   const [term, setTerm] = useState(""),
     [query, setQuery] = useState(""),
@@ -53,9 +57,11 @@ export function SearchSelect({
   const request = useRef(0),
     current = useRef(""),
     apiRef = useRef(api),
-    readyRef = useRef(onReady);
+    readyRef = useRef(onReady),
+    resolvedRef = useRef(onResolved);
   apiRef.current = api;
   readyRef.current = onReady;
+  resolvedRef.current = onResolved;
   const context = JSON.stringify([path, query, value, refreshKey]);
   current.current = context;
   async function read(more = false) {
@@ -83,6 +89,7 @@ export function SearchSelect({
           : result.items,
       );
       setSelected(result.selected);
+      if (result.selected?.id === value) resolvedRef.current?.(result.selected);
       setNext(result.nextCursor);
     } catch (e) {
       if (generation === request.current && current.current === started) {
@@ -189,7 +196,7 @@ export function SearchSelect({
               value={row.id}
               disabled={row.eligible === false}
             >
-              {row.code ? row.code + " · " : ""}
+              {showCode && row.code ? row.code + " · " : ""}
               {row.name}
               {row.eligible === false
                 ? " · Selected — no longer available"

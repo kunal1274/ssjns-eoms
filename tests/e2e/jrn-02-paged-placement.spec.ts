@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { test, expect, chooseEstate } from "./fixtures";
 import { hash, token } from "../../apps/api/src/security";
 test("E2E-JRN-02-011 @regression paged placement and responsibility preserve work alignment", async ({
   page,
@@ -344,7 +344,7 @@ test("E2E-JRN-02-011 @regression paged placement and responsibility preserve wor
     await expect(event).toContainText(response.headers()["x-request-id"]);
   });
   await test.step("Capture work with estate identity operating placement and dated company aligned", async () => {
-    await page.getByLabel("Estate", { exact: true }).selectOption(own.id);
+    await chooseEstate(page, own.id);
     await page
       .getByRole("button", { name: "Muster register", exact: true })
       .click();

@@ -1,3 +1,4 @@
+import { SearchSelect } from "./SearchSelect";
 import { WorkAvailability } from "./EstateLifecycle";
 import { Organization } from "./Organization";
 import { AuditTrail } from "./AuditTrail";
@@ -161,17 +162,34 @@ function App() {
       .finally(() => setReady(true));
   }, []);
   useEffect(() => {
-    if (user)
-      api("/estates")
+    let current = true;
+    setEstates([]);
+    setEstate("");
+    if (user) {
+      const preferred = sessionStorage.getItem("eoms-estate");
+      const params = new URLSearchParams({ limit: "25" });
+      if (preferred) params.set("selectedId", preferred);
+      api("/navigation/estates?" + params)
         .then((v) => {
-          setEstates(v);
-          const preferred = sessionStorage.getItem("eoms-estate");
-          setEstate(
-            v.find((e: Row) => e.id === preferred)?.id || v[0]?.id || "",
-          );
+          if (!current) return;
+          setEstates(v.selected ? [...v.items, v.selected] : v.items);
+          setEstate(v.selected?.id || v.items[0]?.id || "");
         })
-        .catch((e) => setError(e.message));
+        .catch((e) => {
+          if (current) setError(e.message);
+        });
+    }
+    return () => {
+      current = false;
+    };
   }, [user]);
+  function chooseEstate(id: string, row?: Row) {
+    sessionStorage.setItem("eoms-estate", id);
+    if (row) setEstates((old) => [...old.filter((e) => e.id !== id), row]);
+    setEstate(id);
+  }
+  const currentEstate = useRef(estate);
+  currentEstate.current = estate;
   const base = "/estates/" + estate;
   async function refresh() {
     const [list, w, t, a, g] = await Promise.all([
@@ -181,6 +199,7 @@ function App() {
       api(base + "/audit"),
       api(base + "/gangs?assignable=true"),
     ]);
+    if (currentEstate.current !== estate) return;
     setRows(list.items);
     setCursor(list.nextCursor);
     setWorkers(w.items);
@@ -202,6 +221,10 @@ function App() {
     setReviewAction(null);
     setCreating(false);
     setRows([]);
+    setWorkers([]);
+    setTasks([]);
+    setGangs([]);
+    setAudit([]);
     if (estate) void act(refresh);
   }, [estate]);
   const role = estates.find((e) => e.id === estate)?.role,
@@ -316,24 +339,28 @@ function App() {
       </aside>
       <div className="body">
         <header>
-          <label className="estate">
-            Estate
-            <select
-              aria-label="Estate"
+          <div className="estate">
+            <SearchSelect
+              key={user.id}
+              api={api}
+              path="/navigation/estates"
+              label="Estate"
               value={estate}
+              onChange={chooseEstate}
+              onResolved={(row) =>
+                setEstates((old) => [
+                  ...old.filter((e) => e.id !== row.id),
+                  row,
+                ])
+              }
+              seed={estates
+                .filter((e) => e.id === estate)
+                .map((e) => ({ ...e, id: String(e.id), name: String(e.name) }))}
+              showCode={false}
               disabled={busy || !online}
-              onChange={(e) => {
-                sessionStorage.setItem("eoms-estate", e.target.value);
-                setEstate(e.target.value);
-              }}
-            >
-              {estates.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.name}
-                </option>
-              ))}
-            </select>
-          </label>
+              placeholder="Choose assigned estate"
+            />
+          </div>
           <div>
             {user.name}
             <small className="role">{role}</small>
@@ -952,7 +979,7 @@ function App() {
             <Organization
               api={api}
               onOpenEstate={(id) => {
-                setEstate(id);
+                chooseEstate(id);
                 setTab("Muster register");
                 setDetail(null);
                 setCreating(false);

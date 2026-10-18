@@ -1,4 +1,4 @@
-import { test, expect, estateId } from "./fixtures";
+import { test, expect, chooseEstate, estateId } from "./fixtures";
 import { hash, token } from "../../apps/api/src/security";
 test("E2E-JRN-02-005 @regression independent cancellation and linked correction", async ({
   page,
@@ -73,11 +73,7 @@ test("E2E-JRN-02-005 @regression independent cancellation and linked correction"
     [own.id, task],
   );
   await page.reload();
-  await expect(
-    page
-      .getByLabel("Estate", { exact: true })
-      .locator(`option[value="${own.id}"]`),
-  ).toBeAttached();
+  await chooseEstate(page, own.id);
   await page.getByRole("button", { name: "Organization", exact: true }).click();
   const legal = page.getByRole("region", {
       name: "Estate responsibility",
@@ -279,7 +275,7 @@ test("E2E-JRN-02-005 @regression independent cancellation and linked correction"
     expect(data.responsible.assignmentId).toBe(replacementId);
   });
   await test.step("Capture replacement work and deny cancellation with retained recovery guidance", async () => {
-    await page.getByLabel("Estate", { exact: true }).selectOption(own.id);
+    await chooseEstate(page, own.id);
     await page
       .getByRole("button", { name: "Muster register", exact: true })
       .click();

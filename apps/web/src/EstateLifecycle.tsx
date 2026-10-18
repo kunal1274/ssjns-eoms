@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
+import { SearchSelect } from "./SearchSelect";
 type Api = (path: string, body?: unknown) => Promise<any>;
 export function EstateLifecycle({
   api,
   estates,
+  customerId,
 }: {
   api: Api;
+  customerId: string;
   estates: { id: string; name: string }[];
 }) {
   const [estate, setEstate] = useState(""),
@@ -17,7 +20,11 @@ export function EstateLifecycle({
     [estateReason, setEstateReason] = useState(""),
     [unitReason, setUnitReason] = useState(""),
     [needsRefresh, setNeedsRefresh] = useState(false),
-    [attempt, setAttempt] = useState(0);
+    [attempt, setAttempt] = useState(0),
+    [estateReady, setEstateReady] = useState(false),
+    [unitReady, setUnitReady] = useState(false),
+    [selected, setSelected] = useState<any>(null),
+    [revision, setRevision] = useState(0);
   const path = `/estates/${estate}/lifecycle`;
   useEffect(() => {
     let current = true;
@@ -25,6 +32,7 @@ export function EstateLifecycle({
     setError("");
     setMessage("");
     setUnit("");
+    setSelected(null);
     setEstateReason("");
     setUnitReason("");
     if (!estate) return;
@@ -47,20 +55,25 @@ export function EstateLifecycle({
     };
   }, [estate, attempt]);
   async function save(id: string | null) {
-    if (!data) return;
-    const target = id ? data.units.find((u: any) => u.id === id) : data.estate;
+    if (!data || !estateReady || needsRefresh || (id && !unitReady)) return;
+    const target = id ? selected : data.estate;
     if (!target) return;
     setBusy(true);
     setError("");
     setMessage("");
     let committed = false;
     try {
-      await api(id ? `/estates/${estate}/units/${id}/lifecycle` : path, {
-        active: !target.active,
-        version: id ? target.version : target.lifecycle_version,
-        reason: id ? unitReason : estateReason,
-      });
+      const changed = await api(
+        id ? `/estates/${estate}/units/${id}/lifecycle` : path,
+        {
+          active: !target.active,
+          version: id ? target.version : target.lifecycle_version,
+          reason: id ? unitReason : estateReason,
+        },
+      );
       committed = true;
+      if (id) setSelected((old: any) => ({ ...old, ...changed }));
+      setRevision((n) => n + 1);
       setData(await api(path));
       setNeedsRefresh(false);
       if (id) setUnitReason("");
@@ -77,7 +90,6 @@ export function EstateLifecycle({
       setBusy(false);
     }
   }
-  const selected = data?.units.find((u: any) => u.id === unit);
   return (
     <section className="editor" aria-label="Estate and unit availability">
       <h3>Estate and unit availability</h3>
@@ -100,22 +112,17 @@ export function EstateLifecycle({
         and a reason; configurable independent lifecycle approvals remain
         planned.
       </p>
-      <label>
-        Availability estate
-        <select
-          aria-label="Availability estate"
-          value={estate}
-          disabled={busy}
-          onChange={(e) => setEstate(e.target.value)}
-        >
-          <option value="">Choose assigned estate</option>
-          {estates.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      <SearchSelect
+        api={api}
+        path={`/navigation/estates?customerId=${customerId}`}
+        label="Availability estate"
+        value={estate}
+        seed={estates}
+        onReady={setEstateReady}
+        onChange={setEstate}
+        disabled={busy}
+        placeholder="Choose assigned estate"
+      />
       {estate && (
         <button
           type="button"
@@ -147,12 +154,13 @@ export function EstateLifecycle({
           </p>
           {data.truncated && (
             <p>
-              Only the first 500 units/latest 50 lifecycle events are shown.
-              Full search/history navigation remains planned.
+              The summary includes at most 500 units and the latest 50 lifecycle
+              events. Use unit search to reach every permitted unit; full
+              lifecycle history navigation remains planned.
             </p>
           )}
           {data.canConfigure ? (
-            <fieldset disabled={busy || needsRefresh}>
+            <fieldset disabled={busy || needsRefresh || !estateReady}>
               <div className="grid">
                 <form
                   aria-label="Estate availability change"
@@ -187,33 +195,41 @@ export function EstateLifecycle({
                   }}
                 >
                   <h4>Pause or resume an operating unit</h4>
-                  <label>
-                    Availability unit
-                    <select
-                      aria-label="Availability unit"
-                      required
-                      value={unit}
-                      onChange={(e) => {
-                        setUnit(e.target.value);
-                        setUnitReason("");
-                        setMessage("");
-                      }}
-                    >
-                      <option value="">Choose division, field or block</option>
-                      {data.units.map((u: any) => (
-                        <option key={u.id} value={u.id}>
-                          {u.kind} · {u.code} · {u.name} ·{" "}
-                          {u.active ? "Active" : "Inactive"}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <SearchSelect
+                    api={api}
+                    path={`/navigation/estates/${estate}/units?status=all`}
+                    label="Availability unit"
+                    value={unit}
+                    required
+                    onReady={setUnitReady}
+                    refreshKey={revision}
+                    onChange={(id, row) => {
+                      setUnit(id);
+                      setSelected(row || null);
+                      setUnitReason("");
+                      setMessage("");
+                    }}
+                    onReview={(row) => {
+                      setSelected(row);
+                      setUnitReason("");
+                      setMessage("");
+                      setError("");
+                    }}
+                    placeholder="Choose division, field or block"
+                  />
+                  <p>
+                    Search retains your reviewed version and reason. After a
+                    conflict, use Load selected Availability unit to review the
+                    latest status before entering a new reason.
+                  </p>
                   {selected && (
                     <p>
                       Current: {selected.active ? "Active" : "Inactive"} ·
                       Version {selected.version}. Parent:{" "}
-                      {data.units.find((u: any) => u.id === selected.parent_id)
-                        ?.code || "Estate root"}
+                      {selected.parent_id
+                        ? selected.parent_code ||
+                          "Recorded parent outside summary"
+                        : "Estate root"}
                       .
                     </p>
                   )}
@@ -228,7 +244,7 @@ export function EstateLifecycle({
                       onChange={(e) => setUnitReason(e.target.value)}
                     />
                   </label>
-                  <button disabled={!selected}>
+                  <button disabled={!selected || !unitReady}>
                     {selected?.active === false
                       ? "Reactivate unit"
                       : "Deactivate unit"}

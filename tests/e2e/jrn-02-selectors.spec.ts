@@ -1,4 +1,4 @@
-import { test, expect, estateId } from "./fixtures";
+import { test, expect, chooseEstate, estateId } from "./fixtures";
 import { hash, token } from "../../apps/api/src/security";
 test("E2E-JRN-02-009 @regression paged configuration choices connect hierarchy tasks and capture", async ({
   page,
@@ -250,7 +250,7 @@ test("E2E-JRN-02-009 @regression paged configuration choices connect hierarchy t
     expect(updated.version).toBe(3);
   });
   await test.step("Choose a deep configured block and review exact-code legacy linking", async () => {
-    await page.getByLabel("Estate", { exact: true }).selectOption(own.id);
+    await chooseEstate(page, own.id);
     await page
       .getByRole("button", { name: "Task capacity", exact: true })
       .click();

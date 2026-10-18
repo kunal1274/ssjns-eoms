@@ -1,4 +1,4 @@
-import { test as base, expect } from "@playwright/test";
+import { test as base, expect, type Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import pg from "pg";
@@ -57,3 +57,19 @@ export const test = base.extend<{
   },
 });
 export { expect };
+
+// Fixture identity is resolved through a scoped pin; the actual estate switch uses the UI.
+export async function chooseEstate(page: Page, id: string) {
+  const response = await page.request.get(
+    `/api/navigation/estates?selectedId=${id}&limit=1`,
+  );
+  expect(response.status()).toBe(200);
+  const row = (await response.json()).selected;
+  await page.getByLabel("Search Estate", { exact: true }).fill(row.code);
+  await page.getByRole("button", { name: "Find Estate", exact: true }).click();
+  await expect(
+    page.getByLabel("Estate", { exact: true }).locator(`option[value="${id}"]`),
+  ).toBeAttached();
+  await page.getByLabel("Estate", { exact: true }).selectOption(id);
+  await expect(page.getByLabel("Estate", { exact: true })).toHaveValue(id);
+}
