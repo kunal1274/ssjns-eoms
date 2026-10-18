@@ -1,5 +1,7 @@
 # F02 — Requirement-to-Journey Crosswalk
 
+**Current implementation overlay, 18 October 2026:** retain this accepted baseline's IDs and historical evidence. Current hierarchy proof is in F06-ACCEPTANCE-MATRIX.md; five-document/current-journey findings are in F06-CLIENT-RECONCILIATION.md and numbered client requirements in F06-CLIENT-SCOPE-MATRIX.md. Old hierarchy-absence statements are superseded only for the verified slices.
+
 **Status:** Owner-accepted planning/traceability baseline; implementation and customer-specific acceptance remain phase-gated.  
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  

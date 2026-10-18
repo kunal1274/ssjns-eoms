@@ -111,6 +111,8 @@ The first journey is available in Playwright UI mode. After host test setup and 
 
 Start with [the current handoff](docs/CURRENT-HANDOFF.md) and [phase tracker](docs/PROGRESS.md). Repository instructions in AGENTS.md preserve the full EOMS goal, audit/feedback requirements, testing workstream, remaining gates and next action across sessions.
 
+Client-document audit, 18 October: [current 66-reference scope matrix](docs/F06-CLIENT-SCOPE-MATRIX.md) and [five-document/journey reconciliation](docs/F06-CLIENT-RECONCILIATION.md). Hierarchy slices are verified; F06 acceptance is open. Next build is typed operational sites. Source release phases, approval roles, offline rules and external finance ownership need the reconciliation recorded there; no full monthly checkroll or live integration is claimed.
+
 ## Field/action coverage ledger
 
 After a journey run, use `npm run test:coverage` and open `.local/e2e-ledger/index.html`. The local view filters actual assertion evidence and open gaps by status/screen, with stale-source detection. No run means no passing evidence. See [scope, status rules and how to extend it](docs/PLAYWRIGHT-COVERAGE-LEDGER.md).

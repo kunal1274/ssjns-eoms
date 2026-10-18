@@ -1,5 +1,7 @@
 # F02 — Persona Journey Register (accepted planning baseline)
 
+**Current implementation overlay, 18 October 2026:** F06-CLIENT-RECONCILIATION.md records current acceptance/gaps for all 16 journeys and ten personas; F06-ACCEPTANCE-MATRIX.md holds latest hierarchy proof. The accepted baseline and historical evidence below remain intact. Verified F06 hierarchy slices supersede old absence statements; no full persona/client acceptance is implied.
+
 **Status:** Owner-accepted planning/traceability baseline on 16 October 2026; feature implementation and customer-specific acceptance remain phase-gated.  
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  

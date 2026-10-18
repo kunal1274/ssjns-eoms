@@ -1,5 +1,7 @@
 # F02 — Journey-to-evidence map
 
+**Current implementation overlay, 18 October 2026:** the 34 REQ / 16 JRN planning baseline was owner-accepted on 16 October (F02-OWNER-ACCEPTANCE.md). Historical candidate-status/evidence text below is not current implementation acceptance. Use F06-CLIENT-RECONCILIATION.md for all current journey gaps and F06-ACCEPTANCE-MATRIX.md for verified hierarchy evidence. Client-specific UAT remains open.
+
 **Status:** Working evidence map for the candidate JRN-* register; owner acceptance remains required.  
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  

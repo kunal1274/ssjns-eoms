@@ -2,6 +2,8 @@
 
 **Status:** In progress. F06 starts under the owner's documented F05 development exception; see F05-OWNER-EXCEPTION.md. This phase is not complete after the first increment.
 
+**18 October current overlay:** F06.3 navigation through decision/correction ledgers is verified by CI 39109502989. F06.4 desk reconciliation of all five supplied sources is recorded in F06-CLIENT-RECONCILIATION.md and F06-CLIENT-SCOPE-MATRIX.md; full phase acceptance remains open. Next build: F06.5 typed operational sites. The increment table and older checkpoints below preserve delivery history; use the current acceptance matrix and handoff for remaining work.
+
 ## Accepted model and delivery steps
 
 Customer tenant remains a distinct boundary from legal/financial company/group structure and the plantation operating hierarchy. Preserve the accepted DEC-01 flexibility: optional region/business unit, estate, division/afdeling, optional field, block; explicit legal responsibility/effective dates and downward scope grants. Parent visibility never implies sibling/upward/global record access.
@@ -11,7 +13,7 @@ Customer tenant remains a distinct boundary from legal/financial company/group s
 | F06.1 Customer boundary and scoped context | Explicit customer roots, company/estate tenant keys, conservative legacy migration, safe read API, history and guided organization-to-estate handoff                 | Verified; see executed evidence below                                |
 | F06.2 Controlled configuration             | Optional legal groups/company assignment and estate division/field/block configuration, explicit setup grants, parent/type/scope guards and versioned history        | Verified; see F06.2 execution evidence below                         |
 | F06.3 Model/access completion              | Region/business-unit nodes, ownership/effective dates, inheritance/scoped grants, moves/deactivation and large-data navigation; align with F09–F13 permission engine | In progress; F06.3a/3b/3c1 verified, remaining dependencies explicit |
-| F06.4 Phase acceptance                     | Positive/negative tenant/hierarchy cases, safe upgrade, persisted UI journeys, audit evidence and reconciled requirements                                            | Pending                                                              |
+| F06.4 Phase acceptance                     | Positive/negative tenant/hierarchy cases, safe upgrade, persisted UI journeys, audit evidence and reconciled requirements                                            | Desk reconciliation complete; full acceptance open                    |
 
 ## F06.1 behavior
 

@@ -1,5 +1,7 @@
 # F02 — Source-to-test map for the current EOMS slice
 
+**Current implementation overlay, 18 October 2026:** the source map below describes the F02-era slice. Later migrations 005–015 and hierarchy/selector/ledger journeys are evidenced in F06-ACCEPTANCE-MATRIX.md. F06-CLIENT-RECONCILIATION.md and F06-CLIENT-SCOPE-MATRIX.md provide the current client-source overlay; old hierarchy-absence statements are historical, not current gaps. Full permissions, business processes and production acceptance remain open.
+
 **Status:** Supporting source-to-test evidence map for the owner-accepted F02 planning baseline; implementation coverage remains partial.  
 **Branch:** `planning/production-roadmap-data-security`  
 **Full F02 documentation verification:** [GitHub Actions run #38849671680](https://github.com/kunal1274/ssjns-eoms/actions/runs/38849671680) passed on the owner-acceptance commit, including dependency install, migrations/DB tests, unit/integration tests, build, browser verification and dependency audit. The earlier [run #9](https://github.com/kunal1274/ssjns-eoms/actions/runs/38784677797) remains the source-code verification baseline.

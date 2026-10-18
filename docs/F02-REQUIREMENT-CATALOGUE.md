@@ -1,5 +1,7 @@
 # F02 — Requirement Catalogue
 
+**Current implementation overlay, 18 October 2026:** this accepted 16 October baseline preserves its historical evidence statements. Use F06-ACCEPTANCE-MATRIX.md and F06-CLIENT-RECONCILIATION.md for current hierarchy/journey evidence and F06-CLIENT-SCOPE-MATRIX.md for all numbered client scope rows. Old hierarchy-absence statements are superseded by verified F06 slices; full requirements remain partial until their remaining gates pass. Accepted IDs/statements are unchanged.
+
 **Status:** Owner-accepted planning/traceability baseline on 16 October 2026; implementation evidence and customer-specific requirements remain phase-gated.  
 **Review date:** 16 October 2026  
 **Branch:** `planning/production-roadmap-data-security`  
