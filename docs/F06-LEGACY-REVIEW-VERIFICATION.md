@@ -14,7 +14,7 @@ Missing historical company attribution remains unresolved and readable. The work
 
 ## Verification scope
 
-Local checks: 39 unit/config/security/ledger tests; type/build/format results are recorded after completion. Added three real PostgreSQL/API cases for literal paged queues/cursor binding, scoped viewer/foreign/revoked access, current versions/reasoned audit and exclusion of new attributed work. The upgrade harness inserts 28 actual pre-attribution work rows before migration 009 and verifies missing-attribution API pagination, exact search and original detail after migrations through 017. It does not disable guards or fabricate successful history.
+Local checks: 39 unit/config/security/ledger tests; TypeScript, production build and formatting passed. Added three real PostgreSQL/API cases for literal paged queues/cursor binding, scoped viewer/foreign/revoked access, current versions/reasoned audit and exclusion of new attributed work. The upgrade harness inserts 28 actual pre-attribution work rows before migration 009 and verifies missing-attribution API pagination, exact search and original detail after migrations through 017. It does not disable guards or fabricate successful history.
 
 Added E2E-JRN-06-002, desktop/mobile: paging plus service retry with retained mapping draft; real capacity-version conflict; committed link/read failure and safe refresh; actual audit and persisted removal from the queue; assigned read-only review and honest empty missing-company guidance; membership revocation clearing private review and rejecting an older authorized detail response. Positive historical-work browser handoff remains an explicit acceptance gap; its real positive API/upgrade path and the empty browser path are distinct evidence.
 

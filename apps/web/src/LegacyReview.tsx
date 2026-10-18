@@ -358,9 +358,13 @@ export function LegacyReview({
             </p>
           )}
           {onOpenHierarchy && (
-            <button type="button" onClick={onOpenHierarchy}>
-              Review hierarchy for this estate
-            </button>
+            <p>
+              In Organization, choose this same customer and estate before
+              configuring a matching block.{" "}
+              <button type="button" onClick={onOpenHierarchy}>
+                Open hierarchy setup for matching block
+              </button>
+            </p>
           )}
           {selected.linkEvent && (
             <section aria-label="Recorded link audit">
