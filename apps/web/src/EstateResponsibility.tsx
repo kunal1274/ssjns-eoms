@@ -328,6 +328,7 @@ export function EstateResponsibility({
               data.canConfigure ? (row) => setReplaces(row.id) : undefined
             }
             choiceLabel="Use for correction"
+            choiceTarget="Correction source"
           />
           <h4>Recent responsibility changes</h4>
           <p>

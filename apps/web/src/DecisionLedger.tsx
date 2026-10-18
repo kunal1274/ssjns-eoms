@@ -9,6 +9,7 @@ export function DecisionLedger({
   onChoose,
   choiceLabel,
   disabled = false,
+  choiceTarget,
 }: {
   api: Api;
   path: string;
@@ -18,6 +19,7 @@ export function DecisionLedger({
   onChoose?: (row: any) => void;
   choiceLabel?: string;
   disabled?: boolean;
+  choiceTarget?: "Correction source" | "Cancellation request" | "Move request";
 }) {
   const [term, setTerm] = useState(""),
     [query, setQuery] = useState(""),
@@ -27,7 +29,8 @@ export function DecisionLedger({
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [failedMore, setFailedMore] = useState(false),
-    [attempt, setAttempt] = useState(0);
+    [attempt, setAttempt] = useState(0),
+    [notice, setNotice] = useState("");
   const apiRef = useRef(api),
     generation = useRef(0),
     contextRef = useRef("");
@@ -67,6 +70,7 @@ export function DecisionLedger({
   useEffect(() => {
     setRows([]);
     setNext(null);
+    setNotice("");
     void read();
     return () => {
       generation.current++;
@@ -130,6 +134,7 @@ export function DecisionLedger({
           Refresh {label}
         </button>
       </form>
+      {notice && <p role="status">{notice}</p>}
       {busy && <p role="status">Loading {label}…</p>}
       {error && (
         <p role="alert" className="error">
@@ -169,7 +174,20 @@ export function DecisionLedger({
               <button
                 type="button"
                 disabled={busy || disabled || !!error || !row.choice_eligible}
-                onClick={() => onChoose(row)}
+                onClick={() => {
+                  onChoose(row);
+                  setNotice(
+                    `${choiceLabel} selected. Review ${choiceTarget || "the action form"} and enter a reason before saving.`,
+                  );
+                  if (choiceTarget)
+                    requestAnimationFrame(() =>
+                      document
+                        .querySelector<HTMLSelectElement>(
+                          `select[aria-label="${choiceTarget}"]`,
+                        )
+                        ?.focus(),
+                    );
+                }}
               >
                 {choiceLabel}
               </button>

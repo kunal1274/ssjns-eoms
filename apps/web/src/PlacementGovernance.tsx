@@ -503,6 +503,7 @@ export function PlacementGovernance({
             : undefined
         }
         choiceLabel="Review move"
+        choiceTarget="Move request"
       />
       <h4>Recent move requests and decisions</h4>
       {!moves.items.length && (

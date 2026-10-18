@@ -145,6 +145,12 @@ test("E2E-JRN-02-013 @regression older decision ledgers connect correction and i
     const draftReason =
       "Retain older correction fields during a failed ledger page";
     await test.step("Retry a failed older ledger page while retaining the linked correction draft", async () => {
+      await ledger("Responsibility ledger")
+        .getByRole("button", { name: "Use for correction", exact: true })
+        .click();
+      await expect(
+        legal.getByLabel("Correction source", { exact: true }),
+      ).toBeFocused();
       await find(legal, "Correction source", f.responsibilities[1].id);
       await legal
         .getByLabel("Correction source", { exact: true })
@@ -261,6 +267,9 @@ test("E2E-JRN-02-013 @regression older decision ledgers connect correction and i
         .click();
       await expect(
         governance.getByLabel("Cancellation request", { exact: true }),
+      ).toBeFocused();
+      await expect(
+        governance.getByLabel("Cancellation request", { exact: true }),
       ).toHaveValue(f.cancellations[0].id);
       await governance
         .getByLabel("Cancellation decision", { exact: true })
@@ -311,6 +320,9 @@ test("E2E-JRN-02-013 @regression older decision ledgers connect correction and i
       await panel
         .getByRole("button", { name: "Review move", exact: true })
         .click();
+      await expect(
+        movement.getByLabel("Move request", { exact: true }),
+      ).toBeFocused();
       await expect(
         movement.getByLabel("Move request", { exact: true }),
       ).toHaveValue(f.moves[0].id);

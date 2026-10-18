@@ -236,6 +236,7 @@ export function ResponsibilityGovernance({
             : undefined
         }
         choiceLabel="Review cancellation"
+        choiceTarget="Cancellation request"
       />
       <h4>Recent cancellation requests and decisions</h4>
       {!requests.length && (
