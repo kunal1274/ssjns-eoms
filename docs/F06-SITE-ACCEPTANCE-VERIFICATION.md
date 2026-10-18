@@ -15,3 +15,7 @@ Prior verified core: source 9039e74a755e326074c2348c34f04e39657b8406 / CI 391275
 Next after verification: reconcile remaining model/provisioning/legacy-attribution dependencies and prepare explicit F06 acceptance evidence; continue broader identity/permissions/business flows and visible testing work. No whole-product coverage claim is made.
 
 Replay after existing host setup: `npx playwright test jrn-02-site-acceptance --project=chrome-desktop --headed`, or select E2E-JRN-02-015/016 in `npm run test:e2e:ui`. The browser opens on the executing computer. The separate hosted prototype is unchanged.
+
+## First acceptance candidate
+
+Source 5308134546791c06df43fa32b1223e1a0bb92492 / CI 39129695263: 37 of 40 browser executions passed; three failed. Two exposed Chromium HTML-pattern compatibility, and one exposed navigation before the selected customer context was ready. Neither candidate nor coverage ledger is accepted as green. Corrections retain all assertions and timeouts: escape the pattern hyphen for current HTML regex rules, enable the direct link only for a resolved customer and explicitly focus/scroll its destination. A permission-service retry also clears previously loaded unlinked details if the retry confirms setup authority was revoked. Fresh full verification follows.

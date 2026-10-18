@@ -573,6 +573,65 @@ test("E2E-JRN-02-016 @regression site permission revocation clears restricted vi
       await panel
         .getByLabel("Operational site", { exact: true })
         .selectOption(unlinked.id);
+      await expect(
+        panel.locator(`[data-site-id="${unlinked.id}"]`),
+      ).toBeVisible();
+      let permissionFailure = true;
+      const permissionPattern = `**/api/customers/${f.customer}/sites/context`;
+      await page.route(permissionPattern, (route) =>
+        permissionFailure
+          ? route.fulfill({
+              status: 503,
+              contentType: "application/json",
+              body: JSON.stringify({
+                error: "private permission service failure",
+                requestId: "11111111-4000-4000-8000-000000000003",
+              }),
+            })
+          : route.continue(),
+      );
+      await panel
+        .getByRole("button", { name: "Refresh site access", exact: true })
+        .click();
+      await expect(
+        panel.getByRole("button", {
+          name: "Retry site permissions",
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect(
+        panel.locator(`[data-site-id="${unlinked.id}"]`),
+      ).toBeVisible();
+      await expect(
+        panel.getByRole("button", {
+          name: "Edit operational site",
+          exact: true,
+        }),
+      ).toHaveCount(0);
+      await work.db.query(
+        "DELETE FROM eoms.organization_admins WHERE customer_id=$1 AND user_id=$2",
+        [f.customer, f.manager],
+      );
+      permissionFailure = false;
+      await panel
+        .getByRole("button", { name: "Retry site permissions", exact: true })
+        .click();
+      await expect(panel.locator("[data-site-id]")).toHaveCount(0);
+      await expect(panel).not.toContainText(unlinked.name);
+      await page.unroute(permissionPattern);
+      await work.db.query(
+        "INSERT INTO eoms.organization_admins(customer_id,user_id) VALUES($1,$2)",
+        [f.customer, f.manager],
+      );
+      await panel
+        .getByRole("button", { name: "Refresh site access", exact: true })
+        .click();
+      await expect(
+        panel.getByRole("button", {
+          name: "Edit operational site",
+          exact: true,
+        }),
+      ).toBeEnabled();
       await panel
         .getByRole("button", { name: "Edit operational site", exact: true })
         .click();

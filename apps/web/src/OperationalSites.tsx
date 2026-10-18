@@ -46,9 +46,12 @@ export function OperationalSites({
     [historyAttempt, setHistoryAttempt] = useState(0);
   const generation = useRef(0),
     permissionGeneration = useRef(0),
+    checkedPermission = useRef<boolean | null>(null),
+    currentData = useRef<any>(data),
     historyGeneration = useRef(0),
     currentId = useRef(id);
   currentId.current = id;
+  currentData.current = data;
   const root = `/customers/${customerId}/sites`,
     path = `${root}/${id}`;
   const permissionReady = !permissionLoading && !permissionError;
@@ -68,6 +71,7 @@ export function OperationalSites({
     generation.current++;
     historyGeneration.current++;
     permissionGeneration.current++;
+    checkedPermission.current = false;
     setPermissionLoading(false);
     setLoading(false);
     loseSetup();
@@ -85,13 +89,22 @@ export function OperationalSites({
   useEffect(() => {
     let live = true;
     const permissionTicket = ++permissionGeneration.current;
+    checkedPermission.current = null;
     setPermissionLoading(true);
     setPermissionError("");
     api(root + "/context")
       .then((r) => {
         if (live && permissionTicket === permissionGeneration.current) {
+          checkedPermission.current = r.canConfigure;
           setAllowed(r.canConfigure);
-          if (!r.canConfigure) loseSetup();
+          if (!r.canConfigure) {
+            if (currentData.current?.estate_id === null) {
+              loseScope();
+              setError(
+                "Setup access was revoked. Unlinked facility details have been cleared. Refresh site access after your administrator reviews the assignment.",
+              );
+            } else loseSetup();
+          }
         }
       })
       .catch((e) => {
@@ -126,6 +139,13 @@ export function OperationalSites({
     api(path)
       .then((r) => {
         if (ticket === generation.current) {
+          if (r.estate_id === null && checkedPermission.current === false) {
+            loseScope();
+            setError(
+              "Setup access is no longer available for this unlinked facility. Refresh site access and review your assignment.",
+            );
+            return;
+          }
           setData(r);
           setScopeDenied(false);
           setBlocked(false);
@@ -471,7 +491,7 @@ export function OperationalSites({
                     aria-label="Site code"
                     required
                     maxLength={30}
-                    pattern="[A-Za-z0-9][A-Za-z0-9_-]{0,29}"
+                    pattern={"[A-Za-z0-9][A-Za-z0-9_\\-]{0,29}"}
                     value={code}
                     disabled={busy}
                     onChange={(e) => setCode(e.target.value.toUpperCase())}
