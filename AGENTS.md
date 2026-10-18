@@ -9,3 +9,5 @@ For each meaningful increment, record changed behavior, actual tested source/CI 
 The owner wants reusable visible testing, manual recording/review, one-click replay and field/action/form/navigation coverage across projects. These are a workstream inside the full delivery plan. Production identity, access control, full process flows and client acceptance remain required.
 
 Owner update, 17 October 2026: the user explicitly instructed continuing with the existing ruleset. F05 is closed for development sequencing with the exception recorded in docs/F05-OWNER-EXCEPTION.md; F06 is in progress. Do not re-block ordinary development or re-request the same permission for deferred repository administration. Keep the policy risk visible for release readiness; no automatic merge/deploy is authorized.
+
+Read docs/ENGINEERING-CHECKPOINT.md for the latest compact technical source/run evidence and next action. It supplements the roadmap and full tracker, and helps interpret older pending-status notes. Verified increments do not imply phase, manual/persona, production or whole-product acceptance.

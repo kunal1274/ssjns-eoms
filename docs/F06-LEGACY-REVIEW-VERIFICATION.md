@@ -1,6 +1,21 @@
 # Legacy attribution review: engineering checkpoint
 
-18 October 2026. F06.6a is implemented; full verification is pending. F06 remains In progress. This compact checkpoint contains technical facts and synthetic test scope, without retransmitting the blocked full client-derived tracker/handoff payload.
+18 October 2026. F06.6a scoped queues/task-link automated verification passed for the scope below. F06 remains In progress. This compact checkpoint contains technical facts and synthetic test scope, without retransmitting the blocked full client-derived tracker/handoff payload.
+
+## Verified source and full gate
+
+Branch source `e5538c2e487a58357aea7700d7496b76bd551a9e`, [CI 39133843552](https://github.com/kunal1274/ssjns-eoms/actions/runs/39133843552), attempt 1: verify and quality-gate both succeeded. The PR workflow exercises the generated merge with the base. This evidence/index follow-up changes documentation only.
+
+| Evidence | Actual result |
+| --- | --- |
+| Unit and PostgreSQL/API | 39 + 81 = 120 passed, zero failures; same suites passed inside Docker. |
+| Legacy upgrade | Real pre-attribution rows retained; missing-company pagination/search/detail and RLS passed through migration 017, including inside Docker. |
+| Playwright | All 42 desktop/mobile executions passed; E2E-JRN-06-002 took 7.0s / 6.8s. |
+| Coverage ledger | 200 passed / 40 untested item/project rows; 120 inventory items / 100 mapped / 20 gaps. No whole-product coverage percentage is claimed. |
+| Existing regressions | Browser/maintenance/workflow/PWA/session/offline/installability, generated-ledger UI and existing negative cases passed. |
+| Delivery checks | Format/type/build, zero-known-vulnerability audit, actual Docker build/start/database/proxy/idempotency/retained-volume persistence passed. |
+
+No merge/deployment, owner-desktop observation, manual UAT, F06 closure or positive historical-work browser handoff is claimed.
 
 ## Delivered behavior
 
@@ -18,7 +33,7 @@ Local checks: 39 unit/config/security/ledger tests; TypeScript, production build
 
 Added E2E-JRN-06-002, desktop/mobile: paging plus service retry with retained mapping draft; real capacity-version conflict; committed link/read failure and safe refresh; actual audit and persisted removal from the queue; assigned read-only review and honest empty missing-company guidance; membership revocation clearing private review and rejecting an older authorized detail response. Positive historical-work browser handoff remains an explicit acceptance gap; its real positive API/upgrade path and the empty browser path are distinct evidence.
 
-Inventory: 120 items / 100 mapped / 20 gaps. Expected full gate: 39 unit + 81 API = 120 tests, 42 viewport executions and 200 passed / 40 untested item/project ledger rows. These are expectations until execution succeeds. Existing regressions, timeouts and assertions remain active. Prior verified source 7d233761cbd913b8f48a93a1e5dbdcfe103af48a / CI 39131106651; documentation follow-up 05cfa1d1ac80743d3b07975d2458290d95ae6474 / CI 39131847993 also passed.
+Inventory and executed counts are recorded above. Existing regressions, timeouts and assertions remain active. Prior verified source 7d233761cbd913b8f48a93a1e5dbdcfe103af48a / CI 39131106651; documentation follow-up 05cfa1d1ac80743d3b07975d2458290d95ae6474 / CI 39131847993 also passed.
 
 ## Remaining and next
 
@@ -36,4 +51,4 @@ Watch `npx playwright test jrn-06-legacy-review --project=chrome-desktop --heade
 
 ## Candidate history
 
-Source 0e3b18dca3db8c418cc82db8f8045d76a5db926c / CI 39133271946 was superseded/interrupted. It passed 39 unit + 81 API tests, the real pre-attribution upgrade/read tests and the new desktop journey (7.2s), but provides no completed full gate. Follow-up 849f1aa24b7865f2023c6fc5e4091ffa7dfe1237 / CI 39133556128 stopped at formatting before application checks. A formatting-only correction retains all assertions/timeouts and is followed by a new full run. The viewer window now explicitly supplies its base URL, and hierarchy guidance requires selecting the same customer/estate.
+Source 0e3b18dca3db8c418cc82db8f8045d76a5db926c / CI 39133271946 was superseded/interrupted. It passed 39 unit + 81 API tests, the real pre-attribution upgrade/read tests and the new desktop journey (7.2s), but provides no completed full gate. Follow-up 849f1aa24b7865f2023c6fc5e4091ffa7dfe1237 / CI 39133556128 stopped at formatting before application checks. The formatting-only correction retained all assertions/timeouts; the final full run above passed. The viewer window now explicitly supplies its base URL, and hierarchy guidance requires selecting the same customer/estate.
