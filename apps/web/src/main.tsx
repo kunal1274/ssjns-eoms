@@ -954,6 +954,13 @@ function App() {
             estate && (
               <Maintenance
                 onOpenHierarchy={() => setTab("Organization")}
+                onOpenWork={(value) => {
+                  if (currentEstate.current !== estate) return;
+                  setDetail(value);
+                  setCreating(false);
+                  setReviewAction(null);
+                  setTab("Muster register");
+                }}
                 key={estate + tab}
                 base={base}
                 api={api}

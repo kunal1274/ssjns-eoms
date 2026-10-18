@@ -1,3 +1,4 @@
+import { LegacyReview } from "./LegacyReview";
 import { TaskBlockFields, TaskBlockLink } from "./TaskBlock";
 import { useEffect, useState } from "react";
 type Row = Record<string, any>;
@@ -8,12 +9,14 @@ export function Maintenance({
   manager,
   kind,
   onOpenHierarchy,
+  onOpenWork,
 }: {
   base: string;
   api: Api;
   manager: boolean;
   kind: "workers" | "occurrences" | "periods";
   onOpenHierarchy?: () => void;
+  onOpenWork?: (record: Record<string, any>) => void;
 }) {
   const [rows, setRows] = useState<Row[]>([]),
     [next, setNext] = useState<string | null>(null),
@@ -26,7 +29,8 @@ export function Maintenance({
     [link, setLink] = useState<Row | null>(null),
     [blockReady, setBlockReady] = useState(false),
     [create, setCreate] = useState(false),
-    [message, setMessage] = useState("");
+    [message, setMessage] = useState(""),
+    [showLegacy, setShowLegacy] = useState(false);
   const isWorker = kind === "workers",
     isPeriod = kind === "periods";
   async function load(cursor?: string, search = filter) {
@@ -94,6 +98,23 @@ export function Maintenance({
         <button type="button" className="secondary" onClick={onOpenHierarchy}>
           Open hierarchy setup
         </button>
+      )}
+      {!isWorker && !isPeriod && (
+        <>
+          <button type="button" onClick={() => setShowLegacy((v) => !v)}>
+            {showLegacy
+              ? "Close legacy attribution review"
+              : "Open legacy attribution review"}
+          </button>
+          {showLegacy && (
+            <LegacyReview
+              base={base}
+              api={api}
+              onOpenHierarchy={onOpenHierarchy}
+              onOpenWork={onOpenWork}
+            />
+          )}
+        </>
       )}
       {!manager && (
         <small>Read access · An estate manager maintains these records.</small>

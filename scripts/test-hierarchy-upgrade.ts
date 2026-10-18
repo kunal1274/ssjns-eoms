@@ -1,3 +1,6 @@
+import request from "supertest";
+import { createApp } from "../apps/api/src/app";
+import { hash, token } from "../apps/api/src/security";
 import "../apps/api/src/config";
 import pg from "pg";
 import { randomUUID } from "node:crypto";
@@ -94,6 +97,11 @@ try {
         [estate, legacyTask, user],
       )
     ).rows[0].id;
+    // Actual pre-attribution records: upgrade preserves missing data without disabling guards.
+    await c.query(
+      "INSERT INTO eoms.musters(estate_id,occurrence_id,business_date,gang_code,quantity_ha,created_by) SELECT $1,$2,'2026-01-16','LEGACY-GANG',0.1,$3 FROM generate_series(1,27)",
+      [estate, legacyTask, user],
+    );
     await c.query(
       await readFile("db/migrations/009_estate_responsibility.sql", "utf8"),
     );
@@ -325,6 +333,9 @@ try {
     await c.query(
       await readFile("db/migrations/016_operational_sites.sql", "utf8"),
     );
+    await c.query(
+      await readFile("db/migrations/017_legacy_review_indexes.sql", "utf8"),
+    );
     assert.equal(
       (await c.query("SELECT * FROM eoms.operational_sites")).rowCount,
       0,
@@ -351,6 +362,41 @@ try {
       0,
     );
     await c.query("COMMIT");
+    const raw = token();
+    await root.query(
+      "INSERT INTO eoms.sessions(token_hash,user_id,csrf,expires_at) VALUES($1,$2,'synthetic-upgrade',now()+interval '1 hour')",
+      [hash(raw), user],
+    );
+    const app = createApp(runtime),
+      cookie = "eoms_session=" + raw,
+      reviewBase = `/api/estates/${estate}/legacy-review`;
+    const first = await request(app)
+      .get(reviewBase + "/work?limit=25")
+      .set("Cookie", cookie);
+    assert.equal(first.status, 200, JSON.stringify(first.body));
+    assert.equal(first.body.items.length, 25);
+    assert.equal(first.body.canLink, false);
+    const second = await request(app)
+      .get(reviewBase + "/work?limit=25&cursor=" + first.body.nextCursor)
+      .set("Cookie", cookie);
+    assert.equal(second.status, 200);
+    assert.equal(second.body.items.length, 3);
+    assert.equal(
+      new Set([...first.body.items, ...second.body.items].map((x) => x.id))
+        .size,
+      28,
+    );
+    const found = await request(app)
+      .get(reviewBase + "/work?q=" + legacyWork)
+      .set("Cookie", cookie);
+    assert.equal(found.body.items[0].id, legacyWork);
+    assert.equal(found.body.items[0].business_date, "2026-01-15");
+    const original = await request(app)
+      .get(`/api/estates/${estate}/musters/${legacyWork}`)
+      .set("Cookie", cookie);
+    assert.equal(original.status, 200);
+    assert.equal(original.body.legal_company_id, null);
+    assert.equal(original.body.legal_company_name, null);
     const r = await runtime.connect();
     try {
       await r.query("BEGIN");
@@ -369,7 +415,7 @@ try {
     c.release();
   }
   console.log(
-    "PASS F06 upgrade: legacy company/estate/membership preserved, customer mapping and history created, runtime RLS verified.",
+    "PASS F06 upgrade: legacy company/estate/membership preserved, customer mapping and history created, runtime RLS and real legacy review pagination verified.",
   );
 } finally {
   await runtime?.end();

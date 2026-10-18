@@ -1302,6 +1302,66 @@
         "caseId": "E2E-JRN-02-016",
         "step": "Revoke estate membership and remove cached detail history and handoff without retargeting"
       }
+    },
+    {
+      "id": "COV-LEGACY-PAGES",
+      "journey": "JRN-06",
+      "screen": "Legacy attribution review",
+      "category": "navigation",
+      "control": "Unresolved record search and paging",
+      "assertion": "Page unresolved tasks and retry a failed page while retaining the reviewed mapping draft",
+      "binding": {
+        "caseId": "E2E-JRN-06-002",
+        "step": "Page unresolved tasks and retry a failed page while retaining the reviewed mapping draft"
+      }
+    },
+    {
+      "id": "COV-LEGACY-SAVE-RECOVERY",
+      "journey": "JRN-06",
+      "screen": "Legacy attribution review",
+      "category": "form",
+      "control": "Reasoned block mapping conflict and saved refresh recovery",
+      "assertion": "Recover a real stale task version and a committed link whose refresh fails without duplicate writes",
+      "binding": {
+        "caseId": "E2E-JRN-06-002",
+        "step": "Recover a real stale task version and a committed link whose refresh fails without duplicate writes"
+      }
+    },
+    {
+      "id": "COV-LEGACY-AUDIT",
+      "journey": "JRN-06",
+      "screen": "Legacy attribution review",
+      "category": "action",
+      "control": "Saved mapping history and resolved queue state",
+      "assertion": "Inspect actual short and detailed link audit and persisted removal from the unresolved queue",
+      "binding": {
+        "caseId": "E2E-JRN-06-002",
+        "step": "Inspect actual short and detailed link audit and persisted removal from the unresolved queue"
+      }
+    },
+    {
+      "id": "COV-LEGACY-VIEWER",
+      "journey": "JRN-06",
+      "screen": "Legacy attribution review",
+      "category": "action",
+      "control": "Read-only review and missing-attribution guidance",
+      "assertion": "Review as an assigned non-manager and keep missing-company empty guidance honest",
+      "binding": {
+        "caseId": "E2E-JRN-06-002",
+        "step": "Review as an assigned non-manager and keep missing-company empty guidance honest"
+      }
+    },
+    {
+      "id": "COV-LEGACY-REVOKED",
+      "journey": "JRN-06",
+      "screen": "Legacy attribution review",
+      "category": "action",
+      "control": "Revoked scope and delayed response",
+      "assertion": "Clear revoked task review and private mapping inputs and reject an older authorized detail response",
+      "binding": {
+        "caseId": "E2E-JRN-06-002",
+        "step": "Clear revoked task review and private mapping inputs and reject an older authorized detail response"
+      }
     }
   ]
 }

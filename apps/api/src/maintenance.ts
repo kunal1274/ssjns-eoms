@@ -1,8 +1,9 @@
+import { legacyReviewRoutes } from "./legacy-review";
 import { assertTaskAvailable } from "./lifecycle";
 import type { Express, Request, Response } from "express";
 import type { PoolClient } from "pg";
 import { z } from "zod";
-type EstateTx = <T>(
+export type EstateTx = <T>(
   req: Request,
   res: Response,
   write: boolean,
@@ -25,6 +26,7 @@ export function maintenanceRoutes(
     message: string,
   ) => Error,
 ) {
+  legacyReviewRoutes(app, estateTx);
   const uuid = z.string().uuid(),
     text = z.string().trim().min(1).max(100),
     version = z.number().int().positive();
