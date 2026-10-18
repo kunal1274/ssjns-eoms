@@ -56,7 +56,10 @@ const createSchema = z
       .refine((v) => new Set(v).size === v.length, "Workers must be unique"),
   })
   .strict();
-export function createApp(pool: Pool, options: { log?: FailureLogger } = {}) {
+export function createApp(
+  pool: Pool,
+  options: { log?: FailureLogger; webOrigin?: string } = {},
+) {
   const app = express();
   app.disable("x-powered-by");
   app.use("/api", requestContext);
@@ -69,7 +72,7 @@ export function createApp(pool: Pool, options: { log?: FailureLogger } = {}) {
   app.use("/api", (req, res, next) => {
     if (
       !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
-      req.get("Origin") !== webOrigin
+      req.get("Origin") !== (options.webOrigin ?? webOrigin)
     )
       throw new ApiError(403, "Untrusted request origin", "ORIGIN_REJECTED");
     next();

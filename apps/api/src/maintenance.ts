@@ -1,3 +1,4 @@
+import { reconciliationRoutes } from "./reconciliation";
 import { legacyReviewRoutes } from "./legacy-review";
 import { assertTaskAvailable } from "./lifecycle";
 import type { Express, Request, Response } from "express";
@@ -27,6 +28,7 @@ export function maintenanceRoutes(
   ) => Error,
 ) {
   legacyReviewRoutes(app, estateTx);
+  reconciliationRoutes(app, estateTx);
   const uuid = z.string().uuid(),
     text = z.string().trim().min(1).max(100),
     version = z.number().int().positive();

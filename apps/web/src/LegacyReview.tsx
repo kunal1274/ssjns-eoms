@@ -1,3 +1,4 @@
+import { ReconciliationPreview } from "./ReconciliationPreview";
 import { useEffect, useRef, useState } from "react";
 import { RequestFailure } from "./feedback";
 import { TaskBlockLink } from "./TaskBlock";
@@ -29,7 +30,8 @@ export function LegacyReview({
     [reviewBusy, setReviewBusy] = useState(false),
     [reviewError, setReviewError] = useState(""),
     [notice, setNotice] = useState(""),
-    [denied, setDenied] = useState(false);
+    [denied, setDenied] = useState(false),
+    [showMappings, setShowMappings] = useState(false);
   const generation = useRef(0),
     detailGeneration = useRef(0),
     alive = useRef(true),
@@ -50,6 +52,7 @@ export function LegacyReview({
   const deniedError = (e: unknown) =>
     e instanceof RequestFailure && [401, 403, 404].includes(e.status);
   function clearDenied() {
+    setShowMappings(false);
     accessEpoch.current++;
     generation.current++;
     detailGeneration.current++;
@@ -183,6 +186,12 @@ export function LegacyReview({
       tabIndex={-1}
     >
       <h3>Review legacy attribution</h3>
+      <button type="button" onClick={() => setShowMappings((v) => !v)}>
+        {showMappings
+          ? "Close source mapping preview"
+          : "Open source mapping preview"}
+      </button>
+      {showMappings && <ReconciliationPreview base={base} api={checkedApi} />}
       <ol>
         <li>Find unresolved records in this estate.</li>
         <li>

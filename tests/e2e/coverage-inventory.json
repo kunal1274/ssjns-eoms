@@ -1410,6 +1410,54 @@
         "caseId": "E2E-JRN-06-003",
         "step": "Deny foreign and revoked historical reads clear cached work and recover only after explicit restored access"
       }
+    },
+    {
+      "id": "COV-MAPPING-UPLOAD",
+      "journey": "JRN-06",
+      "screen": "Source mapping preview",
+      "category": "form",
+      "control": "Manifest upload and safe retry",
+      "assertion": "Validate uploaded manifest size and JSON and retain the proposal through a temporary preview failure",
+      "binding": {
+        "caseId": "E2E-JRN-06-004",
+        "step": "Validate uploaded manifest size and JSON and retain the proposal through a temporary preview failure"
+      }
+    },
+    {
+      "id": "COV-MAPPING-PROVENANCE",
+      "journey": "JRN-06",
+      "screen": "Source mapping preview",
+      "category": "action",
+      "control": "Read-only preview and declared/computed provenance",
+      "assertion": "Inspect actual blocked and review-required rows with unverified source and computed manifest provenance",
+      "binding": {
+        "caseId": "E2E-JRN-06-004",
+        "step": "Inspect actual blocked and review-required rows with unverified source and computed manifest provenance"
+      }
+    },
+    {
+      "id": "COV-MAPPING-REVALIDATE",
+      "journey": "JRN-06",
+      "screen": "Source mapping preview",
+      "category": "field",
+      "control": "Edited source proposals require revalidation",
+      "assertion": "Invalidate old results after proposal edits and block duplicate source rows and stale versions on revalidation",
+      "binding": {
+        "caseId": "E2E-JRN-06-004",
+        "step": "Invalidate old results after proposal edits and block duplicate source rows and stale versions on revalidation"
+      }
+    },
+    {
+      "id": "COV-MAPPING-REVOKED",
+      "journey": "JRN-06",
+      "screen": "Source mapping preview",
+      "category": "action",
+      "control": "Mapping access revocation clears private input",
+      "assertion": "Clear source proposals after setup authority loss and reject revoked membership even after access was restored",
+      "binding": {
+        "caseId": "E2E-JRN-06-004",
+        "step": "Clear source proposals after setup authority loss and reject revoked membership even after access was restored"
+      }
     }
   ]
 }

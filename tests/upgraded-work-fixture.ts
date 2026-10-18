@@ -7,7 +7,9 @@ import { hash, token } from "../apps/api/src/security";
 
 // Dedicated synthetic database: actual records precede migration 009.
 // No disabled guards, runtime bypass role, guessed backfill or invented audit events.
-export async function upgradedWorkFixture() {
+export async function upgradedWorkFixture(
+  options: { setupAdmin?: boolean } = {},
+) {
   const rootURL = new URL(process.env.ADMIN_DATABASE_URL!),
     runtimeURL = new URL(process.env.DATABASE_URL!);
   if (rootURL.hostname !== "127.0.0.1" || runtimeURL.hostname !== "127.0.0.1")
@@ -130,7 +132,22 @@ export async function upgradedWorkFixture() {
       throw Error(
         "Historical browser API requires the restricted runtime role",
       );
-    const app = createApp(runtime);
+    const customer = (
+      await root.query("SELECT customer_id FROM eoms.estates WHERE id=$1", [
+        estate,
+      ])
+    ).rows[0].customer_id;
+    if (options.setupAdmin) {
+      await root.query(
+        "UPDATE eoms.memberships SET role='manager' WHERE user_id=$1 AND estate_id=$2",
+        [user, estate],
+      );
+      await root.query(
+        "INSERT INTO eoms.organization_admins(customer_id,user_id) VALUES($1,$2)",
+        [customer, user],
+      );
+    }
+    const app = createApp(runtime, { webOrigin: "http://localhost:5284" });
     server = await new Promise<Server>((resolve, reject) => {
       const listening = app.listen(0, "127.0.0.1", () => resolve(listening));
       listening.once("error", reject);
@@ -162,6 +179,8 @@ export async function upgradedWorkFixture() {
     }
     return {
       root,
+      customer,
+      company,
       estate,
       hidden,
       user,
