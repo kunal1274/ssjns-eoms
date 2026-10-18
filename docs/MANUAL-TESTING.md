@@ -89,3 +89,6 @@ npm run test:journeys:record
 ```
 
 Playwright Codegen opens Chrome and its inspector, recording actions to ignored `.local/recorded-journey.spec.ts`. Recorded actions still need review, synthetic fixtures, assertions and cleanup/scope rules before becoming a regression test. Do not record real passwords or personal/client data. Raw recording is not automatically certified as tested. The project-aware, one-click recording/replay dashboard and a packaged kit validated on another project remain planned; the currently available Run button is Playwright UI's runner.
+
+
+Availability/header automated checkpoint: source `e08c2ca1e1cc35d9cc119c73024f06fa14c51fcf`, [CI 39093911951](https://github.com/kunal1274/ssjns-eoms/actions/runs/39093911951) passed all 32 desktop/mobile executions and full regression/Docker gates. To watch the new journey after the host setup above: `npx playwright test jrn-02-paged-availability --project=chrome-desktop --headed`. Owner-observed/manual acceptance remains separate from CI.
