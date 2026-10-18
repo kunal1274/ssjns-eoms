@@ -322,6 +322,34 @@ try {
         .action,
       "customer.created",
     );
+    await c.query(
+      await readFile("db/migrations/016_operational_sites.sql", "utf8"),
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.operational_sites")).rowCount,
+      0,
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.site_history")).rowCount,
+      0,
+    );
+    assert.equal(
+      (
+        await c.query("SELECT company_id FROM eoms.estates WHERE id=$1", [
+          estate,
+        ])
+      ).rows[0].company_id,
+      company,
+    );
+    assert.equal(
+      (await c.query("SELECT id FROM eoms.musters WHERE id=$1", [legacyWork]))
+        .rows[0].id,
+      legacyWork,
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.organization_admins")).rowCount,
+      0,
+    );
     await c.query("COMMIT");
     const r = await runtime.connect();
     try {

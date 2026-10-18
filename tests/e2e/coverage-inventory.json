@@ -1146,6 +1146,54 @@
         "caseId": "E2E-JRN-02-013",
         "step": "Recheck access on ledger refresh after membership revocation"
       }
+    },
+    {
+      "id": "COV-SITE-CREATE",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "form",
+      "control": "Facility setup",
+      "assertion": "Required code, explicit company/estate and saved version align",
+      "binding": {
+        "caseId": "E2E-JRN-02-014",
+        "step": "Create an explicit linked facility with field validation and current scope"
+      }
+    },
+    {
+      "id": "COV-SITE-SEARCH-RETRY",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "navigation",
+      "control": "Site search",
+      "assertion": "Failed search retains selected identity and editable reason; real retry succeeds",
+      "binding": {
+        "caseId": "E2E-JRN-02-014",
+        "step": "Search retry retains current site and editable fields"
+      }
+    },
+    {
+      "id": "COV-SITE-STALE-HISTORY",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "action",
+      "control": "Site edit and audit",
+      "assertion": "Concurrent edit rejects stale version; reviewed pause has immutable actor/reason/before-after reference",
+      "binding": {
+        "caseId": "E2E-JRN-02-014",
+        "step": "Reject stale edits then save reviewed availability with short and detailed history"
+      }
+    },
+    {
+      "id": "COV-SITE-HANDOFF",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "navigation",
+      "control": "Linked estate",
+      "assertion": "Persisted site reloads and opens only its explicitly assigned estate",
+      "binding": {
+        "caseId": "E2E-JRN-02-014",
+        "step": "Reload persisted site and open only its assigned estate"
+      }
     }
   ]
 }

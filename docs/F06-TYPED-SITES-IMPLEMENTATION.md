@@ -1,6 +1,6 @@
 # F06.5 — Typed operational sites: implementation contract
 
-18 October 2026. **Planned implementation; no site schema/API/UI is delivered by this document.** This is the next bounded slice of accepted DEC-01 / REQ-TEN-01 / REQ-MDM-01, connected to JRN-02 and later JRN-06/16. It follows the F06.4 client reconciliation. It does not replace F07–F25 or deliver mill, nursery, workshop or inventory operations.
+18 October 2026. **F06.5a implemented; full verification pending.** Migration 016, sites API, OperationalSites UI, six API/database cases, upgrade assertions and E2E-JRN-02-014 are now present. Local checks pass; actual PostgreSQL/browser/Docker acceptance remains pending. The contract below retains requirements beyond the first implemented browser scenario. This is the next bounded slice of accepted DEC-01 / REQ-TEN-01 / REQ-MDM-01, connected to JRN-02 and later JRN-06/16. It follows the F06.4 client reconciliation. It does not replace F07–F25 or deliver mill, nursery, workshop or inventory operations.
 
 ## First increment: F06.5a site master and scoped navigation
 

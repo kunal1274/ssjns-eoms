@@ -1,4 +1,5 @@
 import { SearchSelect } from "./SearchSelect";
+import { OperationalSites } from "./OperationalSites";
 import { OrganizationExplorer } from "./OrganizationExplorer";
 import { HierarchySetup } from "./HierarchySetup";
 import { useEffect, useState } from "react";
@@ -189,6 +190,12 @@ export function Organization({
           style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}
         >
           <HierarchySetup key={customer} api={api} customerId={customer} />
+          <OperationalSites
+            key={customer + "-sites"}
+            api={api}
+            customerId={customer}
+            onOpenEstate={onOpenEstate}
+          />
         </fieldset>
       )}
       {customer && (

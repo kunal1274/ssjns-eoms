@@ -38,7 +38,7 @@ export function EstateResponsibility({
       .then((value) => {
         if (active) {
           setEstates(value.estates);
-          setEstate(value.estates[0]?.id || "");
+          setEstate((chosen) => chosen || value.estates[0]?.id || "");
         }
       })
       .catch((e) => {
