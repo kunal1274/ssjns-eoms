@@ -289,12 +289,10 @@ test("E2E-JRN-06-002 @regression review unresolved task attribution with safe li
       expect(Number(persisted.capacity_ha)).toBe(3);
     });
     await test.step("Review as an assigned non-manager and keep missing-company empty guidance honest", async () => {
-      viewer = await context
-        .browser()!
-        .newContext({
-          viewport: page.viewportSize()!,
-          baseURL: "http://localhost:5284",
-        });
+      viewer = await context.browser()!.newContext({
+        viewport: page.viewportSize()!,
+        baseURL: "http://localhost:5284",
+      });
       const vp = await viewer.newPage();
       await vp.goto("http://localhost:5284");
       await new MusterPage(vp).signIn(supervisor);
