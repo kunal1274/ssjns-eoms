@@ -117,9 +117,11 @@ test("E2E-JRN-02-005 @regression independent cancellation and linked correction"
     await governance
       .getByRole("button", { name: "Request cancellation", exact: true })
       .click();
-    await expect(governance.getByRole("status")).toHaveText(
-      "Cancellation requested. Independent review is required.",
-    );
+    await expect(
+      governance
+        .getByRole("status")
+        .filter({ hasText: "Cancellation requested." }),
+    ).toHaveText("Cancellation requested. Independent review is required.");
     await expect(
       governance.getByRole("form", {
         name: "Independent cancellation decision",
@@ -212,7 +214,11 @@ test("E2E-JRN-02-005 @regression independent cancellation and linked correction"
           exact: true,
         })
         .click();
-      await expect(gate.getByRole("status")).toHaveText(
+      await expect(
+        gate
+          .getByRole("status")
+          .filter({ hasText: "Independent decision recorded." }),
+      ).toHaveText(
         "Independent decision recorded. Review the responsibility timeline.",
       );
       const event = gate.locator(`[data-cancel-request-id="${requestId}"]`);

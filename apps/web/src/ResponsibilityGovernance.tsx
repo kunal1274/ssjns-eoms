@@ -9,6 +9,7 @@ export function ResponsibilityGovernance({
   onChanged,
   onBusy,
   busy,
+  refreshKey,
 }: {
   estate: string;
   api: Api;
@@ -16,6 +17,7 @@ export function ResponsibilityGovernance({
   onChanged: () => Promise<void>;
   onBusy: (busy: boolean) => void;
   busy: boolean;
+  refreshKey: number;
 }) {
   const [requestReason, setRequestReason] = useState(""),
     [reviewReason, setReviewReason] = useState(""),
@@ -149,83 +151,84 @@ export function ResponsibilityGovernance({
           request.
         </p>
       )}
-      {data.canConfigure && (
-        <form
-          aria-label="Independent cancellation decision"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void act(
-              () =>
-                api(
-                  `/estates/${estate}/responsibility/requests/${request}/decision`,
-                  { decision, revision: data.revision, reason: reviewReason },
-                ),
-              "Independent decision recorded. Review the responsibility timeline.",
-              () => {
-                setRequest("");
-                setDecision("");
-                setReviewReason("");
-              },
-            );
-          }}
-        >
-          <fieldset disabled={busy || needsRefresh}>
-            <SearchSelect
-              api={api}
-              path={`/navigation/estates/${estate}/cancellations?purpose=choice&status=pending`}
-              label="Cancellation request"
-              value={request}
-              onChange={(id) => {
-                setRequest(id);
-                setDecision("");
-                setReviewReason("");
-              }}
-              onReady={setRequestReady}
-              seed={reviewable.map((r: any) => ({
-                ...r,
-                name: r.requester + " · " + r.reason,
-              }))}
-              refreshKey={JSON.stringify([data.revision, data.requests])}
-              required
-              placeholder="Choose a pending request from another administrator"
-            />
-            <label>
-              Cancellation decision
-              <select
-                aria-label="Cancellation decision"
+      {data.canConfigure &&
+        (data.hasReviewableCancellation || reviewable.length > 0) && (
+          <form
+            aria-label="Independent cancellation decision"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void act(
+                () =>
+                  api(
+                    `/estates/${estate}/responsibility/requests/${request}/decision`,
+                    { decision, revision: data.revision, reason: reviewReason },
+                  ),
+                "Independent decision recorded. Review the responsibility timeline.",
+                () => {
+                  setRequest("");
+                  setDecision("");
+                  setReviewReason("");
+                },
+              );
+            }}
+          >
+            <fieldset disabled={busy || needsRefresh}>
+              <SearchSelect
+                api={api}
+                path={`/navigation/estates/${estate}/cancellations?purpose=choice&status=pending`}
+                label="Cancellation request"
+                value={request}
+                onChange={(id) => {
+                  setRequest(id);
+                  setDecision("");
+                  setReviewReason("");
+                }}
+                onReady={setRequestReady}
+                seed={reviewable.map((r: any) => ({
+                  ...r,
+                  name: r.requester + " · " + r.reason,
+                }))}
+                refreshKey={refreshKey}
                 required
-                value={decision}
-                onChange={(e) => setDecision(e.target.value)}
-              >
-                <option value="">Choose an explicit decision</option>
-                <option value="approved">Approve cancellation</option>
-                <option value="rejected">Reject request</option>
-              </select>
-            </label>
-            <label>
-              Independent review reason
-              <textarea
-                aria-label="Independent review reason"
-                required
-                minLength={3}
-                maxLength={500}
-                value={reviewReason}
-                onChange={(e) => setReviewReason(e.target.value)}
+                placeholder="Choose a pending request from another administrator"
               />
-            </label>
-            <button disabled={!request || !requestReady}>
-              Record independent decision
-            </button>
-          </fieldset>
-        </form>
-      )}
+              <label>
+                Cancellation decision
+                <select
+                  aria-label="Cancellation decision"
+                  required
+                  value={decision}
+                  onChange={(e) => setDecision(e.target.value)}
+                >
+                  <option value="">Choose an explicit decision</option>
+                  <option value="approved">Approve cancellation</option>
+                  <option value="rejected">Reject request</option>
+                </select>
+              </label>
+              <label>
+                Independent review reason
+                <textarea
+                  aria-label="Independent review reason"
+                  required
+                  minLength={3}
+                  maxLength={500}
+                  value={reviewReason}
+                  onChange={(e) => setReviewReason(e.target.value)}
+                />
+              </label>
+              <button disabled={!request || !requestReady}>
+                Record independent decision
+              </button>
+            </fieldset>
+          </form>
+        )}
       <DecisionLedger
         api={api}
         path={`/navigation/estates/${estate}/cancellations`}
         label="Cancellation ledger"
         disabled={busy || needsRefresh}
         kind="cancellation"
-        refreshKey={JSON.stringify([data.revision, data.requests])}
+        refreshKey={refreshKey}
         onChoose={
           data.canConfigure
             ? (row) => {

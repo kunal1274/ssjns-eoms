@@ -30,7 +30,7 @@ test("E2E-JRN-02-013 @regression older decision ledgers connect correction and i
       csrf,
       actor,
       api: await apiRequest.newContext({
-        baseURL: "http://localhost:5284",
+        baseURL: "http://127.0.0.1:4210",
         extraHTTPHeaders: {
           Origin: "http://localhost:5284",
           "X-CSRF-Token": csrf,

@@ -48,6 +48,12 @@ export function placementGovernanceRoutes(app: Express, tx: Transaction) {
           )
         ).rows;
         return {
+          hasReviewable: (
+            await c.query(
+              "SELECT EXISTS(SELECT 1 FROM eoms.placement_move_requests q JOIN eoms.memberships m ON m.estate_id=q.estate_id AND m.user_id=$2 WHERE q.customer_id=$1 AND q.requester_id<>$2 AND NOT EXISTS(SELECT 1 FROM eoms.placement_move_decisions d WHERE d.move_request_id=q.id)) AS allowed",
+              [customer, res.locals.user.id],
+            )
+          ).rows[0].allowed,
           actorId: res.locals.user.id,
           items: rows.slice(0, 50),
           truncated: rows.length > 50,

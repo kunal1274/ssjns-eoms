@@ -7,6 +7,7 @@ export function PlacementGovernance({
   customerId,
   data,
   moves,
+  refreshKey,
   onChanged,
   busy,
   onBusy,
@@ -15,6 +16,7 @@ export function PlacementGovernance({
   customerId: string;
   data: any;
   moves: any;
+  refreshKey: number;
   onChanged: () => Promise<void>;
   busy: boolean;
   onBusy: (value: boolean) => void;
@@ -282,114 +284,115 @@ export function PlacementGovernance({
                 </p>
               )}
             </form>
-            {data.canConfigure && (
-              <form
-                aria-label="Independent move decision"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (item && reviewEstate)
-                    void save(
-                      () =>
-                        api(
-                          `/estates/${item.estate_id}/placement-moves/${item.id}/decision`,
-                          {
-                            decision,
-                            version: reviewEstate.placement_version,
-                            reason: reviewReason,
-                          },
-                        ),
-                      "Independent move decision saved.",
-                      () => {
-                        setRequest("");
-                        setDecision("");
-                        setReviewReason("");
-                      },
-                    );
-                }}
-              >
-                <h4>2. Independent review</h4>
-                {item && !reviewEstate && !reviewError && (
-                  <p role="status">
-                    Loading current estate placement for review…
-                  </p>
-                )}
-                {reviewError && (
-                  <p role="alert">
-                    {reviewError}{" "}
-                    <button
-                      type="button"
-                      onClick={() => setReviewAttempt((x) => x + 1)}
-                    >
-                      Retry review estate
-                    </button>
-                  </p>
-                )}
-                <SearchSelect
-                  api={api}
-                  path={`/navigation/customers/${customerId}/moves?purpose=choice&status=pending`}
-                  label="Move request"
-                  value={request}
-                  onChange={(id, row) => {
-                    setRequest(id);
-                    setRequestRecord(row || null);
-                    setDecision("");
-                    setReviewReason("");
+            {data.canConfigure &&
+              (moves.hasReviewable || reviewable.length > 0) && (
+                <form
+                  aria-label="Independent move decision"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (item && reviewEstate)
+                      void save(
+                        () =>
+                          api(
+                            `/estates/${item.estate_id}/placement-moves/${item.id}/decision`,
+                            {
+                              decision,
+                              version: reviewEstate.placement_version,
+                              reason: reviewReason,
+                            },
+                          ),
+                        "Independent move decision saved.",
+                        () => {
+                          setRequest("");
+                          setDecision("");
+                          setReviewReason("");
+                        },
+                      );
                   }}
-                  onReady={setRequestReady}
-                  seed={reviewable.map((q: any) => ({
-                    ...q,
-                    name:
-                      (data.estates.find((e: any) => e.id === q.estate_id)
-                        ?.name || q.estate_id) +
-                      " · " +
-                      q.reason,
-                  }))}
-                  refreshKey={JSON.stringify(moves)}
-                  required
-                  placeholder="Choose pending request"
-                />
-                {item && (
-                  <p>
-                    Requested: {label(item.from_area_id)} →{" "}
-                    {label(item.to_area_id)} · Expected version{" "}
-                    {item.expected_version}. Current:{" "}
-                    {label(reviewEstate?.area_id)} · Version{" "}
-                    {reviewEstate?.placement_version}. Destination and revision
-                    are rechecked at approval; reject requests that are no
-                    longer valid.
-                  </p>
-                )}
-                <label>
-                  Move decision
-                  <select
-                    aria-label="Move decision"
+                >
+                  <h4>2. Independent review</h4>
+                  {item && !reviewEstate && !reviewError && (
+                    <p role="status">
+                      Loading current estate placement for review…
+                    </p>
+                  )}
+                  {reviewError && (
+                    <p role="alert">
+                      {reviewError}{" "}
+                      <button
+                        type="button"
+                        onClick={() => setReviewAttempt((x) => x + 1)}
+                      >
+                        Retry review estate
+                      </button>
+                    </p>
+                  )}
+                  <SearchSelect
+                    api={api}
+                    path={`/navigation/customers/${customerId}/moves?purpose=choice&status=pending`}
+                    label="Move request"
+                    value={request}
+                    onChange={(id, row) => {
+                      setRequest(id);
+                      setRequestRecord(row || null);
+                      setDecision("");
+                      setReviewReason("");
+                    }}
+                    onReady={setRequestReady}
+                    seed={reviewable.map((q: any) => ({
+                      ...q,
+                      name:
+                        (data.estates.find((e: any) => e.id === q.estate_id)
+                          ?.name || q.estate_id) +
+                        " · " +
+                        q.reason,
+                    }))}
+                    refreshKey={refreshKey}
                     required
-                    value={decision}
-                    onChange={(e) => setDecision(e.target.value)}
-                  >
-                    <option value="">Choose decision</option>
-                    <option value="approved">Approve immediate move</option>
-                    <option value="rejected">
-                      Reject and preserve placement
-                    </option>
-                  </select>
-                </label>
-                <label>
-                  Move review reason
-                  <textarea
-                    aria-label="Move review reason"
-                    required
-                    minLength={3}
-                    maxLength={500}
-                    value={reviewReason}
-                    onChange={(e) => setReviewReason(e.target.value)}
+                    placeholder="Choose pending request"
                   />
-                </label>
-                <button disabled={!item || !reviewEstate || !requestReady}>
-                  Record move decision
-                </button>
-              </form>
-            )}
+                  {item && (
+                    <p>
+                      Requested: {label(item.from_area_id)} →{" "}
+                      {label(item.to_area_id)} · Expected version{" "}
+                      {item.expected_version}. Current:{" "}
+                      {label(reviewEstate?.area_id)} · Version{" "}
+                      {reviewEstate?.placement_version}. Destination and
+                      revision are rechecked at approval; reject requests that
+                      are no longer valid.
+                    </p>
+                  )}
+                  <label>
+                    Move decision
+                    <select
+                      aria-label="Move decision"
+                      required
+                      value={decision}
+                      onChange={(e) => setDecision(e.target.value)}
+                    >
+                      <option value="">Choose decision</option>
+                      <option value="approved">Approve immediate move</option>
+                      <option value="rejected">
+                        Reject and preserve placement
+                      </option>
+                    </select>
+                  </label>
+                  <label>
+                    Move review reason
+                    <textarea
+                      aria-label="Move review reason"
+                      required
+                      minLength={3}
+                      maxLength={500}
+                      value={reviewReason}
+                      onChange={(e) => setReviewReason(e.target.value)}
+                    />
+                  </label>
+                  <button disabled={!item || !reviewEstate || !requestReady}>
+                    Record move decision
+                  </button>
+                </form>
+              )}
             <form
               aria-label="Area availability"
               onSubmit={(e) => {
@@ -491,7 +494,7 @@ export function PlacementGovernance({
         label="Move ledger"
         disabled={busy || needsRefresh}
         kind="move"
-        refreshKey={JSON.stringify(moves)}
+        refreshKey={refreshKey}
         onChoose={
           data.canConfigure
             ? (row) => {

@@ -70,6 +70,12 @@ export function responsibilityRoutes(app: Express, tx: Transaction) {
           )
         ).rows;
         return {
+          hasReviewableCancellation: (
+            await c.query(
+              "SELECT EXISTS(SELECT 1 FROM eoms.responsibility_cancel_requests q WHERE q.estate_id=$1 AND q.requester_id<>$2 AND NOT EXISTS(SELECT 1 FROM eoms.responsibility_cancel_decisions d WHERE d.cancel_request_id=q.id)) AS allowed",
+              [estate, res.locals.user.id],
+            )
+          ).rows[0].allowed,
           actorId: res.locals.user.id,
           lastActiveCompanyId: lastActive?.company_id || baseline.id,
           lastActiveId: lastActive?.id || null,

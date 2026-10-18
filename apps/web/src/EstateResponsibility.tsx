@@ -16,6 +16,7 @@ export function EstateResponsibility({
     [companyReady, setCompanyReady] = useState(false),
     [correctionReady, setCorrectionReady] = useState(false),
     [needsRefresh, setNeedsRefresh] = useState(false),
+    [ledgerRevision, setLedgerRevision] = useState(0),
     [data, setData] = useState<any>(null),
     [loading, setLoading] = useState(true),
     [busy, setBusy] = useState(false),
@@ -27,6 +28,10 @@ export function EstateResponsibility({
     [review, setReview] = useState(""),
     [replaces, setReplaces] = useState("");
   const path = `/estates/${estate}/responsibility`;
+  function apply(value: any) {
+    setData(value);
+    setLedgerRevision((n) => n + 1);
+  }
   useEffect(() => {
     let active = true;
     api(`/customers/${customerId}/hierarchy`)
@@ -60,7 +65,7 @@ export function EstateResponsibility({
       api(path)
         .then((value) => {
           if (active) {
-            setData(value);
+            apply(value);
             setReview(value.asOf);
           }
         })
@@ -80,7 +85,7 @@ export function EstateResponsibility({
     setError("");
     try {
       const value = await api(path + (on ? "?on=" + on : ""));
-      setData(value);
+      apply(value);
       setReview(value.asOf);
       setNeedsRefresh(false);
     } catch (e) {
@@ -207,7 +212,7 @@ export function EstateResponsibility({
                     const value = await api(
                       path + "?on=" + saved.effective_from,
                     );
-                    setData(value);
+                    apply(value);
                     setReview(value.asOf);
                   } catch (e) {
                     if (committed) setNeedsRefresh(true);
@@ -239,11 +244,7 @@ export function EstateResponsibility({
                   value={replaces}
                   onChange={setReplaces}
                   onReady={setCorrectionReady}
-                  refreshKey={
-                    data.revision +
-                    ":" +
-                    data.requests.map((r: any) => [r.id, r.decision]).join(",")
-                  }
+                  refreshKey={ledgerRevision}
                   placeholder="New schedule (no replacement)"
                 />
                 <p>
@@ -309,11 +310,12 @@ export function EstateResponsibility({
             estate={estate}
             api={api}
             data={data}
+            refreshKey={ledgerRevision}
             busy={busy || needsRefresh}
             onBusy={setBusy}
             onChanged={async () => {
               const value = await api(path + (review ? "?on=" + review : ""));
-              setData(value);
+              apply(value);
               setReview(value.asOf);
             }}
           />
@@ -323,7 +325,7 @@ export function EstateResponsibility({
             label="Responsibility ledger"
             disabled={busy || needsRefresh || !estateReady}
             kind="responsibility"
-            refreshKey={JSON.stringify([data.revision, data.requests])}
+            refreshKey={ledgerRevision}
             onChoose={
               data.canConfigure ? (row) => setReplaces(row.id) : undefined
             }

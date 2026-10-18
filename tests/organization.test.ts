@@ -1314,6 +1314,17 @@ test("ledger selected records reach old correction and review choices but do not
   const current = (
     await manager.agent.get(`/api/estates/${f.own.id}/responsibility`)
   ).body;
+  assert.equal(current.hasReviewableCancellation, false);
+  assert.equal(
+    (await supervisor.agent.get(`/api/estates/${f.own.id}/responsibility`)).body
+      .hasReviewableCancellation,
+    true,
+  );
+  assert.equal(
+    (await supervisor.agent.get(`/api/customers/${f.customer}/placement-moves`))
+      .body.hasReviewable,
+    true,
+  );
   assert.equal(current.lastActive.id, f.responsibilities[0].id);
   assert.equal(
     current.items.some((r: any) => r.id === current.lastActive.id),

@@ -35,7 +35,8 @@ export function OperatingPlacement({
     actorId: "",
     truncated: false,
   });
-  const [needsRefresh, setNeedsRefresh] = useState(false);
+  const [needsRefresh, setNeedsRefresh] = useState(false),
+    [ledgerRevision, setLedgerRevision] = useState(0);
   const [changes, setChanges] = useState<any[]>([]),
     [loading, setLoading] = useState(true),
     [busy, setBusy] = useState(false),
@@ -67,6 +68,7 @@ export function OperatingPlacement({
   function apply(result: any) {
     setData(result.value);
     setMoves(result.moves);
+    setLedgerRevision((n) => n + 1);
     setNeedsRefresh(false);
     setChanges(
       result.history.items.filter((row: any) =>
@@ -421,6 +423,7 @@ export function OperatingPlacement({
             customerId={customerId}
             data={data}
             moves={moves}
+            refreshKey={ledgerRevision}
             onChanged={async () => apply(await read())}
             busy={busy || needsRefresh}
             onBusy={setBusy}
