@@ -1,4 +1,4 @@
-import { test, expect, estateId } from "./fixtures";
+import { test, expect, estateId, chooseEstate } from "./fixtures";
 test("E2E-JRN-06-001 @regression connect configured blocks tasks and work", async ({
   page,
   setupAdmin,
@@ -6,7 +6,7 @@ test("E2E-JRN-06-001 @regression connect configured blocks tasks and work", asyn
   work,
 }) => {
   await muster.signIn(setupAdmin);
-  await page.getByLabel("Estate", { exact: true }).selectOption(estateId);
+  await chooseEstate(page, estateId);
   const csrf = (await (await page.request.get("/api/auth/session")).json())
     .csrf;
   const suffix = Date.now().toString(36).toUpperCase(),
