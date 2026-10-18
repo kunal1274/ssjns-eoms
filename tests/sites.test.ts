@@ -111,6 +111,17 @@ before(async () => {
   ).rows[0].id;
 });
 after(async () => {
+  // Preserve append-only records while removing this fixture's temporary authority.
+  if (customer) {
+    await admin.query(
+      "DELETE FROM eoms.memberships WHERE estate_id=$1 AND user_id=ANY($2::uuid[])",
+      [estate, [manager.id, supervisor.id]],
+    );
+    await admin.query(
+      "DELETE FROM eoms.organization_admins WHERE customer_id=$1 AND user_id=ANY($2::uuid[])",
+      [customer, [manager.id, reviewer.id]],
+    );
+  }
   await pool.end();
   await admin.end();
 });

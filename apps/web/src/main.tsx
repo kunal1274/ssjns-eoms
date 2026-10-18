@@ -173,7 +173,9 @@ function App() {
         .then((v) => {
           if (!current) return;
           setEstates(v.selected ? [...v.items, v.selected] : v.items);
-          setEstate(v.selected?.id || v.items[0]?.id || "");
+          setEstate(
+            (chosen) => chosen || v.selected?.id || v.items[0]?.id || "",
+          );
         })
         .catch((e) => {
           if (current) setError(e.message);
