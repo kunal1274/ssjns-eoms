@@ -1,6 +1,20 @@
 # Source-referenced mapping preview: engineering checkpoint
 
-18 October 2026. F06.6c1 implemented; full verification pending. F06 remains In progress. This technical note does not retransmit the excluded full client-derived tracker/handoff payload.
+18 October 2026. F06.6c1 bounded preview automated verification passed for the documented scope. F06 remains In progress. This technical note does not retransmit the excluded full client-derived tracker/handoff payload.
+
+## Verified source and gate
+
+Branch source `776161e1947d7c63deaa5db387a767c3cf0ca371`, [CI 39149499634](https://github.com/kunal1274/ssjns-eoms/actions/runs/39149499634), attempt 1: verify and quality-gate both succeeded. The PR workflow exercises its generated merge with the base. This evidence/index follow-up changes documentation only.
+
+| Evidence | Actual result |
+| --- | --- |
+| Unit and real PostgreSQL/API | 42 + 84 = 126 passed, zero failures; same suites passed inside Docker. |
+| Playwright | All 46 desktop/mobile executions passed. E2E-JRN-06-004: 1.7s / 1.8s. |
+| Ledger | 216 passed / 40 untested item/project rows; inventory 128 items / 108 mapped / 20 gaps. Not whole-product coverage. |
+| Existing regressions | Legacy upgrade through 017, API negatives, all earlier browser/maintenance/workflow/PWA/session/offline/installability and generated-ledger UI passed. |
+| Delivery | Format/type/build, zero-known-vulnerability audit and actual Docker/database/proxy/idempotency/retained-volume persistence passed. |
+
+No approval/application/import execution, original-evidence verification, owner-visible/manual UAT, F06 closure, merge or deployment is claimed.
 
 ## Connected journey
 
@@ -22,7 +36,7 @@ Local 42 unit/config/security/ledger/contract tests passed, plus TypeScript/buil
 
 E2E-JRN-06-004 covers manifest-size and JSON guidance, retained upload through a correlated 503, actual report/provenance with review-required and blocked rows, invalidation/revalidation after edits, and cleared proposals/results on setup/membership revocation. The real fixture API's trusted web origin is configured explicitly at construction; production defaults remain unchanged and wrong-origin checks remain tested. Existing historical and all older browser regressions stay active.
 
-Expected full gate: 42 unit + 84 API = 126 tests; 46 desktop/mobile executions; 128 inventory items / 108 mapped / 20 gaps; ledger 216 passed / 40 untested item/project rows. These are expectations until the run succeeds, not whole-product coverage. Prior source 272d2d401498841f1405603276aa07d3197f31e2 / CI 39142448119 passed the full 120-test/44-execution gate; documentation follow-up 40f19cca / CI 39143286496 passed.
+Executed full-gate and inventory counts are recorded above; they do not represent whole-product coverage. Prior source 272d2d401498841f1405603276aa07d3197f31e2 / CI 39142448119 passed the full 120-test/44-execution gate; documentation follow-up 40f19cca / CI 39143286496 passed.
 
 ## Remaining delivery
 
