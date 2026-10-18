@@ -164,7 +164,7 @@ export function siteRoutes(app: Express, tx: Transaction) {
           if (!upper) return { items: [], nextCursor: null };
           const rows = (
             await c.query(
-              `SELECT id,site_id,actor_id,action,reason,request_id,created_at,before_state AS before,after_state AS after FROM eoms.site_history WHERE site_id=$1 AND id<=$2::bigint AND ($3::bigint IS NULL OR id<$3) AND (reason||' '||action||' '||coalesce(actor_id::text,'System')||' '||coalesce(request_id::text,'')) ILIKE $4 ORDER BY id DESC LIMIT $5`,
+              `SELECT h.id,h.site_id,h.actor_id,coalesce(u.display_name,'System / explicit bootstrap') AS actor,h.action,h.reason,h.request_id,h.created_at,h.before_state AS before,h.after_state AS after FROM eoms.site_history h LEFT JOIN eoms.users u ON u.id=h.actor_id WHERE h.site_id=$1 AND h.id<=$2::bigint AND ($3::bigint IS NULL OR h.id<$3) AND (h.reason||' '||h.action||' '||coalesce(h.actor_id::text,'System')||' '||coalesce(u.display_name,'')||' '||coalesce(h.request_id::text,'')) ILIKE $4 ORDER BY h.id DESC LIMIT $5`,
               [id, upper, page?.key ?? null, literalPattern(q.q), q.limit + 1],
             )
           ).rows;

@@ -107,6 +107,11 @@ export function Organization({
         review or configure permitted groups, divisions, fields and blocks.
       </p>
       <OrganizationExplorer api={api} onOpenEstate={onOpenEstate} />
+      <p>
+        <a href="#operational-sites">
+          Go to operational site setup and history
+        </a>
+      </p>
       {loading && <p role="status">Loading your organization…</p>}
       {error && (
         <p role="alert" className="error">

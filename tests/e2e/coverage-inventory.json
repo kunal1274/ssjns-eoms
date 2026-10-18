@@ -1194,6 +1194,114 @@
         "caseId": "E2E-JRN-02-014",
         "step": "Reload persisted site and open only its assigned estate"
       }
+    },
+    {
+      "id": "COV-SITE-UNLINKED-TYPES",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "form",
+      "control": "Unlinked setup",
+      "assertion": "Create all five unlinked facility types with required field and format prevention",
+      "binding": {
+        "caseId": "E2E-JRN-02-015",
+        "step": "Create all five unlinked facility types with required field and format prevention"
+      }
+    },
+    {
+      "id": "COV-SITE-CHOICE-PAGES",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "navigation",
+      "control": "Site pages and retry",
+      "assertion": "Page site choices with a real retry while retaining an unsaved facility draft",
+      "binding": {
+        "caseId": "E2E-JRN-02-015",
+        "step": "Page site choices with a real retry while retaining an unsaved facility draft"
+      }
+    },
+    {
+      "id": "COV-SITE-FILTERS",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "field",
+      "control": "Type and availability filters",
+      "assertion": "Apply type and availability filters while retaining an explicitly selected out-of-filter site",
+      "binding": {
+        "caseId": "E2E-JRN-02-015",
+        "step": "Apply type and availability filters while retaining an explicitly selected out-of-filter site"
+      }
+    },
+    {
+      "id": "COV-SITE-HISTORY-PAGES",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "navigation",
+      "control": "History actor search and paging",
+      "assertion": "Page search and retry actual history with actor labels while preserving an edit draft",
+      "binding": {
+        "caseId": "E2E-JRN-02-015",
+        "step": "Page search and retry actual history with actor labels while preserving an edit draft"
+      }
+    },
+    {
+      "id": "COV-SITE-UNLINKED-RELOAD",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "navigation",
+      "control": "Unlinked reload",
+      "assertion": "Reload an unlinked facility without inventing an estate handoff",
+      "binding": {
+        "caseId": "E2E-JRN-02-015",
+        "step": "Reload an unlinked facility without inventing an estate handoff"
+      }
+    },
+    {
+      "id": "COV-SITE-VIEWER-DENIAL",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "action",
+      "control": "Read-only permissions",
+      "assertion": "Read assigned linked sites as a viewer without exposing unlinked configuration or write actions",
+      "binding": {
+        "caseId": "E2E-JRN-02-016",
+        "step": "Read assigned linked sites as a viewer without exposing unlinked configuration or write actions"
+      }
+    },
+    {
+      "id": "COV-SITE-SETUP-REVOKED",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "action",
+      "control": "Revoked setup history and draft",
+      "assertion": "Revoke setup authority and clear a denied history view and private draft",
+      "binding": {
+        "caseId": "E2E-JRN-02-016",
+        "step": "Revoke setup authority and clear a denied history view and private draft"
+      }
+    },
+    {
+      "id": "COV-SITE-ACCESS-RESTORE",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "action",
+      "control": "Explicit access recovery",
+      "assertion": "Recover an explicitly chosen linked read then restore setup only after an access check",
+      "binding": {
+        "caseId": "E2E-JRN-02-016",
+        "step": "Recover an explicitly chosen linked read then restore setup only after an access check"
+      }
+    },
+    {
+      "id": "COV-SITE-MEMBERSHIP-REVOKED",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "action",
+      "control": "Revoked site detail/history and late reply",
+      "assertion": "Revoke estate membership and remove cached detail history and handoff without retargeting",
+      "binding": {
+        "caseId": "E2E-JRN-02-016",
+        "step": "Revoke estate membership and remove cached detail history and handoff without retargeting"
+      }
     }
   ]
 }

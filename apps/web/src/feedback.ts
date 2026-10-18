@@ -32,3 +32,15 @@ export function requestFailure(
 }
 export const connectionFailure =
   "The server response could not be read. Check your connection, then check the record or device queue before retrying; your action may already have been saved.";
+
+/** Keep trusted HTTP status for recovery decisions, never the raw response body. */
+export class RequestFailure extends Error {
+  constructor(
+    readonly status: number,
+    value: unknown,
+    headerId: string | null = null,
+  ) {
+    super(requestFailure(status, value, headerId));
+    this.name = "RequestFailure";
+  }
+}

@@ -3,7 +3,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AuditTrail } from "../apps/web/src/AuditTrail";
-import { requestFailure, connectionFailure } from "../apps/web/src/feedback";
+import {
+  requestFailure,
+  connectionFailure,
+  RequestFailure,
+} from "../apps/web/src/feedback";
 
 test("public error messages retain valid correlation and explain recovery", () => {
   const id = "12345678-1234-1234-1234-123456789abc";
@@ -60,4 +64,20 @@ test("audit offers short and detailed views without dumping snapshots or invente
   assert.match(html, /not the complete history/);
   const empty = renderToStaticMarkup(<AuditTrail events={[]} />);
   assert.match(empty, /Muster register to begin/);
+});
+
+test("recovery errors retain trusted status without retaining raw response diagnostics", () => {
+  const error = new RequestFailure(503, {
+    error: "private SQL password",
+    stack: "private stack",
+    requestId: "12345678-1234-1234-1234-123456789abc",
+  });
+  assert.ok(error instanceof Error);
+  assert.equal(error.status, 503);
+  assert.doesNotMatch(error.message, /private|SQL|password|stack/);
+  assert.match(error.message, /Support reference:/);
+  assert.equal("body" in error, false);
+  const denied = new RequestFailure(403, { error: "Permission was revoked" });
+  assert.equal(denied.status, 403);
+  assert.match(denied.message, /Permission was revoked/);
 });

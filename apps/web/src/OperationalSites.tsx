@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { SearchSelect } from "./SearchSelect";
+import { RequestFailure } from "./feedback";
 type Api = (path: string, body?: unknown) => Promise<any>;
 export function OperationalSites({
   api,
@@ -12,6 +13,8 @@ export function OperationalSites({
 }) {
   const [allowed, setAllowed] = useState(false),
     [permissionError, setPermissionError] = useState(""),
+    [permissionLoading, setPermissionLoading] = useState(true),
+    [scopeDenied, setScopeDenied] = useState(false),
     [permissionAttempt, setPermissionAttempt] = useState(0);
   const [id, setId] = useState(""),
     [data, setData] = useState<any>(null),
@@ -42,28 +45,69 @@ export function OperationalSites({
     [historyQuery, setHistoryQuery] = useState(""),
     [historyAttempt, setHistoryAttempt] = useState(0);
   const generation = useRef(0),
+    permissionGeneration = useRef(0),
     historyGeneration = useRef(0),
     currentId = useRef(id);
   currentId.current = id;
   const root = `/customers/${customerId}/sites`,
     path = `${root}/${id}`;
+  const permissionReady = !permissionLoading && !permissionError;
+  const isDenied = (e: unknown) =>
+    e instanceof RequestFailure && [401, 403, 404].includes(e.status);
+  function loseSetup() {
+    setAllowed(false);
+    setCreating(false);
+    setEditing(false);
+    setName("");
+    setReason("");
+    setCode("");
+    setCompany("");
+    setEstate("unlinked");
+  }
+  function loseScope() {
+    generation.current++;
+    historyGeneration.current++;
+    permissionGeneration.current++;
+    setPermissionLoading(false);
+    setLoading(false);
+    loseSetup();
+    setScopeDenied(true);
+    setData(null);
+    setHistory([]);
+    setNext(null);
+    setHistoryBusy(false);
+    setHistoryError("");
+    setBlocked(true);
+    setNotice("");
+    setHistoryTerm("");
+    setHistoryQuery("");
+  }
   useEffect(() => {
     let live = true;
+    const permissionTicket = ++permissionGeneration.current;
+    setPermissionLoading(true);
     setPermissionError("");
     api(root + "/context")
       .then((r) => {
-        if (live) setAllowed(r.canConfigure);
+        if (live && permissionTicket === permissionGeneration.current) {
+          setAllowed(r.canConfigure);
+          if (!r.canConfigure) loseSetup();
+        }
       })
       .catch((e) => {
-        if (live) {
-          setAllowed(false);
+        if (live && permissionTicket === permissionGeneration.current) {
+          if (isDenied(e)) loseScope();
           setPermissionError(e.message);
         }
+      })
+      .finally(() => {
+        if (live && permissionTicket === permissionGeneration.current)
+          setPermissionLoading(false);
       });
     return () => {
       live = false;
     };
-  }, [customerId, permissionAttempt]);
+  }, [customerId, permissionAttempt, revision]);
   useEffect(() => {
     const ticket = ++generation.current;
     setData(null);
@@ -83,11 +127,15 @@ export function OperationalSites({
       .then((r) => {
         if (ticket === generation.current) {
           setData(r);
+          setScopeDenied(false);
           setBlocked(false);
         }
       })
       .catch((e) => {
-        if (ticket === generation.current) setError(e.message);
+        if (ticket === generation.current) {
+          if (isDenied(e)) loseScope();
+          setError(e.message);
+        }
       })
       .finally(() => {
         if (ticket === generation.current) setLoading(false);
@@ -118,8 +166,15 @@ export function OperationalSites({
         setNext(r.nextCursor);
       }
     } catch (e) {
-      if (ticket === historyGeneration.current && currentId.current === started)
-        setHistoryError((e as Error).message);
+      if (
+        ticket === historyGeneration.current &&
+        currentId.current === started
+      ) {
+        if (isDenied(e)) {
+          loseScope();
+          setError((e as Error).message);
+        } else setHistoryError((e as Error).message);
+      }
     } finally {
       if (ticket === historyGeneration.current && currentId.current === started)
         setHistoryBusy(false);
@@ -149,9 +204,10 @@ export function OperationalSites({
     setError("");
     setNotice("");
     setBlocked(false);
+    setScopeDenied(false);
   }
   async function save() {
-    if (busy || blocked) return;
+    if (busy || blocked || !allowed || !permissionReady) return;
     setBusy(true);
     setError("");
     setNotice("");
@@ -179,13 +235,22 @@ export function OperationalSites({
       if (result.id === id) setRevision((n) => n + 1);
       else setId(result.id);
     } catch (e) {
+      if (isDenied(e)) {
+        if ((e as RequestFailure).status === 403) loseSetup();
+        else loseScope();
+      }
       setError((e as Error).message);
     } finally {
       setBusy(false);
     }
   }
   return (
-    <section className="editor" aria-label="Operational sites">
+    <section
+      className="editor"
+      aria-label="Operational sites"
+      id="operational-sites"
+      tabIndex={-1}
+    >
       <h3>Operational sites</h3>
       <p>
         Facilities such as mills, nurseries, warehouses and workshops are
@@ -206,6 +271,18 @@ export function OperationalSites({
           when permitted.
         </li>
       </ol>
+      <button
+        type="button"
+        disabled={busy || loading || permissionLoading}
+        onClick={() => {
+          setScopeDenied(false);
+          setPermissionAttempt((n) => n + 1);
+          if (id) setRevision((n) => n + 1);
+        }}
+      >
+        Refresh site access
+      </button>
+      {permissionLoading && <p role="status">Checking site setup access…</p>}
       {permissionError && (
         <>
           <p role="alert">{permissionError}</p>
@@ -251,19 +328,38 @@ export function OperationalSites({
         </select>
       </label>
       <SearchSelect
+        key={scopeDenied ? "denied" : "current"}
         api={api}
         path={`/navigation/customers/${customerId}/sites?status=${status}${kindFilter ? "&kind=" + kindFilter : ""}`}
         label="Operational site"
         value={id}
         disabled={busy}
-        refreshKey={revision}
+        refreshKey={`${revision}:${permissionAttempt}`}
         onChange={(v) => {
           setCreating(false);
           setNotice("");
           setId(v);
+          setScopeDenied(false);
         }}
       />
-      {allowed && (
+      {id && (
+        <button
+          type="button"
+          disabled={busy || loading}
+          onClick={() => {
+            setId("");
+            setCreating(false);
+            setEditing(false);
+            setScopeDenied(false);
+            setBlocked(false);
+            setError("");
+            setNotice("");
+          }}
+        >
+          Clear site selection
+        </button>
+      )}
+      {allowed && permissionReady && (
         <button type="button" disabled={busy || loading} onClick={begin}>
           Create operational site
         </button>
@@ -317,7 +413,7 @@ export function OperationalSites({
               Open linked estate
             </button>
           )}
-          {data.can_configure && (
+          {data.can_configure && allowed && permissionReady && (
             <button
               type="button"
               disabled={busy || blocked}
@@ -343,116 +439,121 @@ export function OperationalSites({
             void save();
           }}
         >
-          <h4>
-            {creating
-              ? "Create facility"
-              : "Edit facility name or availability"}
-          </h4>
-          {creating && (
-            <>
-              <label>
-                Site type
-                <select
-                  aria-label="Site type"
-                  value={kind}
+          <fieldset
+            disabled={busy || blocked || !permissionReady || !allowed}
+            style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}
+          >
+            <h4>
+              {creating
+                ? "Create facility"
+                : "Edit facility name or availability"}
+            </h4>
+            {creating && (
+              <>
+                <label>
+                  Site type
+                  <select
+                    aria-label="Site type"
+                    value={kind}
+                    disabled={busy}
+                    onChange={(e) => setKind(e.target.value)}
+                  >
+                    {["mill", "nursery", "warehouse", "workshop", "other"].map(
+                      (k) => (
+                        <option key={k}>{k}</option>
+                      ),
+                    )}
+                  </select>
+                </label>
+                <label>
+                  Site code
+                  <input
+                    aria-label="Site code"
+                    required
+                    maxLength={30}
+                    pattern="[A-Za-z0-9][A-Za-z0-9_-]{0,29}"
+                    value={code}
+                    disabled={busy}
+                    onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  />
+                </label>
+                <SearchSelect
+                  api={api}
+                  path={`/navigation/customers/${customerId}/companies`}
+                  label="Site responsible company"
+                  value={company}
+                  onChange={setCompany}
+                  onReady={setCompanyReady}
+                  required
                   disabled={busy}
-                  onChange={(e) => setKind(e.target.value)}
+                />
+                <SearchSelect
+                  api={api}
+                  path={`/navigation/estates?customerId=${customerId}`}
+                  label="Site linked estate"
+                  value={estate}
+                  onChange={setEstate}
+                  onReady={setEstateReady}
+                  required
+                  localOptions={[
+                    { id: "unlinked", name: "Not linked to an estate" },
+                  ]}
+                  disabled={busy}
+                />
+              </>
+            )}
+            <label>
+              Site name
+              <input
+                aria-label="Site name"
+                required
+                maxLength={160}
+                value={name}
+                disabled={busy}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </label>
+            {editing && (
+              <label>
+                Site availability
+                <select
+                  aria-label="Site availability"
+                  value={String(active)}
+                  disabled={busy}
+                  onChange={(e) => setActive(e.target.value === "true")}
                 >
-                  {["mill", "nursery", "warehouse", "workshop", "other"].map(
-                    (k) => (
-                      <option key={k}>{k}</option>
-                    ),
-                  )}
+                  <option value="true">Active</option>
+                  <option value="false">Paused</option>
                 </select>
               </label>
-              <label>
-                Site code
-                <input
-                  aria-label="Site code"
-                  required
-                  maxLength={30}
-                  pattern="[A-Za-z0-9][A-Za-z0-9_-]{0,29}"
-                  value={code}
-                  disabled={busy}
-                  onChange={(e) => setCode(e.target.value.toUpperCase())}
-                />
-              </label>
-              <SearchSelect
-                api={api}
-                path={`/navigation/customers/${customerId}/companies`}
-                label="Site responsible company"
-                value={company}
-                onChange={setCompany}
-                onReady={setCompanyReady}
-                required
-                disabled={busy}
-              />
-              <SearchSelect
-                api={api}
-                path={`/navigation/estates?customerId=${customerId}`}
-                label="Site linked estate"
-                value={estate}
-                onChange={setEstate}
-                onReady={setEstateReady}
-                required
-                localOptions={[
-                  { id: "unlinked", name: "Not linked to an estate" },
-                ]}
-                disabled={busy}
-              />
-            </>
-          )}
-          <label>
-            Site name
-            <input
-              aria-label="Site name"
-              required
-              maxLength={160}
-              value={name}
-              disabled={busy}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </label>
-          {editing && (
+            )}
             <label>
-              Site availability
-              <select
-                aria-label="Site availability"
-                value={String(active)}
+              Site change reason
+              <textarea
+                aria-label="Site change reason"
+                required
+                minLength={3}
+                maxLength={500}
+                value={reason}
                 disabled={busy}
-                onChange={(e) => setActive(e.target.value === "true")}
-              >
-                <option value="true">Active</option>
-                <option value="false">Paused</option>
-              </select>
+                onChange={(e) => setReason(e.target.value)}
+              />
             </label>
-          )}
-          <label>
-            Site change reason
-            <textarea
-              aria-label="Site change reason"
-              required
-              minLength={3}
-              maxLength={500}
-              value={reason}
-              disabled={busy}
-              onChange={(e) => setReason(e.target.value)}
-            />
-          </label>
-          <button
-            disabled={
-              busy ||
-              blocked ||
-              (creating && (!company || !companyReady || !estateReady))
-            }
-          >
-            {busy ? "Saving site…" : "Save operational site"}
-          </button>
-          <p>
-            Identity, facility type, responsible company and estate link cannot
-            be changed here. Availability controls this master only; it does not
-            stop unbuilt downstream operations.
-          </p>
+            <button
+              disabled={
+                busy ||
+                blocked ||
+                (creating && (!company || !companyReady || !estateReady))
+              }
+            >
+              {busy ? "Saving site…" : "Save operational site"}
+            </button>
+            <p>
+              Identity, facility type, responsible company and estate link
+              cannot be changed here. Availability controls this master only; it
+              does not stop unbuilt downstream operations.
+            </p>
+          </fieldset>
         </form>
       )}
       {data && (
@@ -503,7 +604,7 @@ export function OperationalSites({
                 </strong>
                 <p>{h.reason}</p>
                 <small>
-                  {h.actor_id || "System / explicit bootstrap"} ·{" "}
+                  {h.actor || h.actor_id || "System / explicit bootstrap"} ·{" "}
                   {new Date(h.created_at).toLocaleString()}
                 </small>
                 <details>
@@ -513,6 +614,8 @@ export function OperationalSites({
                     <dd>
                       {h.id} · {h.site_id}
                     </dd>
+                    <dt>Actor ID</dt>
+                    <dd>{h.actor_id || "System / explicit bootstrap"}</dd>
                     <dt>Before</dt>
                     <dd>
                       {h.before

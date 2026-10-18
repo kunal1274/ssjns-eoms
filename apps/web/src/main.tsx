@@ -2,7 +2,7 @@ import { SearchSelect } from "./SearchSelect";
 import { WorkAvailability } from "./EstateLifecycle";
 import { Organization } from "./Organization";
 import { AuditTrail } from "./AuditTrail";
-import { requestFailure, connectionFailure } from "./feedback";
+import { requestFailure, connectionFailure, RequestFailure } from "./feedback";
 import React, { useEffect, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
@@ -134,9 +134,7 @@ function App() {
     const value = await r.json().catch(() => null);
     if (!r.ok) {
       if (r.status === 401) setUser(null);
-      throw new Error(
-        requestFailure(r.status, value, r.headers.get("X-Request-ID")),
-      );
+      throw new RequestFailure(r.status, value, r.headers.get("X-Request-ID"));
     }
     if (value === null) throw new Error(connectionFailure);
     return value;

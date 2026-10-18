@@ -460,6 +460,50 @@ test("direct site database scope, history immutability and actor switching fail 
     c.release();
   }
 });
+test("site filters and actor-name history search preserve exact choices and scoped pin eligibility", async () => {
+  const nav = `/api/navigation/customers/${customer}/sites`;
+  for (const kind of ["mill", "nursery", "warehouse", "workshop", "other"]) {
+    const r = await manager.agent.get(nav).query({ kind, limit: 100 });
+    assert.equal(r.status, 200);
+    assert.ok(r.body.items.length > 0);
+    assert.ok(r.body.items.every((x: any) => x.kind === kind));
+  }
+  const paused = await post(manager, base() + "/" + unlinked.id, {
+    name: unlinked.name,
+    active: false,
+    version: 1,
+    reason: "Pause unlinked filter fixture",
+  });
+  assert.equal(paused.status, 200);
+  const r = await manager.agent
+    .get(nav)
+    .query({ status: "inactive", estateId: "unlinked", limit: 100 });
+  assert.equal(r.status, 200);
+  assert.deepEqual(
+    r.body.items.map((x: any) => x.id),
+    [unlinked.id],
+  );
+  const pin = await manager.agent
+    .get(nav)
+    .query({ kind: "nursery", selectedId: linked.id });
+  assert.equal(pin.body.selected.id, linked.id);
+  assert.equal(pin.body.selected.eligible, false);
+  const history = await manager.agent.get(
+    base() + "/" + linked.id + "/history",
+  );
+  const event = history.body.items[0];
+  assert.equal(typeof event.actor, "string");
+  assert.ok(event.actor.length > 0);
+  const byActor = await manager.agent
+    .get(base() + "/" + linked.id + "/history")
+    .query({ q: event.actor });
+  assert.ok(byActor.body.items.some((x: any) => x.id === event.id));
+  const byReference = await manager.agent
+    .get(base() + "/" + linked.id + "/history")
+    .query({ q: event.request_id });
+  assert.equal(byReference.body.items.length, 1);
+  assert.equal(byReference.body.items[0].id, event.id);
+});
 test("revoked site scope is rechecked on pins, detail, history and edits", async () => {
   await admin.query(
     "DELETE FROM eoms.organization_admins WHERE customer_id=$1 AND user_id=$2",
