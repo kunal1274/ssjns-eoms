@@ -93,3 +93,6 @@ Playwright Codegen opens Chrome and its inspector, recording actions to ignored 
 
 
 Availability/header automated checkpoint: source `e08c2ca1e1cc35d9cc119c73024f06fa14c51fcf`, [CI 39093911951](https://github.com/kunal1274/ssjns-eoms/actions/runs/39093911951) passed all 32 desktop/mobile executions and full regression/Docker gates. To watch the new journey after the host setup above: `npx playwright test jrn-02-paged-availability --project=chrome-desktop --headed`. Owner-observed/manual acceptance remains separate from CI.
+
+
+Older-ledger automated checkpoint: source `4da227fd684d6ab4e4d2438d55a504256c07aea7`, [CI 39109502989](https://github.com/kunal1274/ssjns-eoms/actions/runs/39109502989) passed all 34 desktop/mobile executions and the full Docker/regression gate. After host setup, watch `npx playwright test jrn-02-decision-ledgers --project=chrome-desktop --headed`, or select E2E-JRN-02-013 in Playwright UI. Manual/owner acceptance remains separate.
