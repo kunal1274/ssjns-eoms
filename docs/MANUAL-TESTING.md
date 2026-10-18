@@ -4,6 +4,8 @@
 
 Checked 18 October 2026: `https://eoms-estate-operations-demo.devratxen.chatgpt.site/` is the separately hosted Estate Opera prototype. Sites reports latest saved version 8 with source `e0803a43c8e443c71819f9f69c154cd7c75baf3e`; its description identifies synthetic data/simulated integrations. That deployment is separate from this PostgreSQL/Docker repository. Recent GitHub branch changes do not automatically publish to that URL. The latest verified source/run is recorded in CURRENT-HANDOFF.md; do not use the prototype as evidence that these API/database changes are deployed.
 
+Latest verified implementation: `eed75ddb9c21d682af9d6da4ec48d5b597678f04`, [CI 39092125259](https://github.com/kunal1274/ssjns-eoms/actions/runs/39092125259) passed 100 unit/API tests, 30 desktop/mobile executions and full Docker/persistence/final gate. Availability/header and remaining ledger work is still open.
+
 Use the local Docker app below to inspect the current implementation. A shared hosted PERN staging environment remains a separate deployment task; production startup is gated. No hosting audience or live prototype is changed by these instructions.
 
 ## First-time manual app setup
@@ -52,7 +54,7 @@ Use synthetic demonstration data and unique codes, for example `MAN-D01`, `MAN-B
 | Operating placement | Organization → Operating placement. Create a region/business unit if required, using search for Area parent. Search Placement estate and Estate operating area, enter Placement reason, Save estate placement. | Initial placement applies to that estate without changing its legal company or membership. Existing placement history requires a move request/review instead. |
 | Independent movement | Movement and area lifecycle: search Move estate and Move destination, enter Move reason, Request estate move. Sign out and sign in with the separately authorized reviewer; choose Move request, Move decision and Move review reason → Record move decision. | Requester cannot approve their own request. A valid independent approval changes placement and records both actors/references; historical work stays with the same estate. Root removal is an explicit destination when placement exists. |
 | Dated responsibility | Estate responsibility: search Responsibility estate and Next responsible company, choose a future effective date and enter reason → Save responsibility change. View that date, inspect the detailed event, then capture a new draft on/after that date in an open period. | New work records the date-effective company; earlier work is not rewritten. Existing work on/after a proposed date blocks scheduling. The company must already be accessible in this customer. |
-| Errors/conflicts | Leave a required field empty, try a duplicate code, or edit the same version in two browser contexts. | Validation prevents unsafe submission or returns understandable guidance/support reference. Draft inputs remain. For a conflict, refresh and explicitly reload the selected record before reviewing and resubmitting. Do not repeat a save after an acknowledged-write/refresh failure until refresh succeeds. |
+| Errors/conflicts | Leave a required field empty, try a duplicate code, or open the same record in two browser tabs before saving one, then save the older tab. | Validation prevents unsafe submission or returns understandable guidance/support reference. Draft inputs remain. For a conflict, refresh and explicitly reload the selected record before reviewing and resubmitting. Do not repeat a save after an acknowledged-write/refresh failure until refresh succeeds. |
 
 Browser-test fixtures deliberately create hundreds of records to check old list limits. A fresh manual seed is smaller; it need not display 201 records to be working. Manual success is recorded separately from automated CI and does not close all client acceptance gaps.
 
@@ -75,7 +77,7 @@ In Playwright UI select **chrome-desktop**, choose a case such as **E2E-JRN-02-0
 npx playwright test jrn-02-context-selectors --project=chrome-desktop --headed
 ```
 
-Use `jrn-02-selectors` for hierarchy → task → capture, or `jrn-02-paged-placement` for the new placement/responsibility slice once verified. `npm run test:e2e:report` opens the latest runner report. After the complete suite, `npm run test:coverage` builds the field/action/journey ledger; partial runs keep unselected items non-green. Remote headless GitHub CI does not open a browser on your computer.
+Use `jrn-02-selectors` for hierarchy → task → capture, or `jrn-02-paged-placement` for the verified placement/responsibility slice. `npm run test:e2e:report` opens the latest runner report. After the complete suite, `npm run test:coverage` builds the field/action/journey ledger; partial runs keep unselected items non-green. Remote headless GitHub CI does not open a browser on your computer.
 
 ## Record your own manual interactions
 
