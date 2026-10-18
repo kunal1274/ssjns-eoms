@@ -1,3 +1,4 @@
+import { SearchSelect } from "./SearchSelect";
 import { PlacementGovernance } from "./PlacementGovernance";
 import { useEffect, useState } from "react";
 type Api = (path: string, body?: unknown) => Promise<any>;
@@ -48,6 +49,10 @@ export function OperatingPlacement({
     [reason, setReason] = useState(""),
     [editing, setEditing] = useState<Area | null>(null);
   const [estate, setEstate] = useState(""),
+    [estateRecord, setEstateRecord] = useState<Estate | null>(null),
+    [estateReady, setEstateReady] = useState(false),
+    [areaReady, setAreaReady] = useState(false),
+    [parentReady, setParentReady] = useState(false),
     [area, setArea] = useState(""),
     [placementReason, setPlacementReason] = useState("");
   const path = `/customers/${customerId}/placements`;
@@ -68,11 +73,7 @@ export function OperatingPlacement({
         ["area", "estate-placement"].includes(row.record_type),
       ),
     );
-    setEstate((current) =>
-      result.value.estates.some((row: Estate) => row.id === current)
-        ? current
-        : result.value.estates[0]?.id || "",
-    );
+    setEstate((current) => current || result.value.estates[0]?.id || "");
   }
   useEffect(() => {
     let active = true;
@@ -126,7 +127,24 @@ export function OperatingPlacement({
       setBusy(false);
     }
   }
-  const selected = data.estates.find((row) => row.id === estate),
+  function editArea(row: any) {
+    setEditing(row);
+    setKind(row.kind);
+    setCode(row.code);
+    setName(row.name);
+    setParent(row.parent_id || "");
+    setReason("");
+  }
+  function chooseEstate(id: string, row?: any) {
+    setEstate(id);
+    setEstateRecord(row || null);
+    setArea("");
+    setPlacementReason("");
+  }
+  const selected =
+      estateRecord?.id === estate
+        ? estateRecord
+        : data.estates.find((row) => row.id === estate),
     regions = data.areas.filter((row) => row.kind === "region" && row.active);
   return (
     <section className="editor" aria-label="Operating placement">
@@ -167,8 +185,9 @@ export function OperatingPlacement({
       </button>
       {data.truncated && (
         <p>
-          Only a bounded portion of areas/estates is shown. Full large-data
-          selection is pending.
+          Overview tables are bounded. Search the area/estate choices to reach
+          other permitted records. Dedicated movement-ledger navigation remains
+          pending.
         </p>
       )}
       {!loading && (
@@ -212,8 +231,11 @@ export function OperatingPlacement({
                 </h4>
                 <p>
                   Kind and parent are fixed after creation. Area names and codes
-                  can be edited with a reason. After a conflict, refresh and
-                  choose Edit again.
+                  can be edited with a reason. After a conflict, Refresh
+                  placement lists, Find Existing operating area, then Load
+                  selected Existing operating area (or choose its Edit button)
+                  to reload the current version. Explicit reload clears the old
+                  reason.
                 </p>
                 <fieldset disabled={busy || needsRefresh}>
                   <label>
@@ -231,22 +253,21 @@ export function OperatingPlacement({
                       <option value="business-unit">Business unit</option>
                     </select>
                   </label>
-                  <label>
-                    Area parent
-                    <select
-                      aria-label="Area parent"
-                      disabled={!!editing || kind === "region"}
-                      value={parent}
-                      onChange={(e) => setParent(e.target.value)}
-                    >
-                      <option value="">Customer root</option>
-                      {regions.map((row) => (
-                        <option key={row.id} value={row.id}>
-                          {row.code} · {row.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <SearchSelect
+                    api={api}
+                    path={
+                      kind === "region"
+                        ? null
+                        : `/navigation/customers/${customerId}/areas?kind=region&status=active`
+                    }
+                    label="Area parent"
+                    value={parent}
+                    onChange={setParent}
+                    onReady={setParentReady}
+                    seed={regions}
+                    disabled={!!editing || kind === "region"}
+                    placeholder="Customer root"
+                  />
                   <label>
                     Area code
                     <input
@@ -268,6 +289,7 @@ export function OperatingPlacement({
                   <label>
                     Area reason
                     <textarea
+                      aria-label="Area reason"
                       required
                       minLength={3}
                       maxLength={500}
@@ -275,7 +297,11 @@ export function OperatingPlacement({
                       onChange={(e) => setReason(e.target.value)}
                     />
                   </label>
-                  <button>Save operating area</button>
+                  <button
+                    disabled={!editing && kind !== "region" && !parentReady}
+                  >
+                    Save operating area
+                  </button>
                   <button
                     type="button"
                     className="secondary"
@@ -290,12 +316,18 @@ export function OperatingPlacement({
                   e.preventDefault();
                   if (selected)
                     void save(
-                      () =>
-                        api(`/estates/${estate}/placement`, {
-                          areaId: area,
-                          version: selected.placement_version,
-                          reason: placementReason,
-                        }),
+                      async () => {
+                        const saved = await api(
+                          `/estates/${estate}/placement`,
+                          {
+                            areaId: area,
+                            version: selected.placement_version,
+                            reason: placementReason,
+                          },
+                        );
+                        setEstateRecord({ ...selected, ...saved });
+                        return saved;
+                      },
                       "Estate placement saved.",
                       () => {
                         setArea("");
@@ -306,28 +338,26 @@ export function OperatingPlacement({
               >
                 <h4>2. Place an estate</h4>
                 <p>
+                  After a version conflict, Refresh placement lists, Find
+                  Placement estate, then Load selected Placement estate to
+                  review the latest placement. Reload clears the destination and
+                  reason.
+                </p>
+                <p>
                   Leaving an estate at the customer root is valid. Later
                   reassignment/removal uses the independent move review below.
                 </p>
                 <fieldset disabled={busy || needsRefresh}>
-                  <label>
-                    Placement estate
-                    <select
-                      aria-label="Placement estate"
-                      value={estate}
-                      onChange={(e) => {
-                        setEstate(e.target.value);
-                        setArea("");
-                        setPlacementReason("");
-                      }}
-                    >
-                      {data.estates.map((row) => (
-                        <option key={row.id} value={row.id}>
-                          {row.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <SearchSelect
+                    api={api}
+                    path={`/navigation/estates?customerId=${customerId}`}
+                    label="Placement estate"
+                    value={estate}
+                    onChange={chooseEstate}
+                    onReview={(row) => chooseEstate(row.id, row)}
+                    onReady={setEstateReady}
+                    seed={data.estates}
+                  />
                   {selected &&
                   (selected.area_id || selected.placement_version !== 1) ? (
                     <p>
@@ -337,29 +367,21 @@ export function OperatingPlacement({
                     </p>
                   ) : (
                     <>
-                      <label>
-                        Estate operating area
-                        <select
-                          aria-label="Estate operating area"
-                          required
-                          value={area}
-                          onChange={(e) => setArea(e.target.value)}
-                        >
-                          <option value="">
-                            Choose a region or business unit
-                          </option>
-                          {data.areas
-                            .filter((row) => row.active)
-                            .map((row) => (
-                              <option key={row.id} value={row.id}>
-                                {row.kind} · {row.code} · {row.name}
-                              </option>
-                            ))}
-                        </select>
-                      </label>
+                      <SearchSelect
+                        api={api}
+                        path={`/navigation/customers/${customerId}/areas?status=active`}
+                        label="Estate operating area"
+                        value={area}
+                        onChange={setArea}
+                        onReady={setAreaReady}
+                        seed={data.areas.filter((row) => row.active)}
+                        required
+                        placeholder="Choose a region or business unit"
+                      />
                       <label>
                         Placement reason
                         <textarea
+                          aria-label="Placement reason"
                           required
                           minLength={3}
                           maxLength={500}
@@ -367,7 +389,11 @@ export function OperatingPlacement({
                           onChange={(e) => setPlacementReason(e.target.value)}
                         />
                       </label>
-                      <button disabled={!selected}>
+                      <button
+                        disabled={
+                          !selected || !estateReady || !areaReady || !area
+                        }
+                      >
                         Save estate placement
                       </button>
                     </>
@@ -385,6 +411,18 @@ export function OperatingPlacement({
             busy={busy || needsRefresh}
             onBusy={setBusy}
           />
+          {data.canConfigure && (
+            <SearchSelect
+              api={api}
+              path={`/navigation/customers/${customerId}/areas`}
+              label="Existing operating area"
+              value={editing?.id || ""}
+              onChange={(_id, row) => (row ? editArea(row) : clearArea())}
+              onReview={editArea}
+              seed={data.areas}
+              disabled={busy || needsRefresh}
+            />
+          )}
           <h4>Operating areas</h4>
           {!data.areas.length && (
             <p>
@@ -409,12 +447,7 @@ export function OperatingPlacement({
                     type="button"
                     disabled={busy || needsRefresh}
                     onClick={() => {
-                      setEditing(row);
-                      setKind(row.kind);
-                      setCode(row.code);
-                      setName(row.name);
-                      setParent(row.parent_id || "");
-                      setReason("");
+                      editArea(row);
                     }}
                   >
                     Edit area

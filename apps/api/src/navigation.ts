@@ -40,7 +40,11 @@ export function navigationRoutes(app: Express, tx: Transaction) {
           ? null
           : uuid.parse((req.params as Record<string, string>).customerId);
         const q = z
-          .object({ ...pageFields, selectedId: uuid.optional() })
+          .object({
+            ...pageFields,
+            selectedId: uuid.optional(),
+            excludeId: uuid.optional(),
+          })
           .strict()
           .parse(req.query);
         const binding = {
@@ -48,6 +52,7 @@ export function navigationRoutes(app: Express, tx: Transaction) {
           actor: res.locals.user.id,
           customer,
           q: q.q,
+          excludeId: q.excludeId ?? null,
         };
         const page = readPage(q.cursor, binding);
         res.json(
@@ -55,8 +60,14 @@ export function navigationRoutes(app: Express, tx: Transaction) {
             if (customer) await visibleCustomer(c, customer);
             const rows = (
               await c.query(
-                `SELECT ${fields} FROM eoms.${table} WHERE ${root ? "$1::uuid IS NULL" : "customer_id=$1"} AND ($2::uuid IS NULL OR id>$2) AND ${search} ILIKE $3 ORDER BY id LIMIT $4`,
-                [customer, page?.key ?? null, literalPattern(q.q), q.limit + 1],
+                `SELECT ${fields} FROM eoms.${table} WHERE ${root ? "$1::uuid IS NULL" : "customer_id=$1"} AND ($2::uuid IS NULL OR id>$2) AND ${search} ILIKE $3 AND ($5::uuid IS NULL OR id<>$5) ORDER BY id LIMIT $4`,
+                [
+                  customer,
+                  page?.key ?? null,
+                  literalPattern(q.q),
+                  q.limit + 1,
+                  q.excludeId ?? null,
+                ],
               )
             ).rows;
             const selected = q.selectedId
@@ -74,13 +85,83 @@ export function navigationRoutes(app: Express, tx: Transaction) {
               );
             return {
               ...pageResult(rows, q.limit, binding, (r) => r.id),
-              selected: selected ? { ...selected, eligible: true } : null,
+              selected: selected
+                ? { ...selected, eligible: selected.id !== q.excludeId }
+                : null,
             };
           }),
         );
       },
     );
   }
+  app.get("/api/navigation/customers/:customerId/areas", async (req, res) => {
+    const customer = uuid.parse(req.params.customerId);
+    const q = z
+      .object({
+        ...pageFields,
+        selectedId: uuid.optional(),
+        excludeId: uuid.optional(),
+        kind: z.enum(["all", "region", "business-unit"]).default("all"),
+        status: z.enum(["all", "active", "inactive"]).default("all"),
+      })
+      .strict()
+      .parse(req.query);
+    const binding = {
+      route: "areas",
+      actor: res.locals.user.id,
+      customer,
+      q: q.q,
+      kind: q.kind,
+      status: q.status,
+      excludeId: q.excludeId ?? null,
+    };
+    const page = readPage(q.cursor, binding);
+    res.json(
+      await tx(res, async (c) => {
+        await visibleCustomer(c, customer);
+        const rows = (
+          await c.query(
+            "SELECT id,kind,code,name,parent_id,active,version FROM eoms.operating_areas WHERE customer_id=$1 AND ($2='all' OR kind=$2) AND ($3='all' OR active=($3='active')) AND (code||' '||name) ILIKE $4 AND ($5::uuid IS NULL OR id>$5) AND ($6::uuid IS NULL OR id<>$6) ORDER BY id LIMIT $7",
+            [
+              customer,
+              q.kind,
+              q.status,
+              literalPattern(q.q),
+              page?.key ?? null,
+              q.excludeId ?? null,
+              q.limit + 1,
+            ],
+          )
+        ).rows;
+        const selected = q.selectedId
+          ? (
+              await c.query(
+                "SELECT id,kind,code,name,parent_id,active,version FROM eoms.operating_areas WHERE customer_id=$1 AND id=$2",
+                [customer, q.selectedId],
+              )
+            ).rows[0]
+          : null;
+        if (q.selectedId && !selected)
+          throw new ApiError(
+            404,
+            "Selected area is not available in this customer and account. Refresh and review access.",
+          );
+        return {
+          ...pageResult(rows, q.limit, binding, (r) => r.id),
+          selected: selected
+            ? {
+                ...selected,
+                eligible:
+                  (q.kind === "all" || selected.kind === q.kind) &&
+                  (q.status === "all" ||
+                    selected.active === (q.status === "active")) &&
+                  selected.id !== q.excludeId,
+              }
+            : null,
+        };
+      }),
+    );
+  });
   app.get("/api/navigation/estates", async (req, res) => {
     const q = z
         .object({
@@ -102,7 +183,7 @@ export function navigationRoutes(app: Express, tx: Transaction) {
         if (q.customerId) await visibleCustomer(c, q.customerId);
         const rows = (
           await c.query(
-            `SELECT e.id,e.code,e.name,e.active,e.customer_id,t.code AS customer_code,t.name AS customer_name,e.company_id,c.name AS company_name
+            `SELECT e.id,e.code,e.name,e.active,e.area_id,e.placement_version,e.lifecycle_version,e.customer_id,t.code AS customer_code,t.name AS customer_name,e.company_id,c.name AS company_name
  FROM eoms.memberships m JOIN eoms.estates e ON e.id=m.estate_id JOIN eoms.companies c ON c.id=e.company_id AND c.customer_id=e.customer_id JOIN eoms.customers t ON t.id=e.customer_id
  WHERE m.user_id=$1 AND ($2::uuid IS NULL OR e.customer_id=$2) AND ($3::uuid IS NULL OR e.id>$3) AND ((e.code||' '||e.name) ILIKE $4 OR (t.code||' '||t.name) ILIKE $4 OR c.name ILIKE $4) ORDER BY e.id LIMIT $5`,
             [
@@ -117,7 +198,7 @@ export function navigationRoutes(app: Express, tx: Transaction) {
         const selected = q.selectedId
           ? (
               await c.query(
-                `SELECT e.id,e.code,e.name,e.active,e.customer_id,e.company_id FROM eoms.memberships m JOIN eoms.estates e ON e.id=m.estate_id WHERE m.user_id=$1 AND e.id=$2 AND ($3::uuid IS NULL OR e.customer_id=$3)`,
+                `SELECT e.id,e.code,e.name,e.active,e.area_id,e.placement_version,e.lifecycle_version,e.customer_id,e.company_id FROM eoms.memberships m JOIN eoms.estates e ON e.id=m.estate_id WHERE m.user_id=$1 AND e.id=$2 AND ($3::uuid IS NULL OR e.customer_id=$3)`,
                 [res.locals.user.id, q.selectedId, q.customerId ?? null],
               )
             ).rows[0]

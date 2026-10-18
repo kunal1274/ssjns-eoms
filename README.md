@@ -2,6 +2,8 @@
 
 Connected PERN development foundation for the Estate Opera EOMS project. The related hosted demo was created within ChatGPT; this repository provides the React + Express/Node + PostgreSQL implementation. Exact parity with the hosted rendered artifact is not claimed until its journeys are traced. Synthetic data only; not a production release.
 
+For the current app URL, exact Docker login/setup commands, manual checklists and visible Playwright replay, see [Manual testing](docs/MANUAL-TESTING.md). The hosted ChatGPT prototype is a separate deployment.
+
 ## Start locally
 
 Prerequisites: Node 24.x, npm, Docker Compose, and Chrome for browser tests. Run all commands from this repository, not an ancestor directory.

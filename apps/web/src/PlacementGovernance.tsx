@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { SearchSelect } from "./SearchSelect";
+import { useEffect, useState } from "react";
 type Api = (path: string, body?: unknown) => Promise<any>;
 export function PlacementGovernance({
   api,
@@ -27,13 +28,45 @@ export function PlacementGovernance({
     [lifecycleReason, setLifecycleReason] = useState(""),
     [error, setError] = useState(""),
     [message, setMessage] = useState(""),
-    [needsRefresh, setNeedsRefresh] = useState(false);
-  const selected = data.estates.find((e: any) => e.id === estate),
-    chosen = data.areas.find((a: any) => a.id === area),
+    [needsRefresh, setNeedsRefresh] = useState(false),
+    [estateRecord, setEstateRecord] = useState<any>(null),
+    [areaRecord, setAreaRecord] = useState<any>(null),
+    [estateReady, setEstateReady] = useState(false),
+    [targetReady, setTargetReady] = useState(false),
+    [areaReady, setAreaReady] = useState(false),
+    [reviewPin, setReviewPin] = useState<any>(null),
+    [reviewError, setReviewError] = useState(""),
+    [reviewAttempt, setReviewAttempt] = useState(0);
+  const selected =
+      estateRecord?.id === estate
+        ? estateRecord
+        : data.estates.find((e: any) => e.id === estate),
+    chosen =
+      areaRecord?.id === area
+        ? areaRecord
+        : data.areas.find((a: any) => a.id === area),
     pending = moves.items.filter((q: any) => !q.decision),
     reviewable = pending.filter((q: any) => q.requester_id !== moves.actorId),
     item = reviewable.find((q: any) => q.id === request),
-    reviewEstate = data.estates.find((e: any) => e.id === item?.estate_id);
+    reviewEstate = reviewPin?.id === item?.estate_id ? reviewPin : null;
+  useEffect(() => {
+    let active = true;
+    setReviewPin(null);
+    setReviewError("");
+    if (item)
+      api(
+        `/navigation/estates?customerId=${customerId}&selectedId=${item.estate_id}`,
+      )
+        .then((value) => {
+          if (active) setReviewPin(value.selected);
+        })
+        .catch((e) => {
+          if (active) setReviewError(e.message);
+        });
+    return () => {
+      active = false;
+    };
+  }, [item?.id, item?.estate_id, customerId, moves, reviewAttempt]);
   const label = (id: string | null) =>
     id
       ? data.areas.find((a: any) => a.id === id)?.name ||
@@ -144,56 +177,70 @@ export function PlacementGovernance({
               }}
             >
               <h4>1. Request estate move</h4>
-              <label>
-                Move estate
-                <select
-                  aria-label="Move estate"
-                  required
-                  value={estate}
-                  onChange={(e) => {
-                    setEstate(e.target.value);
-                    setTarget("");
-                    setReason("");
-                    setMessage("");
-                  }}
-                >
-                  <option value="">Choose estate</option>
-                  {data.estates.map((e: any) => (
-                    <option key={e.id} value={e.id}>
-                      {e.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <p>
+                After a conflict, refresh placement lists, Find Move estate,
+                then Load selected Move estate. Reload replaces the saved
+                version and clears the destination/reason.
+              </p>
+              <SearchSelect
+                key={
+                  estate +
+                  "-" +
+                  (data.estates.find((e: any) => e.id === estate)
+                    ?.placement_version || "deep")
+                }
+                api={api}
+                path={`/navigation/estates?customerId=${customerId}`}
+                label="Move estate"
+                value={estate}
+                onChange={(id, row) => {
+                  setEstate(id);
+                  setEstateRecord(row || null);
+                  setTarget("");
+                  setReason("");
+                  setMessage("");
+                }}
+                onReview={(row) => {
+                  setEstateRecord(row);
+                  setTarget("");
+                  setReason("");
+                }}
+                onReady={setEstateReady}
+                seed={data.estates}
+                required
+              />
               {selected && (
                 <p>
                   Current placement: {label(selected.area_id)} · Version{" "}
                   {selected.placement_version}
                 </p>
               )}
-              <label>
-                Move destination
-                <select
-                  aria-label="Move destination"
-                  required
-                  value={target}
-                  onChange={(e) => setTarget(e.target.value)}
-                >
-                  <option value="">Choose a different destination</option>
-                  {selected?.area_id && (
-                    <option value="root">
-                      Customer root (remove operating placement)
-                    </option>
-                  )}
-                  {data.areas
-                    .filter((a: any) => a.active && a.id !== selected?.area_id)
-                    .map((a: any) => (
-                      <option key={a.id} value={a.id}>
-                        {a.kind} · {a.code} · {a.name}
-                      </option>
-                    ))}
-                </select>
-              </label>
+              <SearchSelect
+                api={api}
+                path={
+                  `/navigation/customers/${customerId}/areas?status=active` +
+                  (selected?.area_id ? `&excludeId=${selected.area_id}` : "")
+                }
+                label="Move destination"
+                value={target}
+                onChange={setTarget}
+                onReady={setTargetReady}
+                seed={data.areas.filter(
+                  (a: any) => a.active && a.id !== selected?.area_id,
+                )}
+                localOptions={
+                  selected?.area_id
+                    ? [
+                        {
+                          id: "root",
+                          name: "Customer root (remove operating placement)",
+                        },
+                      ]
+                    : []
+                }
+                required
+                placeholder="Choose a different destination"
+              />
               <label>
                 Move reason
                 <textarea
@@ -207,7 +254,10 @@ export function PlacementGovernance({
               </label>
               <button
                 disabled={
-                  !selected || pending.some((q: any) => q.estate_id === estate)
+                  !selected ||
+                  !estateReady ||
+                  !targetReady ||
+                  pending.some((q: any) => q.estate_id === estate)
                 }
               >
                 Request estate move
@@ -245,6 +295,22 @@ export function PlacementGovernance({
                 }}
               >
                 <h4>2. Independent review</h4>
+                {item && !reviewEstate && !reviewError && (
+                  <p role="status">
+                    Loading current estate placement for review…
+                  </p>
+                )}
+                {reviewError && (
+                  <p role="alert">
+                    {reviewError}{" "}
+                    <button
+                      type="button"
+                      onClick={() => setReviewAttempt((x) => x + 1)}
+                    >
+                      Retry review estate
+                    </button>
+                  </p>
+                )}
                 <label>
                   Move request
                   <select
@@ -315,12 +381,18 @@ export function PlacementGovernance({
                 e.preventDefault();
                 if (chosen)
                   void save(
-                    () =>
-                      api(`/customers/${customerId}/areas/${area}/lifecycle`, {
-                        active: !chosen.active,
-                        version: chosen.version,
-                        reason: lifecycleReason,
-                      }),
+                    async () => {
+                      const saved = await api(
+                        `/customers/${customerId}/areas/${area}/lifecycle`,
+                        {
+                          active: !chosen.active,
+                          version: chosen.version,
+                          reason: lifecycleReason,
+                        },
+                      );
+                      setAreaRecord({ ...chosen, ...saved });
+                      return saved;
+                    },
                     "Area availability saved.",
                     () => setLifecycleReason(""),
                   );
@@ -333,26 +405,25 @@ export function PlacementGovernance({
                 your estate access. Inactive destinations cannot receive new
                 placements or approved moves.
               </p>
-              <label>
-                Lifecycle area
-                <select
-                  aria-label="Lifecycle area"
-                  required
-                  value={area}
-                  onChange={(e) => {
-                    setArea(e.target.value);
-                    setLifecycleReason("");
-                    setMessage("");
-                  }}
-                >
-                  <option value="">Choose area</option>
-                  {data.areas.map((a: any) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} · {a.name} · {a.active ? "Active" : "Inactive"}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <SearchSelect
+                api={api}
+                path={`/navigation/customers/${customerId}/areas`}
+                label="Lifecycle area"
+                value={area}
+                onChange={(id, row) => {
+                  setArea(id);
+                  setAreaRecord(row || null);
+                  setLifecycleReason("");
+                  setMessage("");
+                }}
+                onReview={(row) => {
+                  setAreaRecord(row);
+                  setLifecycleReason("");
+                }}
+                onReady={setAreaReady}
+                seed={data.areas}
+                required
+              />
               {chosen && (
                 <p>
                   Current status: {chosen.active ? "Active" : "Inactive"} ·
@@ -371,7 +442,7 @@ export function PlacementGovernance({
                   onChange={(e) => setLifecycleReason(e.target.value)}
                 />
               </label>
-              <button disabled={!chosen}>
+              <button disabled={!chosen || !areaReady}>
                 {chosen?.active === false
                   ? "Reactivate area"
                   : "Deactivate area"}

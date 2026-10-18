@@ -22,6 +22,7 @@ export function SearchSelect({
   placeholder = "Choose a record",
   onReady,
   onReview,
+  localOptions = [],
 }: {
   api: Api;
   path: string | null;
@@ -35,6 +36,7 @@ export function SearchSelect({
   placeholder?: string;
   onReady?: (ready: boolean) => void;
   onReview?: (row: Row) => void;
+  localOptions?: Row[];
 }) {
   const [term, setTerm] = useState(""),
     [query, setQuery] = useState(""),
@@ -62,7 +64,8 @@ export function SearchSelect({
     setError("");
     try {
       const params = new URLSearchParams({ q: query, limit: "25" });
-      if (value) params.set("selectedId", value);
+      if (value && !localOptions.some((row) => row.id === value))
+        params.set("selectedId", value);
       if (more && next) params.set("cursor", next);
       const result = await apiRef.current(
         path + (path.includes("?") ? "&" : "?") + params,
@@ -104,20 +107,32 @@ export function SearchSelect({
     readyRef.current?.(
       !busy &&
         !error &&
-        (!value || (selected?.id === value && selected.eligible !== false)),
+        (!value ||
+          localOptions.some((row) => row.id === value) ||
+          (selected?.id === value && selected.eligible !== false)),
     );
-  }, [busy, error, value, selected]);
+  }, [
+    busy,
+    error,
+    value,
+    selected,
+    JSON.stringify(localOptions.map((row) => row.id)),
+  ]);
   const pinned =
-    selected?.id === value
+    localOptions.find((row) => row.id === value) ||
+    (selected?.id === value
       ? selected
       : chosen.current?.path === path && chosen.current.row.id === value
         ? chosen.current.row
-        : seed.find((row) => row.id === value);
+        : seed.find((row) => row.id === value));
   const options = [
     ...new Map(
-      [...(query ? [] : seed), ...rows, ...(pinned ? [pinned] : [])].map(
-        (r) => [r.id, r],
-      ),
+      [
+        ...localOptions,
+        ...(query ? [] : seed),
+        ...rows,
+        ...(pinned ? [pinned] : []),
+      ].map((r) => [r.id, r]),
     ).values(),
   ];
   function search() {

@@ -942,6 +942,66 @@
         "caseId": "E2E-JRN-02-010",
         "step": "Inspect actual group audit provenance and reject an unassigned customer pin"
       }
+    },
+    {
+      "id": "COV-PAGED-PLACEMENT-PARENT",
+      "journey": "JRN-02",
+      "screen": "Placement and responsibility",
+      "category": "form",
+      "control": "Area parent and estate",
+      "assertion": "Find region and estate beyond overview then persist business unit parent",
+      "binding": {
+        "caseId": "E2E-JRN-02-011",
+        "step": "Find an estate and region beyond the overview then create its business unit"
+      }
+    },
+    {
+      "id": "COV-PAGED-PLACEMENT-RECOVERY",
+      "journey": "JRN-02",
+      "screen": "Placement and responsibility",
+      "category": "form",
+      "control": "Initial placement",
+      "assertion": "Retain selected IDs/reason through correlated area search failure and real retry",
+      "binding": {
+        "caseId": "E2E-JRN-02-011",
+        "step": "Retain placement inputs through search failure then save the intended estate area"
+      }
+    },
+    {
+      "id": "COV-PAGED-PLACEMENT-MOVE",
+      "journey": "JRN-02",
+      "screen": "Placement and responsibility",
+      "category": "journey",
+      "control": "Independent placement move",
+      "assertion": "Request and independently approve selected estate movement while preserving company and identity",
+      "binding": {
+        "caseId": "E2E-JRN-02-011",
+        "step": "Request and independently approve a move for the deeply selected estate"
+      }
+    },
+    {
+      "id": "COV-PAGED-PLACEMENT-COMPANY",
+      "journey": "JRN-02",
+      "screen": "Placement and responsibility",
+      "category": "form",
+      "control": "Responsibility company",
+      "assertion": "Select company outside overview and inspect real dated attribution audit",
+      "binding": {
+        "caseId": "E2E-JRN-02-011",
+        "step": "Select a deep responsible company and save a dated attributable change"
+      }
+    },
+    {
+      "id": "COV-PAGED-PLACEMENT-CAPTURE",
+      "journey": "JRN-02",
+      "screen": "Placement and responsibility",
+      "category": "journey",
+      "control": "Work attribution",
+      "assertion": "Persist estate operating area and date-effective company alignment on captured work",
+      "binding": {
+        "caseId": "E2E-JRN-02-011",
+        "step": "Capture work with estate identity operating placement and dated company aligned"
+      }
     }
   ]
 }

@@ -1,3 +1,4 @@
+import { SearchSelect } from "./SearchSelect";
 import { ResponsibilityGovernance } from "./ResponsibilityGovernance";
 import { useEffect, useState } from "react";
 type Api = (path: string, body?: unknown) => Promise<any>;
@@ -10,6 +11,9 @@ export function EstateResponsibility({
 }) {
   const [estates, setEstates] = useState<any[]>([]),
     [estate, setEstate] = useState(""),
+    [estateReady, setEstateReady] = useState(false),
+    [companyReady, setCompanyReady] = useState(false),
+    [needsRefresh, setNeedsRefresh] = useState(false),
     [data, setData] = useState<any>(null),
     [loading, setLoading] = useState(true),
     [busy, setBusy] = useState(false),
@@ -76,6 +80,7 @@ export function EstateResponsibility({
       const value = await api(path + (on ? "?on=" + on : ""));
       setData(value);
       setReview(value.asOf);
+      setNeedsRefresh(false);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -112,21 +117,16 @@ export function EstateResponsibility({
       )}
       {message && <p role="status">{message}</p>}
       {loading && <p role="status">Loading estate responsibility…</p>}
-      <label>
-        Responsibility estate
-        <select
-          aria-label="Responsibility estate"
-          value={estate}
-          disabled={busy}
-          onChange={(e) => setEstate(e.target.value)}
-        >
-          {estates.map((row) => (
-            <option key={row.id} value={row.id}>
-              {row.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      <SearchSelect
+        api={api}
+        path={`/navigation/estates?customerId=${customerId}`}
+        label="Responsibility estate"
+        value={estate}
+        onChange={setEstate}
+        onReady={setEstateReady}
+        seed={estates}
+        disabled={busy}
+      />
       <button
         type="button"
         className="secondary"
@@ -208,6 +208,7 @@ export function EstateResponsibility({
                     setData(value);
                     setReview(value.asOf);
                   } catch (e) {
+                    if (committed) setNeedsRefresh(true);
                     setError(
                       (committed
                         ? "Change saved, but refreshing failed. Refresh before retrying. "
@@ -227,7 +228,7 @@ export function EstateResponsibility({
                 independent review below; retroactive correction and
                 movement/deactivation approvals remain planned.
               </p>
-              <fieldset disabled={busy}>
+              <fieldset disabled={busy || needsRefresh || !estateReady}>
                 <label>
                   Correction source
                   <select
@@ -253,34 +254,23 @@ export function EstateResponsibility({
                       ))}
                   </select>
                 </label>
-                {data.companies.filter((row: any) => row.id !== lastCompany)
-                  .length === 0 && (
-                  <p>
-                    No different company is accessible. Company provisioning and
-                    the required estate/company access must be configured before
-                    scheduling.
-                  </p>
-                )}
-                <label>
-                  Next responsible company
-                  <select
-                    aria-label="Next responsible company"
-                    required
-                    value={company}
-                    onChange={(e) => setCompany(e.target.value)}
-                  >
-                    <option value="">
-                      Choose an accessible company in this customer
-                    </option>
-                    {data.companies
-                      .filter((row: any) => row.id !== lastCompany)
-                      .map((row: any) => (
-                        <option key={row.id} value={row.id}>
-                          {row.name}
-                        </option>
-                      ))}
-                  </select>
-                </label>
+                <p>
+                  Search for a different accessible company in this customer. A
+                  company label does not grant access to its other estates;
+                  provisioning remains separate.
+                </p>
+                <SearchSelect
+                  api={api}
+                  path={`/navigation/customers/${customerId}/companies?excludeId=${lastCompany}`}
+                  label="Next responsible company"
+                  value={company}
+                  onChange={setCompany}
+                  onReady={setCompanyReady}
+                  seed={data.companies.filter(
+                    (row: any) => row.id !== lastCompany,
+                  )}
+                  required
+                />
                 <label>
                   Responsibility effective date
                   <input
@@ -303,14 +293,17 @@ export function EstateResponsibility({
                     onChange={(e) => setReason(e.target.value)}
                   />
                 </label>
-                <button>Save responsibility change</button>
+                <button disabled={!company || !companyReady}>
+                  Save responsibility change
+                </button>
               </fieldset>
             </form>
           )}
           {data.truncated && (
             <p>
-              A bounded company/history window is shown. Full navigation and
-              company provisioning remain pending.
+              The recent history/correction-source window is bounded. Searchable
+              company choices are available above; dedicated ledger navigation
+              and provisioning remain pending.
             </p>
           )}
           <ResponsibilityGovernance
@@ -318,7 +311,7 @@ export function EstateResponsibility({
             estate={estate}
             api={api}
             data={data}
-            busy={busy}
+            busy={busy || needsRefresh}
             onBusy={setBusy}
             onChanged={async () => {
               const value = await api(path + (review ? "?on=" + review : ""));

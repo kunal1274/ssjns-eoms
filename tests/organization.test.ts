@@ -896,3 +896,162 @@ test("deep company group writes retain optimistic versions actor references and 
     );
   }
 });
+
+let areaFixture: any;
+async function areaData() {
+  if (areaFixture) return areaFixture;
+  const code = "AP-" + randomUUID().slice(0, 8).toUpperCase();
+  const customer = (
+    await admin.query(
+      "INSERT INTO eoms.customers(code,name) VALUES($1,$2) RETURNING id",
+      [code, "ZZZ Area pages " + code],
+    )
+  ).rows[0].id;
+  const company = (
+    await admin.query(
+      "INSERT INTO eoms.companies(customer_id,name) VALUES($1,'Area pages company') RETURNING id",
+      [customer],
+    )
+  ).rows[0].id;
+  const estates = (
+    await admin.query(
+      "INSERT INTO eoms.estates(customer_id,company_id,code,name) SELECT $1,$2,$3||'-'||lpad(i::text,3,'0'),'Area page estate '||i FROM generate_series(1,201) i RETURNING id,code",
+      [customer, company, code],
+    )
+  ).rows;
+  await admin.query(
+    "INSERT INTO eoms.memberships(user_id,estate_id,role) SELECT $1,id,'manager' FROM eoms.estates WHERE customer_id=$2",
+    [manager.id, customer],
+  );
+  await admin.query(
+    "INSERT INTO eoms.organization_admins(customer_id,user_id) VALUES($1,$2)",
+    [customer, manager.id],
+  );
+  const areas = (
+    await admin.query(
+      "INSERT INTO eoms.operating_areas(customer_id,kind,code,name) SELECT $1,'region','PR-'||lpad(i::text,3,'0'),'Paged area '||i FROM generate_series(1,201) i RETURNING id,code",
+      [customer],
+    )
+  ).rows;
+  areas.sort((a: any, b: any) => a.code.localeCompare(b.code));
+  return (areaFixture = { customer, company, estates, areas });
+}
+test("operating area pages reach all 201 permitted records and pinned records do not widen scope", async () => {
+  const f = await areaData(),
+    path = `customers/${f.customer}/areas`,
+    ids: string[] = [];
+  let cursor: string | undefined;
+  do {
+    const p = await navGet(path, { limit: 100, ...(cursor ? { cursor } : {}) });
+    ids.push(...p.items.map((r: any) => r.id));
+    cursor = p.nextCursor ?? undefined;
+  } while (cursor);
+  assert.equal(ids.length, 201);
+  assert.equal(new Set(ids).size, 201);
+  const pin = await navGet(path, {
+    q: "unmatched",
+    selectedId: f.areas[200].id,
+  });
+  assert.deepEqual(pin.items, []);
+  assert.equal(pin.selected.id, f.areas[200].id);
+  assert.equal(
+    (await supervisor.agent.get("/api/navigation/" + path)).status,
+    404,
+  );
+  assert.equal(
+    (
+      await manager.agent
+        .get(`/api/navigation/customers/${customer}/areas`)
+        .query({ selectedId: f.areas[200].id })
+    ).status,
+    404,
+  );
+});
+test("area kind availability exclusion and literal filters bind cursors and retain ineligible current pins", async () => {
+  const f = await areaData(),
+    path = `customers/${f.customer}/areas`;
+  await admin.query(
+    "UPDATE eoms.operating_areas SET name=$2,active=false,version=version+1 WHERE id=$1",
+    [f.areas[200].id, "Literal 50% _ slash\\ area"],
+  );
+  for (const q of ["%", "_", "\\"])
+    assert.deepEqual(
+      (await navGet(path, { q })).items.map((r: any) => r.id),
+      [f.areas[200].id],
+    );
+  const pin = await navGet(path, {
+    status: "active",
+    selectedId: f.areas[200].id,
+  });
+  assert.equal(pin.selected.eligible, false);
+  assert.equal(pin.selected.version, 2);
+  const excluded = await navGet(path, {
+    q: f.areas[0].code,
+    excludeId: f.areas[0].id,
+    selectedId: f.areas[0].id,
+  });
+  assert.deepEqual(excluded.items, []);
+  assert.equal(excluded.selected.eligible, false);
+  assert.equal(
+    (await navGet(path, { kind: "business-unit", selectedId: f.areas[0].id }))
+      .selected.eligible,
+    false,
+  );
+  const first = await navGet(path, { kind: "region", limit: 5 });
+  for (const filters of [
+    { kind: "business-unit" },
+    { status: "inactive" },
+    { excludeId: f.areas[0].id },
+  ])
+    assert.equal(
+      (
+        await manager.agent
+          .get("/api/navigation/" + path)
+          .query({ kind: "region", cursor: first.nextCursor, ...filters })
+      ).status,
+      422,
+    );
+  assert.equal(
+    (
+      await supervisor.agent
+        .get("/api/navigation/" + path)
+        .query({ kind: "region", cursor: first.nextCursor })
+    ).status,
+    422,
+  );
+});
+test("estate pins supply current placement versions and excluded companies remain explicit ineligible choices", async () => {
+  const f = await areaData(),
+    own = f.estates.find((r: any) => r.code.endsWith("-201"));
+  await admin.query(
+    "UPDATE eoms.estates SET area_id=$2,placement_version=placement_version+1 WHERE id=$1",
+    [own.id, f.areas[0].id],
+  );
+  const pin = await navGet("estates", {
+    customerId: f.customer,
+    selectedId: own.id,
+    q: "unmatched",
+  });
+  assert.equal(pin.selected.area_id, f.areas[0].id);
+  assert.equal(pin.selected.placement_version, 2);
+  assert.equal(pin.selected.company_id, f.company);
+  const path = `customers/${f.customer}/companies`;
+  const excluded = await navGet(path, {
+    excludeId: f.company,
+    selectedId: f.company,
+  });
+  assert.deepEqual(excluded.items, []);
+  assert.equal(excluded.selected.eligible, false);
+  const other = await contextData();
+  const first = await navGet(`customers/${other.own.id}/companies`, {
+    limit: 5,
+  });
+  assert.equal(
+    (
+      await manager.agent
+        .get(`/api/navigation/customers/${other.own.id}/companies`)
+        .query({ cursor: first.nextCursor, excludeId: other.companies[0].id })
+    ).status,
+    422,
+  );
+});
