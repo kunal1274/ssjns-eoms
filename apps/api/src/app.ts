@@ -64,6 +64,11 @@ export function createApp(
   app.disable("x-powered-by");
   app.use("/api", requestContext);
   app.use(helmet());
+  // Only the bounded source-check upload accepts a larger JSON envelope.
+  app.post(
+    "/api/estates/:estateId/reconciliation/jobs/:jobId/evidence",
+    express.json({ limit: "3mb" }),
+  );
   app.use(express.json({ limit: "64kb" }));
   app.get("/api/health", async (_req, res) => {
     await pool.query("SELECT 1");

@@ -1,5 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHash } from "node:crypto";
 import assert from "node:assert/strict";
 const mode = process.argv[2];
 if (!["create", "verify"].includes(mode))
@@ -62,13 +62,59 @@ if (mode === "create") {
     "Idempotency-Key": key,
   });
   assert.equal(replay.id, saved.id);
+  const sourceBytes = Buffer.alloc(2 * 1024 * 1024, 73),
+    sourceSha = createHash("sha256").update(sourceBytes).digest("hex");
+  const work = await call(root + "/musters/" + saved.id);
+  const review = await call(root + "/reconciliation/jobs", "POST", {
+    key: randomUUID(),
+    reason: "Container source-check persistence fixture",
+    manifest: {
+      version: 1,
+      source: {
+        system: "Synthetic container source",
+        documentRef: "Container retained-volume check",
+        sha256: sourceSha,
+      },
+      rows: [
+        {
+          sourceRow: "A:2",
+          kind: "work-company",
+          recordId: saved.id,
+          recordVersion: work.version,
+          targetId: work.legal_company_id,
+          reason: "Synthetic comparison only; no attribution changes",
+        },
+      ],
+    },
+  });
+  const evidencePath =
+      root + "/reconciliation/jobs/" + review.job.id + "/evidence",
+    evidenceInput = {
+      key: randomUUID(),
+      fileName: "container-source.bin",
+      reason: "Synthetic two MiB proxy and persistence check",
+      contentBase64: sourceBytes.toString("base64"),
+    };
+  const evidence = await call(evidencePath, "POST", evidenceInput),
+    evidenceReplay = await call(evidencePath, "POST", evidenceInput);
+  assert.equal(evidence.check.computed_sha256, sourceSha);
+  assert.equal(evidence.check.matches_declared, true);
+  assert.equal(evidence.check.source_authenticity_verified, false);
+  assert.equal(evidenceReplay.check.id, evidence.check.id);
+  assert.equal(evidenceReplay.replayed, true);
   await writeFile(
     ".local/docker-smoke-record.json",
-    JSON.stringify({ estateId: estate.id, id: saved.id }),
+    JSON.stringify({
+      estateId: estate.id,
+      id: saved.id,
+      jobId: review.job.id,
+      evidenceId: evidence.check.id,
+      sourceSha,
+    }),
     { mode: 0o600 },
   );
   console.log(
-    "Container proxy, database health, login, draft capture and duplicate replay passed.",
+    "Container proxy, database health, login, draft/review capture, two MiB source upload and duplicate replay passed.",
   );
 } else {
   const saved = JSON.parse(
@@ -79,7 +125,18 @@ if (mode === "create") {
   );
   assert.equal(result.id, saved.id);
   assert.equal(result.status, "draft");
+  const baseReview = `/api/estates/${saved.estateId}/reconciliation/jobs/${saved.jobId}`;
+  const review = await call(baseReview),
+    checks = await call(baseReview + "/evidence");
+  assert.equal(review.job.id, saved.jobId);
+  assert.equal(review.job.snapshot.sourceEvidenceVerified, false);
+  assert.equal(review.audit.length, 1);
+  assert.equal(checks.items.length, 1);
+  assert.equal(checks.items[0].id, saved.evidenceId);
+  assert.equal(checks.items[0].computed_sha256, saved.sourceSha);
+  assert.equal(checks.items[0].source_authenticity_verified, false);
+
   console.log(
-    "Saved draft and development account survived container removal/recreation with retained volumes.",
+    "Saved draft, review/source-check audit and development account survived container removal/recreation with retained volumes.",
   );
 }

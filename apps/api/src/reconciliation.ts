@@ -1,3 +1,4 @@
+import { sourceEvidenceInput } from "../../../packages/domain/source-evidence";
 import { z } from "zod";
 import { pageFields, readPage, pageResult } from "./navigation-page";
 import type { Express } from "express";
@@ -285,6 +286,81 @@ export function reconciliationRoutes(app: Express, estateTx: EstateTx) {
           )
         ).rows;
         return { job, audit };
+      }),
+    );
+  });
+  app.post(jobs + "/:jobId/evidence", async (req, res) => {
+    const jobId = z.string().uuid().parse(req.params.jobId),
+      input = sourceEvidenceInput.parse(req.body);
+    res.json(
+      await estateTx(req, res, false, async (c, id) => {
+        await requireAccess(c, id);
+        if (
+          !(
+            await c.query(
+              "SELECT id FROM eoms.reconciliation_jobs WHERE estate_id=$1 AND id=$2",
+              [id, jobId],
+            )
+          ).rowCount
+        )
+          throw new ApiError(
+            404,
+            "Saved review is not available in this estate scope.",
+          );
+        await c.query("SELECT set_config('app.request_id',$1,true)", [
+          res.locals.requestId,
+        ]);
+        return (
+          await c.query(
+            "SELECT eoms.check_reconciliation_source($1,$2,$3,$4,$5) AS result",
+            [
+              jobId,
+              input.key,
+              input.fileName,
+              input.reason,
+              Buffer.from(input.contentBase64, "base64"),
+            ],
+          )
+        ).rows[0].result;
+      }),
+    );
+  });
+  app.get(jobs + "/:jobId/evidence", async (req, res) => {
+    const jobId = z.string().uuid().parse(req.params.jobId),
+      query = z
+        .object({ limit: pageFields.limit, cursor: pageFields.cursor })
+        .strict()
+        .parse(req.query);
+    res.json(
+      await estateTx(req, res, false, async (c, id) => {
+        await requireAccess(c, id);
+        if (
+          !(
+            await c.query(
+              "SELECT id FROM eoms.reconciliation_jobs WHERE estate_id=$1 AND id=$2",
+              [id, jobId],
+            )
+          ).rowCount
+        )
+          throw new ApiError(
+            404,
+            "Saved review is not available in this estate scope.",
+          );
+        const binding = {
+            kind: "reconciliation-evidence",
+            estate: id,
+            job: jobId,
+            actor: res.locals.user.id,
+            limit: query.limit,
+          },
+          page = readPage(query.cursor, binding);
+        const rows = (
+          await c.query(
+            "SELECT * FROM eoms.reconciliation_evidence_checks WHERE estate_id=$1 AND job_id=$2 AND ($3::uuid IS NULL OR id>$3) ORDER BY id LIMIT $4",
+            [id, jobId, page?.key ?? null, query.limit + 1],
+          )
+        ).rows;
+        return pageResult(rows, query.limit, binding, (r) => r.id);
       }),
     );
   });

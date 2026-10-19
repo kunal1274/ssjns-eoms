@@ -1506,6 +1506,54 @@
         "caseId": "E2E-JRN-06-005",
         "step": "Clear retained manifests and audits after setup loss and deny reopened detail after membership revocation"
       }
+    },
+    {
+      "id": "COV-SOURCE-BOUNDS",
+      "journey": "JRN-06",
+      "screen": "Source file checks",
+      "category": "form",
+      "control": "Source upload bounds and mismatch",
+      "assertion": "Validate source-file bounds and record a real mismatch without authenticating or changing historical work",
+      "binding": {
+        "caseId": "E2E-JRN-06-006",
+        "step": "Validate source-file bounds and record a real mismatch without authenticating or changing historical work"
+      }
+    },
+    {
+      "id": "COV-SOURCE-RETRY",
+      "journey": "JRN-06",
+      "screen": "Source file checks",
+      "category": "action",
+      "control": "Committed digest check recovery",
+      "assertion": "Recover a committed matching source check after response loss without recording a duplicate event",
+      "binding": {
+        "caseId": "E2E-JRN-06-006",
+        "step": "Recover a committed matching source check after response loss without recording a duplicate event"
+      }
+    },
+    {
+      "id": "COV-SOURCE-AUDIT",
+      "journey": "JRN-06",
+      "screen": "Source file checks",
+      "category": "navigation",
+      "control": "Reload source-check audit",
+      "assertion": "Reload saved source checks and inspect short and detailed audit with byte identity separate from authenticity",
+      "binding": {
+        "caseId": "E2E-JRN-06-006",
+        "step": "Reload saved source checks and inspect short and detailed audit with byte identity separate from authenticity"
+      }
+    },
+    {
+      "id": "COV-SOURCE-SCOPE",
+      "journey": "JRN-06",
+      "screen": "Source file checks",
+      "category": "action",
+      "control": "Source input and metadata clearing",
+      "assertion": "Clear source-file inputs and recorded metadata after setup and membership revocation",
+      "binding": {
+        "caseId": "E2E-JRN-06-006",
+        "step": "Clear source-file inputs and recorded metadata after setup and membership revocation"
+      }
     }
   ]
 }

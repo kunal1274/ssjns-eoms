@@ -1,3 +1,4 @@
+import { SourceEvidence } from "./SourceEvidence";
 import { RequestFailure } from "./feedback";
 import { useEffect, useRef, useState } from "react";
 type Api = (path: string, body?: unknown) => Promise<any>;
@@ -19,6 +20,7 @@ export function ReconciliationJobs({
   const [reason, setReason] = useState(""),
     [busy, setBusy] = useState(false),
     [completed, setCompleted] = useState(false),
+    [evidencePending, setEvidencePending] = useState(false),
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [items, setItems] = useState<any[]>([]),
@@ -75,7 +77,14 @@ export function ReconciliationJobs({
     };
   }, [base, cursor, refresh]);
   async function save() {
-    if (busy || completed || !result || reason.trim().length < 3) return;
+    if (
+      busy ||
+      evidencePending ||
+      completed ||
+      !result ||
+      reason.trim().length < 3
+    )
+      return;
     const ticket = ++epoch.current;
     setBusy(true);
     setError("");
@@ -158,12 +167,24 @@ export function ReconciliationJobs({
             minLength={3}
             maxLength={500}
             required
-            disabled={!result || busy || completed || !!pending.current}
+            disabled={
+              !result ||
+              busy ||
+              evidencePending ||
+              completed ||
+              !!pending.current
+            }
             onChange={(e) => setReason(e.target.value)}
           />
         </label>
         <button
-          disabled={!result || busy || completed || reason.trim().length < 3}
+          disabled={
+            !result ||
+            busy ||
+            evidencePending ||
+            completed ||
+            reason.trim().length < 3
+          }
         >
           Save review snapshot
         </button>
@@ -186,7 +207,7 @@ export function ReconciliationJobs({
             </p>
             <p>{j.reason}</p>
             <button
-              disabled={busy || !!pending.current}
+              disabled={busy || evidencePending || !!pending.current}
               onClick={() => void open(j.id)}
             >
               Open saved review {j.id}
@@ -195,7 +216,7 @@ export function ReconciliationJobs({
         </article>
       ))}
       <button
-        disabled={loading || busy}
+        disabled={loading || busy || evidencePending}
         onClick={() => {
           setCursor(null);
           setRefresh((n) => n + 1);
@@ -204,7 +225,7 @@ export function ReconciliationJobs({
         Refresh saved reviews
       </button>
       <button
-        disabled={loading || busy || !next}
+        disabled={loading || busy || evidencePending || !next}
         onClick={() => setCursor(next)}
       >
         Next saved reviews
@@ -229,7 +250,7 @@ export function ReconciliationJobs({
             again to check current versions and access.
           </p>
           <button
-            disabled={busy || !!pending.current}
+            disabled={busy || evidencePending || !!pending.current}
             onClick={() => {
               onLoad(JSON.stringify(detail.job.manifest, null, 2));
               setNotice(
@@ -252,6 +273,12 @@ export function ReconciliationJobs({
               )}
             </pre>
           </details>
+          <SourceEvidence
+            key={detail.job.id}
+            path={base + "/reconciliation/jobs/" + detail.job.id + "/evidence"}
+            api={api}
+            onPending={setEvidencePending}
+          />
           {detail.audit === null ? (
             <p>
               Open this saved review from the list to read its recorded audit

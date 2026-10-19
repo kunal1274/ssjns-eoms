@@ -339,6 +339,14 @@ try {
     await c.query(
       await readFile("db/migrations/018_reconciliation_jobs.sql", "utf8"),
     );
+    await c.query(
+      await readFile("db/migrations/019_source_evidence_checks.sql", "utf8"),
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.reconciliation_evidence_checks"))
+        .rowCount,
+      0,
+    );
     assert.equal(
       (await c.query("SELECT * FROM eoms.reconciliation_jobs")).rowCount,
       0,
