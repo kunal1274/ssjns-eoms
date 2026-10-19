@@ -187,7 +187,13 @@ test("E2E-JRN-06-005 @regression save recover and reopen scoped reconciliation r
           exact: true,
         })
         .click();
-      await expect(draft).toHaveValue(JSON.stringify(manifest, null, 2));
+      // PostgreSQL jsonb preserves values, not object-key serialization order.
+      await expect
+        .poll(async () => {
+          const value = await draft.inputValue();
+          return value ? JSON.parse(value) : null;
+        })
+        .toEqual(manifest);
       await expect(save).toBeDisabled();
       const changed = structuredClone(manifest);
       changed.rows[0].recordVersion = 99;
