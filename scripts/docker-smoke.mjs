@@ -102,6 +102,27 @@ if (mode === "create") {
   assert.equal(evidence.check.source_authenticity_verified, false);
   assert.equal(evidenceReplay.check.id, evidence.check.id);
   assert.equal(evidenceReplay.replayed, true);
+  const independent = accounts.find((a) => a.email === "reviewer@eoms.local");
+  assert.ok(independent);
+  const reviewerLogin = await call("/api/auth/login", "POST", {
+    email: independent.email,
+    password: independent.password,
+  });
+  csrf = reviewerLogin.csrf;
+  const provenancePath = evidencePath + "/" + evidence.check.id + "/reviews",
+    provenanceInput = {
+      key: randomUUID(),
+      expectedRevision: 0,
+      outcome: "corroborated",
+      originalExamined: true,
+      sourceRef: "Synthetic container controlled archive",
+      reason: "Independent fixture reviewer examined synthetic source",
+    };
+  const provenance = await call(provenancePath, "POST", provenanceInput),
+    provenanceReplay = await call(provenancePath, "POST", provenanceInput);
+  assert.equal(provenance.review.revision, 1);
+  assert.equal(provenanceReplay.review.id, provenance.review.id);
+  assert.equal(provenanceReplay.replayed, true);
   await writeFile(
     ".local/docker-smoke-record.json",
     JSON.stringify({
@@ -110,11 +131,12 @@ if (mode === "create") {
       jobId: review.job.id,
       evidenceId: evidence.check.id,
       sourceSha,
+      provenanceId: provenance.review.id,
     }),
     { mode: 0o600 },
   );
   console.log(
-    "Container proxy, database health, login, draft/review capture, two MiB source upload and duplicate replay passed.",
+    "Container proxy, database health, login, draft/review capture, two MiB source upload, independent observation and duplicate replay passed.",
   );
 } else {
   const saved = JSON.parse(
@@ -135,8 +157,15 @@ if (mode === "create") {
   assert.equal(checks.items[0].id, saved.evidenceId);
   assert.equal(checks.items[0].computed_sha256, saved.sourceSha);
   assert.equal(checks.items[0].source_authenticity_verified, false);
+  const observations = await call(
+    baseReview + "/evidence/" + saved.evidenceId + "/reviews",
+  );
+  assert.equal(observations.items.length, 1);
+  assert.equal(observations.items[0].id, saved.provenanceId);
+  assert.equal(observations.items[0].outcome, "corroborated");
+  assert.equal(observations.context.canRecord, false);
 
   console.log(
-    "Saved draft, review/source-check audit and development account survived container removal/recreation with retained volumes.",
+    "Saved draft, review/source-check/provenance audit and development account survived container removal/recreation with retained volumes.",
   );
 }

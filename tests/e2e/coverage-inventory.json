@@ -1554,6 +1554,54 @@
         "caseId": "E2E-JRN-06-006",
         "step": "Clear source-file inputs and recorded metadata after setup and membership revocation"
       }
+    },
+    {
+      "id": "COV-PROVENANCE-INDEPENDENCE",
+      "journey": "JRN-06",
+      "screen": "Independent provenance review",
+      "category": "form",
+      "control": "Independent reviewer and examination guard",
+      "assertion": "Prevent preparer self-review and require a separate reviewer with explicit original examination before corroboration",
+      "binding": {
+        "caseId": "E2E-JRN-06-007",
+        "step": "Prevent preparer self-review and require a separate reviewer with explicit original examination before corroboration"
+      }
+    },
+    {
+      "id": "COV-PROVENANCE-RECOVERY",
+      "journey": "JRN-06",
+      "screen": "Independent provenance review",
+      "category": "action",
+      "control": "Independent observation retry and audit",
+      "assertion": "Recover a committed independent observation after response loss and inspect actual reviewer and request audit",
+      "binding": {
+        "caseId": "E2E-JRN-06-007",
+        "step": "Recover a committed independent observation after response loss and inspect actual reviewer and request audit"
+      }
+    },
+    {
+      "id": "COV-PROVENANCE-CORRECTION",
+      "journey": "JRN-06",
+      "screen": "Independent provenance review",
+      "category": "action",
+      "control": "Stale revision and linked correction",
+      "assertion": "Reject a stale tab then refresh and append a correction with previous observations visibly superseded",
+      "binding": {
+        "caseId": "E2E-JRN-06-007",
+        "step": "Reject a stale tab then refresh and append a correction with previous observations visibly superseded"
+      }
+    },
+    {
+      "id": "COV-PROVENANCE-REOPEN-SCOPE",
+      "journey": "JRN-06",
+      "screen": "Independent provenance review",
+      "category": "navigation",
+      "control": "Persisted provenance and private-input clearing",
+      "assertion": "Reopen persisted provenance lineage and clear private observations after setup and membership revocation",
+      "binding": {
+        "caseId": "E2E-JRN-06-007",
+        "step": "Reopen persisted provenance lineage and clear private observations after setup and membership revocation"
+      }
     }
   ]
 }

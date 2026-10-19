@@ -1,3 +1,4 @@
+import { sourceReviewInput } from "../../../packages/domain/source-review";
 import { sourceEvidenceInput } from "../../../packages/domain/source-evidence";
 import { z } from "zod";
 import { pageFields, readPage, pageResult } from "./navigation-page";
@@ -361,6 +362,122 @@ export function reconciliationRoutes(app: Express, estateTx: EstateTx) {
           )
         ).rows;
         return pageResult(rows, query.limit, binding, (r) => r.id);
+      }),
+    );
+  });
+  const reviewPath = jobs + "/:jobId/evidence/:checkId/reviews";
+  async function reviewContext(
+    c: PoolClient,
+    id: string,
+    jobId: string,
+    checkId: string,
+  ) {
+    await requireAccess(c, id);
+    const evidence = (
+      await c.query(
+        "SELECT e.id,e.actor_id,e.matches_declared,e.file_name,e.computed_sha256,e.manifest_sha256,j.created_by,j.manifest->'source'->>'documentRef' AS document_ref FROM eoms.reconciliation_evidence_checks e JOIN eoms.reconciliation_jobs j ON j.id=e.job_id WHERE e.id=$1 AND e.job_id=$2 AND e.estate_id=$3",
+        [checkId, jobId, id],
+      )
+    ).rows[0];
+    if (!evidence)
+      throw new ApiError(
+        404,
+        "Source check is not available in this review scope.",
+      );
+    return evidence;
+  }
+  app.get(reviewPath, async (req, res) => {
+    const jobId = z.string().uuid().parse(req.params.jobId),
+      checkId = z.string().uuid().parse(req.params.checkId),
+      query = z
+        .object({ limit: pageFields.limit, cursor: pageFields.cursor })
+        .strict()
+        .parse(req.query);
+    res.json(
+      await estateTx(req, res, false, async (c, id) => {
+        const evidence = await reviewContext(c, id, jobId, checkId),
+          actor = res.locals.user.id;
+        const binding = {
+            kind: "source-provenance-reviews",
+            estate: id,
+            job: jobId,
+            check: checkId,
+            actor,
+            limit: query.limit,
+          },
+          page = readPage(query.cursor, binding);
+        const rows = (
+          await c.query(
+            "SELECT r.*,r.revision=(SELECT max(v.revision) FROM eoms.source_provenance_reviews v WHERE v.evidence_id=r.evidence_id AND v.reviewer_id=r.reviewer_id) AS is_current FROM eoms.source_provenance_reviews r WHERE r.evidence_id=$1 AND r.estate_id=$2 AND ($3::uuid IS NULL OR r.id>$3) ORDER BY r.id LIMIT $4",
+            [checkId, id, page?.key ?? null, query.limit + 1],
+          )
+        ).rows;
+        const ownRevision = (
+          await c.query(
+            "SELECT coalesce(max(revision),0)::int AS revision FROM eoms.source_provenance_reviews WHERE evidence_id=$1 AND reviewer_id=$2",
+            [checkId, actor],
+          )
+        ).rows[0].revision;
+        const independent =
+          actor !== evidence.actor_id && actor !== evidence.created_by;
+        return {
+          ...pageResult(rows, query.limit, binding, (r) => r.id),
+          context: {
+            actorId: actor,
+            canRecord: independent,
+            canCorroborate: independent && evidence.matches_declared,
+            ownRevision,
+            source: {
+              checkId,
+              jobId,
+              fileName: evidence.file_name,
+              sha256: evidence.computed_sha256,
+              manifestSha256: evidence.manifest_sha256,
+              documentRef: evidence.document_ref,
+            },
+            blockers: independent
+              ? []
+              : [
+                  "The manifest preparer and source-file uploader cannot record an independent review. Continue with a separately authorized reviewer.",
+                ],
+          },
+        };
+      }),
+    );
+  });
+  app.post(reviewPath, async (req, res) => {
+    const jobId = z.string().uuid().parse(req.params.jobId),
+      checkId = z.string().uuid().parse(req.params.checkId),
+      input = sourceReviewInput.parse(req.body);
+    res.json(
+      await estateTx(req, res, false, async (c, id) => {
+        await reviewContext(c, id, jobId, checkId);
+        await c.query("SELECT set_config('app.request_id',$1,true)", [
+          res.locals.requestId,
+        ]);
+        try {
+          return (
+            await c.query(
+              "SELECT eoms.record_source_review($1,$2,$3,$4,$5,$6,$7) AS result",
+              [
+                checkId,
+                input.key,
+                input.expectedRevision,
+                input.outcome,
+                input.originalExamined,
+                input.sourceRef,
+                input.reason,
+              ],
+            )
+          ).rows[0].result;
+        } catch (e) {
+          if ((e as { code?: string }).code === "23505")
+            throw new ApiError(
+              409,
+              "Your review revision changed or this save reference was reused. Refresh review history before recording a correction; retry an unchanged submission to recover it.",
+            );
+          throw e;
+        }
       }),
     );
   });

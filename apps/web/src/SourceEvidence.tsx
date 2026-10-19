@@ -1,3 +1,4 @@
+import { SourceReview } from "./SourceReview";
 import { useEffect, useRef, useState } from "react";
 import { RequestFailure } from "./feedback";
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -17,6 +18,8 @@ export function SourceEvidence({
     [reading, setReading] = useState(false),
     [busy, setBusy] = useState(false),
     [pending, setPending] = useState(false),
+    [reviewPending, setReviewPending] = useState(false),
+    [selectedReview, setSelectedReview] = useState<string | null>(null),
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [checks, setChecks] = useState<any[]>([]),
@@ -97,7 +100,14 @@ export function SourceEvidence({
     }
   }
   async function submit() {
-    if (busy || reading || !content || reason.trim().length < 3) return;
+    if (
+      busy ||
+      reviewPending ||
+      reading ||
+      !content ||
+      reason.trim().length < 3
+    )
+      return;
     const ticket = ++generation.current;
     setBusy(true);
     setError("");
@@ -179,7 +189,7 @@ export function SourceEvidence({
             ref={input}
             type="file"
             aria-label="Original source file"
-            disabled={busy || pending}
+            disabled={busy || pending || reviewPending}
             onChange={(e) => void select(e.target.files?.[0])}
           />
         </label>
@@ -192,12 +202,18 @@ export function SourceEvidence({
             required
             minLength={3}
             maxLength={500}
-            disabled={busy || pending}
+            disabled={busy || pending || reviewPending}
             onChange={(e) => setReason(e.target.value)}
           />
         </label>
         <button
-          disabled={busy || reading || !content || reason.trim().length < 3}
+          disabled={
+            busy ||
+            reviewPending ||
+            reading ||
+            !content ||
+            reason.trim().length < 3
+          }
         >
           Check source file digest
         </button>
@@ -226,6 +242,12 @@ export function SourceEvidence({
               {v.reason} · {v.created_at}
             </p>
             <p>Source authenticity: Unverified. No changes applied.</p>
+            <button
+              disabled={busy || pending || reviewPending}
+              onClick={() => setSelectedReview(v.id)}
+            >
+              Open provenance review {v.id}
+            </button>
             <details>
               <summary>View detailed source check</summary>
               <dl>
@@ -254,8 +276,19 @@ export function SourceEvidence({
           </div>
         </article>
       ))}
+      {selectedReview && (
+        <SourceReview
+          key={selectedReview}
+          path={path + "/" + selectedReview + "/reviews"}
+          api={api}
+          onPending={(v) => {
+            setReviewPending(v);
+            onPending(v);
+          }}
+        />
+      )}
       <button
-        disabled={loading || busy}
+        disabled={loading || busy || reviewPending}
         onClick={() => {
           setCursor(null);
           setRefresh((n) => n + 1);
@@ -264,7 +297,7 @@ export function SourceEvidence({
         Refresh source checks
       </button>
       <button
-        disabled={loading || busy || !next}
+        disabled={loading || busy || reviewPending || !next}
         onClick={() => setCursor(next)}
       >
         Next source checks
