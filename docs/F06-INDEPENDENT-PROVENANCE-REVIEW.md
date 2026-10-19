@@ -1,6 +1,8 @@
 # F06.6c4 independent provenance observations
 
-Implemented candidate, 19 October 2026; full database/browser/Docker gate pending. Local47 unit/contract tests, type/build/format pass. F06 remains In progress. No phase closure, mapping approval, merge or deployment.
+Verified 19 October 2026: source `fe3f2cec0c8d424681e5fe054cc76ac40717d325` / [CI39195331916](https://github.com/kunal1274/ssjns-eoms/actions/runs/39195331916), verify and quality-gate success. F06 remains In progress. No phase closure, mapping approval, merge or deployment.
+
+Actual proof:47 unit/contract +97 PostgreSQL/API =144 tests, zero failures, also passed inside Docker. All52 desktop/mobile executions passed; E2E-JRN-06-007 took4.8s desktop/4.7s mobile. Actual ledger240passed/40untested item/project rows. Legacy upgrade through020, existing browser/maintenance/workflow/PWA/session/offline/installability, ledger UI, format/type/build, zero-vulnerability audit and full Docker gates passed. Extended Docker smoke recorded/retried an independent synthetic observation through the proxy and reopened its provenance audit as the preparer after container recreation. This evidence follow-up changes documentation only.
 
 A source-check record now connects to a separately authenticated reviewer's provenance observations. Outcomes are corroborated provenance, concerns or insufficient evidence. A corroborating statement requires a matching source digest and an explicit declaration that the reviewer examined the controlled original and its provenance. Each observation retains controlled document reference, reason, reviewer, examination declaration, source/manifest digests, original server request reference, revision and previous-observation identity. The preparer and that source-check's uploader can read but cannot record independent observations on their own evidence.
 
@@ -22,12 +24,12 @@ Docker smoke now uses the separately seeded development reviewer to record/retry
 
 | Capability | Status |
 | --- | --- |
-| Independent non-authorizing observations and immutable correction lineage | Implemented; full gate pending |
-| Guided reviewer UI, retry/stale/reload/revocation recovery | Implemented; full gate pending |
+| Independent non-authorizing observations and immutable correction lineage | Verified for documented bounded scope |
+| Guided reviewer UI, retry/stale/reload/revocation recovery | Verified for documented bounded scope |
 | Signed source-authenticity criteria and trusted document custody/retention | Open |
 | Owner-approved mapping decisions, approval audit and application/overlay policy | Open |
 | Larger files, bulk staging, row reconciliation/rollback and client-data acceptance | Open |
 | Bootstrap/setup-grant/inheritance dependencies and persona/manual UAT | Open |
 | F06 acceptance and F07–F25/full business-process delivery | Open |
 
-Expected full gate:144 unit/API tests(47+97),52 desktop/mobile executions. Inventory140items/120mapped/20gaps; expected ledger240passed/40untested item/project rows. These are expectations until CI completes, and assertion counts are not whole-product coverage percentages. Preserve the full roadmap and parallel reusable visible testing/manual-recording/local one-click runner workstream.
+Actual full gate:144 unit/API tests(47+97),52 desktop/mobile executions. Inventory140items/120mapped/20gaps; actual ledger240passed/40untested item/project rows. Assertion counts are not whole-product coverage percentages. Preserve the full roadmap and parallel reusable visible testing/manual-recording/local one-click runner workstream.
