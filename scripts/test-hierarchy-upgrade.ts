@@ -345,6 +345,12 @@ try {
     await c.query(
       await readFile("db/migrations/020_source_provenance_reviews.sql", "utf8"),
     );
+    await c.query(
+      await readFile(
+        "db/migrations/021_readiness_observation_summary.sql",
+        "utf8",
+      ),
+    );
     assert.equal(
       (await c.query("SELECT * FROM eoms.source_provenance_reviews")).rowCount,
       0,

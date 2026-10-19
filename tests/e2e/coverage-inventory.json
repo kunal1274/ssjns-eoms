@@ -1602,6 +1602,54 @@
         "caseId": "E2E-JRN-06-007",
         "step": "Reopen persisted provenance lineage and clear private observations after setup and membership revocation"
       }
+    },
+    {
+      "id": "COV-READINESS-POLICY",
+      "journey": "JRN-06",
+      "screen": "Mapping readiness inspection",
+      "category": "navigation",
+      "control": "Fresh inspection and draft policy",
+      "assertion": "Open fresh saved-mapping inspection and inspect support provenance and unapproved policy with no write authorization",
+      "binding": {
+        "caseId": "E2E-JRN-06-008",
+        "step": "Open fresh saved-mapping inspection and inspect support provenance and unapproved policy with no write authorization"
+      }
+    },
+    {
+      "id": "COV-READINESS-CONFLICTS",
+      "journey": "JRN-06",
+      "screen": "Mapping readiness inspection",
+      "category": "action",
+      "control": "Current reviewer conflicts and revoked authority",
+      "assertion": "Refresh latest observations without hiding conflicts superseded outcomes or concerns from a reviewer whose access changed",
+      "binding": {
+        "caseId": "E2E-JRN-06-008",
+        "step": "Refresh latest observations without hiding conflicts superseded outcomes or concerns from a reviewer whose access changed"
+      }
+    },
+    {
+      "id": "COV-READINESS-DRIFT",
+      "journey": "JRN-06",
+      "screen": "Mapping readiness inspection",
+      "category": "action",
+      "control": "Saved versus current record drift",
+      "assertion": "Detect separately committed record-version drift and retain the original saved snapshot without approving application",
+      "binding": {
+        "caseId": "E2E-JRN-06-008",
+        "step": "Detect separately committed record-version drift and retain the original saved snapshot without approving application"
+      }
+    },
+    {
+      "id": "COV-READINESS-RECOVERY-SCOPE",
+      "journey": "JRN-06",
+      "screen": "Mapping readiness inspection",
+      "category": "action",
+      "control": "Inspection recovery and private-report clearing",
+      "assertion": "Recover a temporary inspection failure and clear report metadata after setup and membership revocation",
+      "binding": {
+        "caseId": "E2E-JRN-06-008",
+        "step": "Recover a temporary inspection failure and clear report metadata after setup and membership revocation"
+      }
     }
   ]
 }

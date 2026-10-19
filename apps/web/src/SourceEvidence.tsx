@@ -1,3 +1,4 @@
+import { MappingReadiness } from "./MappingReadiness";
 import { SourceReview } from "./SourceReview";
 import { useEffect, useRef, useState } from "react";
 import { RequestFailure } from "./feedback";
@@ -20,6 +21,7 @@ export function SourceEvidence({
     [pending, setPending] = useState(false),
     [reviewPending, setReviewPending] = useState(false),
     [selectedReview, setSelectedReview] = useState<string | null>(null),
+    [selectedReadiness, setSelectedReadiness] = useState<string | null>(null),
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [checks, setChecks] = useState<any[]>([]),
@@ -248,6 +250,12 @@ export function SourceEvidence({
             >
               Open provenance review {v.id}
             </button>
+            <button
+              disabled={busy || pending || reviewPending}
+              onClick={() => setSelectedReadiness(v.id)}
+            >
+              Inspect mapping readiness {v.id}
+            </button>
             <details>
               <summary>View detailed source check</summary>
               <dl>
@@ -276,6 +284,13 @@ export function SourceEvidence({
           </div>
         </article>
       ))}
+      {selectedReadiness && (
+        <MappingReadiness
+          key={selectedReadiness}
+          path={path + "/" + selectedReadiness + "/readiness"}
+          api={api}
+        />
+      )}
       {selectedReview && (
         <SourceReview
           key={selectedReview}

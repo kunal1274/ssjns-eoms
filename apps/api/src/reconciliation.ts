@@ -1,3 +1,7 @@
+import {
+  mappingPolicyProposal,
+  readinessFindings,
+} from "../../../packages/domain/mapping-readiness";
 import { sourceReviewInput } from "../../../packages/domain/source-review";
 import { sourceEvidenceInput } from "../../../packages/domain/source-evidence";
 import { z } from "zod";
@@ -478,6 +482,83 @@ export function reconciliationRoutes(app: Express, estateTx: EstateTx) {
             );
           throw e;
         }
+      }),
+    );
+  });
+  app.get(jobs + "/:jobId/evidence/:checkId/readiness", async (req, res) => {
+    const jobId = z.string().uuid().parse(req.params.jobId),
+      checkId = z.string().uuid().parse(req.params.checkId);
+    z.object({}).strict().parse(req.query);
+    res.set("Cache-Control", "no-store").json(
+      await estateTx(req, res, false, async (c, id) => {
+        await reviewContext(c, id, jobId, checkId);
+        const startedAt = new Date().toISOString(),
+          job = (
+            await c.query(
+              "SELECT * FROM eoms.reconciliation_jobs WHERE estate_id=$1 AND id=$2",
+              [id, jobId],
+            )
+          ).rows[0];
+        const manifest = reconciliationManifest.parse(job.manifest),
+          current = await evaluate(
+            c,
+            id,
+            manifest,
+            res.locals.user.id,
+            res.locals.requestId,
+          );
+        const evidence = (
+          await c.query(
+            "SELECT id,computed_sha256,declared_sha256,matches_declared FROM eoms.reconciliation_evidence_checks WHERE id=$1 AND estate_id=$2 AND job_id=$3",
+            [checkId, id, jobId],
+          )
+        ).rows[0];
+        const observations = (
+          await c.query(
+            "SELECT eoms.source_readiness_observations($1) AS report",
+            [checkId],
+          )
+        ).rows[0].report;
+        const estateActive = (await access(c, id))?.active === true;
+        const changedRows = current.rows.flatMap((row, index) => {
+          const saved = job.snapshot.rows[index]?.current;
+          return saved?.version !== row.current?.version ||
+            saved?.recorded_target !== row.current?.recorded_target ||
+            saved?.recorded_code !== row.current?.recorded_code
+            ? [{ index, sourceRow: row.sourceRow, recordId: row.recordId }]
+            : [];
+        });
+        return {
+          version: 1,
+          kind: "mapping-readiness",
+          startedAt,
+          evaluatedAt: new Date().toISOString(),
+          actorId: res.locals.user.id,
+          requestId: res.locals.requestId,
+          estateId: id,
+          jobId,
+          checkId,
+          manifestSha256: job.manifest_sha256,
+          sourceAuthenticityVerified: false,
+          approvalEnabled: false,
+          applicationEnabled: false,
+          applied: false,
+          transactionalRevalidationRequired: true,
+          estateActive,
+          policy: mappingPolicyProposal,
+          saved: { createdAt: job.created_at, summary: job.snapshot.summary },
+          current,
+          evidence,
+          observations,
+          changedRows,
+          findings: readinessFindings({
+            blocked: current.summary.blocked,
+            matches: evidence.matches_declared,
+            observations,
+            drift: changedRows.length,
+            estateActive,
+          }),
+        };
       }),
     );
   });

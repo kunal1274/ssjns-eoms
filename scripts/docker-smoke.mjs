@@ -123,6 +123,14 @@ if (mode === "create") {
   assert.equal(provenance.review.revision, 1);
   assert.equal(provenanceReplay.review.id, provenance.review.id);
   assert.equal(provenanceReplay.replayed, true);
+  const readiness = await call(
+    evidencePath + "/" + evidence.check.id + "/readiness",
+  );
+  assert.equal(readiness.policy.status, "draft-not-approved");
+  assert.equal(readiness.approvalEnabled, false);
+  assert.equal(readiness.applicationEnabled, false);
+  assert.equal(readiness.observations.total, 1);
+  assert.equal(readiness.observations.authorizedCorroborated, 1);
   await writeFile(
     ".local/docker-smoke-record.json",
     JSON.stringify({
@@ -136,7 +144,7 @@ if (mode === "create") {
     { mode: 0o600 },
   );
   console.log(
-    "Container proxy, database health, login, draft/review capture, two MiB source upload, independent observation and duplicate replay passed.",
+    "Container proxy, database health, login, draft/review capture, two MiB source upload, independent observation, read-only readiness and duplicate replay passed.",
   );
 } else {
   const saved = JSON.parse(
@@ -164,8 +172,16 @@ if (mode === "create") {
   assert.equal(observations.items[0].id, saved.provenanceId);
   assert.equal(observations.items[0].outcome, "corroborated");
   assert.equal(observations.context.canRecord, false);
+  const readiness = await call(
+    baseReview + "/evidence/" + saved.evidenceId + "/readiness",
+  );
+  assert.equal(readiness.approvalEnabled, false);
+  assert.equal(readiness.applicationEnabled, false);
+  assert.equal(readiness.observations.total, 1);
+  assert.equal(readiness.observations.items[0].id, saved.provenanceId);
+  assert.ok(readiness.findings.some((f) => f.code === "POLICY_NOT_APPROVED"));
 
   console.log(
-    "Saved draft, review/source-check/provenance audit and development account survived container removal/recreation with retained volumes.",
+    "Saved draft, review/source-check/provenance audit/readiness inspection and development account survived container removal/recreation with retained volumes.",
   );
 }
