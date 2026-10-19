@@ -1,6 +1,10 @@
 # F06.6c2 saved reconciliation review
 
-Implemented candidate, 19 October 2026; full database/browser/container verification pending. F06 remains In progress. No phase closure, merge or deployment.
+Verified 19 October 2026: source `8b10a8e1b72c60b88f1e1d92f4716fd53a107d77` / [CI 39188900636](https://github.com/kunal1274/ssjns-eoms/actions/runs/39188900636), verify and quality-gate success. F06 remains In progress. No phase closure, merge or deployment.
+
+Actual evidence: 42 unit/contract + 88 PostgreSQL/API = 130 tests, zero failures, also repeated successfully inside Docker. All 48 desktop/mobile executions passed; new E2E-JRN-06-005 took 3.0s desktop / 2.9s mobile. Actual ledger: 224 passed / 40 untested item/project rows. Migration/legacy upgrade through 018, existing browser/maintenance/workflow/PWA/session/offline/installability, ledger UI, format/type/build, zero-vulnerability dependency audit and Docker/database/proxy/idempotency/retained-volume persistence gates passed.
+
+The first run (c36ab797 / CI 39188206261) passed 130 unit/API tests and 46 prior browser executions but failed the two new executions on a JSON-key serialization assumption. The corrected assertion compares every reopened manifest field structurally; the failed run is not full proof. The source/run above is the complete verified replacement. This evidence follow-up changes documentation only.
 
 A manager who also has customer setup authority can preview a manifest, enter a retention reason, save a freshly evaluated immutable snapshot, reopen it and read short/detailed actual audit. Migration 018 adds forced-RLS review/audit tables with append-only guards. No historical work, allocations, company attribution or task link is changed by saving. Source evidence remains explicitly unverified. Saving blocked proposals retains their problems for review; it does not grant approval or import authority.
 
@@ -15,3 +19,18 @@ Run E2E-JRN-06-005 with `npm run test:e2e:ui -- --grep E2E-JRN-06-005` or `npm r
 ## Remaining delivery
 
 Original source evidence authentication; independently governed decisions/approval/application or overlay policy; high-volume staging, row reconciliation and rollback; actual client-data/manual/persona acceptance; explicit production bootstrap/setup-grant/inheritance dependencies. Continue full F01–F25 scope and reusable visible replay/manual-recording workstream. Saved review storage alone closes none of these gates.
+
+## Scope status
+
+| Capability | Current status |
+| --- | --- |
+| Bounded source-referenced preview | Previously verified (F06.6c1) |
+| Immutable saved review, fresh validation, retry identity and actual audit | Verified for the documented bounded scope |
+| Reopen after reload and load for current revalidation | Verified for the documented bounded scope |
+| Original source authentication | Open |
+| Independent approval, governed application or overlay | Open; policy and workflow required |
+| Large-volume staging, reconciliation and rollback | Open |
+| Production bootstrap/grants and dependency resolution | Open |
+| Client-data, manual/persona acceptance and F06 closure | Open |
+
+E2E inventory for this increment: 132 items, 112 mapped, 20 explicit gaps. These counts describe assertion bindings, not a percentage of complete product coverage. The full F01–F25 requirements and process/journey matrix remains the delivery scope.
