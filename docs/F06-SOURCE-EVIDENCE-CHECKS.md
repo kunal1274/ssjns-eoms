@@ -1,6 +1,8 @@
 # F06.6c3 source-file integrity checks
 
-Implemented candidate, 19 October 2026; full PostgreSQL/browser/Docker gate pending. Local 45 unit/contract tests, type/build and formatting pass. F06 remains In progress. No approval, phase acceptance, merge or deployment.
+Verified 19 October 2026: source `4e23e409bba230d39e625c89e021a523b1b3b0ff` / [CI 39191338298](https://github.com/kunal1274/ssjns-eoms/actions/runs/39191338298), verify and quality-gate success. F06 remains In progress. No approval, phase acceptance, merge or deployment.
+
+Actual evidence: 45 unit/contract + 92 PostgreSQL/API = 137 tests, zero failures, also passed inside Docker. All 50 desktop/mobile executions passed; E2E-JRN-06-006 took 3.6s at both viewport sizes. Actual ledger: 232 passed / 40 untested item/project rows. Migration/legacy upgrade through 019, existing browser/maintenance/workflow/PWA/session/offline/installability, ledger UI, format/type/build and zero-vulnerability audit passed. The extended Docker smoke passed actual 2 MiB source upload through the web proxy, duplicate replay and retained review/source-check audit after container recreation. This follow-up changes documentation only.
 
 A saved reconciliation review now offers an original-source file check, bounded to 2 MiB of non-empty bytes. The database computes SHA-256 from the supplied bytes and compares it with the saved manifest's declared source digest. Each match or mismatch is an immutable audit event retaining file name, decoded byte length, computed/declared/manifest digests, actor, reason, original request reference and time. A digest match is byte identity against a declaration; source authenticity, factual correctness, provenance review and approval remain unverified. The saved job/snapshot and historical business records are unchanged.
 
@@ -20,12 +22,12 @@ Docker smoke now includes a 2 MiB source check through the actual web proxy, exa
 
 | Capability | Status |
 | --- | --- |
-| Server-computed source-byte comparison with immutable scoped audit | Implemented; full gate pending |
-| Connected UI, mismatch guidance, retry/reload/revocation recovery | Implemented; full gate pending |
+| Server-computed source-byte comparison with immutable scoped audit | Verified for documented bounded scope |
+| Connected UI, mismatch guidance, retry/reload/revocation recovery | Verified for documented bounded scope |
 | Original source authenticity and independent provenance attestation | Open |
 | Approval, governed application/overlay and approval audit | Open |
 | Larger files, document retention, high-volume staging/reconciliation/rollback | Open |
 | Actual client-data and manual/persona acceptance | Open |
 | Production bootstrap/setup-grant/inheritance dependencies and F06 closure | Open |
 
-Inventory expectation: 136 items, 116 mapped, 20 gaps; expected full ledger232passed/40untested rows and50 desktop/mobile executions. These are not proof until CI finishes and are not product completeness percentages. Preserve full F01–F25 business-process scope and parallel visible replay/manual-recording/local one-click reusable-runner workstream.
+Actual inventory: 136 items, 116 mapped, 20 gaps; full ledger232passed/40untested item/project rows and50 desktop/mobile executions. These counts describe assertion bindings, not product completeness percentages. Preserve full F01–F25 business-process scope and parallel visible replay/manual-recording/local one-click reusable-runner workstream.
