@@ -336,6 +336,17 @@ try {
     await c.query(
       await readFile("db/migrations/017_legacy_review_indexes.sql", "utf8"),
     );
+    await c.query(
+      await readFile("db/migrations/018_reconciliation_jobs.sql", "utf8"),
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.reconciliation_jobs")).rowCount,
+      0,
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.reconciliation_job_history")).rowCount,
+      0,
+    );
     assert.equal(
       (await c.query("SELECT * FROM eoms.operational_sites")).rowCount,
       0,

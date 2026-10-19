@@ -179,6 +179,7 @@ export async function upgradedWorkFixture(
     }
     return {
       root,
+      runtime,
       customer,
       company,
       estate,

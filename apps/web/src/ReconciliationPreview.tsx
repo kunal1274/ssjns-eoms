@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ReconciliationJobs } from "./ReconciliationJobs";
 import { RequestFailure } from "./feedback";
 type Api = (path: string, body?: unknown) => Promise<any>;
 export function ReconciliationPreview({
@@ -15,6 +16,7 @@ export function ReconciliationPreview({
     [draft, setDraft] = useState(""),
     [fileName, setFileName] = useState(""),
     [busy, setBusy] = useState(false),
+    [savePending, setSavePending] = useState(false),
     [error, setError] = useState(""),
     [result, setResult] = useState<any>(null);
   const generation = useRef(0),
@@ -26,6 +28,7 @@ export function ReconciliationPreview({
     setFileName("");
     setResult(null);
     setBusy(false);
+    setSavePending(false);
     if (file.current) file.current.value = "";
   }
   useEffect(() => {
@@ -115,8 +118,9 @@ export function ReconciliationPreview({
       </ol>
       <p>
         The source hash is declared, not authenticated. This preview does not
-        upload the original evidence document or save an approval/audit record.
-        Historical facts remain unchanged.
+        upload the original evidence document. Saving a review retains its own
+        audit event, but provides no approval. Historical facts remain
+        unchanged.
       </p>
       <p>
         Use reviewed source mappings with explicit record and target IDs. Review
@@ -160,7 +164,7 @@ export function ReconciliationPreview({
       </details>
       <button
         type="button"
-        disabled={busy || checking}
+        disabled={busy || checking || savePending}
         onClick={() => {
           setResult(null);
           setAttempt((n) => n + 1);
@@ -183,7 +187,11 @@ export function ReconciliationPreview({
           void preview();
         }}
       >
-        <fieldset disabled={!allowed || checking || !!permissionError || busy}>
+        <fieldset
+          disabled={
+            !allowed || checking || !!permissionError || busy || savePending
+          }
+        >
           <label>
             Mapping manifest file
             <input
@@ -323,6 +331,23 @@ export function ReconciliationPreview({
             </article>
           ))}
         </section>
+      )}
+      {allowed && !checking && !permissionError && (
+        <ReconciliationJobs
+          base={base}
+          api={api}
+          result={result}
+          draft={draft}
+          onPending={setSavePending}
+          onLoad={(value) => {
+            generation.current++;
+            setDraft(value);
+            setFileName("");
+            if (file.current) file.current.value = "";
+            setResult(null);
+            setError("");
+          }}
+        />
       )}
     </section>
   );

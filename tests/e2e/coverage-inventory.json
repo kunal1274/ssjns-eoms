@@ -1458,6 +1458,54 @@
         "caseId": "E2E-JRN-06-004",
         "step": "Clear source proposals after setup authority loss and reject revoked membership even after access was restored"
       }
+    },
+    {
+      "id": "COV-REVIEW-RETRY",
+      "journey": "JRN-06",
+      "screen": "Saved reconciliation reviews",
+      "category": "form",
+      "control": "Idempotent review save recovery",
+      "assertion": "Recover a committed save after a lost response with exactly one review and audit event",
+      "binding": {
+        "caseId": "E2E-JRN-06-005",
+        "step": "Recover a committed save after a lost response with exactly one review and audit event"
+      }
+    },
+    {
+      "id": "COV-REVIEW-AUDIT",
+      "journey": "JRN-06",
+      "screen": "Saved reconciliation reviews",
+      "category": "navigation",
+      "control": "Persisted review and recorded audit",
+      "assertion": "Reload and reopen the saved manifest validation snapshot and short and detailed recorded audit",
+      "binding": {
+        "caseId": "E2E-JRN-06-005",
+        "step": "Reload and reopen the saved manifest validation snapshot and short and detailed recorded audit"
+      }
+    },
+    {
+      "id": "COV-REVIEW-REVALIDATE",
+      "journey": "JRN-06",
+      "screen": "Saved reconciliation reviews",
+      "category": "action",
+      "control": "Saved manifest current revalidation",
+      "assertion": "Load a saved manifest for current revalidation and save a distinct blocked snapshot without rewriting history",
+      "binding": {
+        "caseId": "E2E-JRN-06-005",
+        "step": "Load a saved manifest for current revalidation and save a distinct blocked snapshot without rewriting history"
+      }
+    },
+    {
+      "id": "COV-REVIEW-SCOPE",
+      "journey": "JRN-06",
+      "screen": "Saved reconciliation reviews",
+      "category": "action",
+      "control": "Saved review revocation clearing",
+      "assertion": "Clear retained manifests and audits after setup loss and deny reopened detail after membership revocation",
+      "binding": {
+        "caseId": "E2E-JRN-06-005",
+        "step": "Clear retained manifests and audits after setup loss and deny reopened detail after membership revocation"
+      }
     }
   ]
 }
