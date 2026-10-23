@@ -1,5 +1,7 @@
 # Current engineering evidence
 
+23 October candidate: ten connected versioned policy design-review steps are implemented; local51 unit/contract tests, type/build and full formatting passed. Real PostgreSQL, browser and Docker gates are pending. See [ten-step status matrix and manual/visible replay](F06-POLICY-REVIEW.md). Individual design statements do not constitute authoritative policy acceptance or mapping approval/application. Original facts remain unchanged; F06 stays In progress, no merge/deploy. Latest verified application evidence remains the source/run below.
+
 19 October 2026. Full F01–F25/product scope remains in force; F06 is In progress, F07+ not started. F05 owner exception permits development progression and remains a release consideration. No merge/deploy authorization is implied.
 
 Latest verified implementation: `eae149f7b46ed67714dd1d995c191212c0a160f6` / [CI39199156506](https://github.com/kunal1274/ssjns-eoms/actions/runs/39199156506), verify and quality-gate success. Actual proof49 unit/contract +102 PostgreSQL/API =151 tests; all54 desktop/mobile executions; ledger248passed/40untested rows (144items/124mapped/20gaps). Upgrade through021, existing browser/PWA, format/type/build, dependency audit and full Docker gates passed. E2E-JRN-06-008 took3.5s desktop/3.4s mobile. Extended Docker smoke regenerated readiness through the proxy after recreation from retained source/provenance audit, preserving earlier2MiB/retry/persistence checks. This index follow-up changes documentation only.

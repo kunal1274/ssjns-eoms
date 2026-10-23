@@ -102,6 +102,28 @@ if (mode === "create") {
   assert.equal(evidence.check.source_authenticity_verified, false);
   assert.equal(evidenceReplay.check.id, evidence.check.id);
   assert.equal(evidenceReplay.replayed, true);
+  const policyPath = root + "/reconciliation/policies";
+  const policyInput = {
+    key: randomUUID(),
+    expectedRevision: 0,
+    reason: "Synthetic container policy design criteria",
+    content: {
+      version: 1,
+      basis: "mapping-policy-r0",
+      scope: "design-review-only",
+      custodyCriteria:
+        "Named synthetic archive custodian and controlled original",
+      approverCriteria:
+        "Independent scoped approver distinct from evidence actors",
+      evidenceCriteria:
+        "Resolve all current concerns and bind exact observation revisions",
+    },
+  };
+  const policy = await call(policyPath, "POST", policyInput);
+  const policyReplay = await call(policyPath, "POST", policyInput);
+  assert.equal(policyReplay.policy.id, policy.policy.id);
+  assert.equal(policyReplay.replayed, true);
+  assert.equal(policy.policy.application_enabled, false);
   const independent = accounts.find((a) => a.email === "reviewer@eoms.local");
   assert.ok(independent);
   const reviewerLogin = await call("/api/auth/login", "POST", {
@@ -131,9 +153,38 @@ if (mode === "create") {
   assert.equal(readiness.applicationEnabled, false);
   assert.equal(readiness.observations.total, 1);
   assert.equal(readiness.observations.authorizedCorroborated, 1);
+  const policyReviewInput = {
+    key: randomUUID(),
+    expectedRevision: 0,
+    policySha256: policy.policy.sha256,
+    outcome: "changes-requested",
+    reference: "Synthetic container design workshop",
+    reason:
+      "Explicit custody criteria remain subject to authoritative acceptance",
+  };
+  const policyReview = await call(
+    policyPath + "/" + policy.policy.id + "/reviews",
+    "POST",
+    policyReviewInput,
+  );
+  const policyReviewReplay = await call(
+    policyPath + "/" + policy.policy.id + "/reviews",
+    "POST",
+    policyReviewInput,
+  );
+  assert.equal(policyReviewReplay.review.id, policyReview.review.id);
+  assert.equal(policyReviewReplay.replayed, true);
+  const policyReadiness = await call(
+    evidencePath + "/" + evidence.check.id + "/readiness",
+  );
+  assert.equal(policyReadiness.policyReview.latest.id, policy.policy.id);
+  assert.equal(policyReadiness.approvalEnabled, false);
   await writeFile(
     ".local/docker-smoke-record.json",
     JSON.stringify({
+      policyId: policy.policy.id,
+      policyReviewId: policyReview.review.id,
+      policySha: policy.policy.sha256,
       estateId: estate.id,
       id: saved.id,
       jobId: review.job.id,
@@ -180,6 +231,19 @@ if (mode === "create") {
   assert.equal(readiness.observations.total, 1);
   assert.equal(readiness.observations.items[0].id, saved.provenanceId);
   assert.ok(readiness.findings.some((f) => f.code === "POLICY_NOT_APPROVED"));
+
+  const policyPath = `/api/estates/${saved.estateId}/reconciliation/policies/${saved.policyId}`;
+  const policy = await call(policyPath),
+    policyReviews = await call(policyPath + "/reviews");
+  assert.equal(policy.policy.sha256, saved.policySha);
+  assert.equal(policy.applicationEnabled, false);
+  assert.equal(policyReviews.items.length, 1);
+  assert.equal(policyReviews.items[0].id, saved.policyReviewId);
+  assert.equal(policyReviews.items[0].outcome, "changes-requested");
+  assert.equal(readiness.policyReview.latest.id, saved.policyId);
+  console.log(
+    "Policy proposal, independent review, exact retry and retained-volume policy audit passed.",
+  );
 
   console.log(
     "Saved draft, review/source-check/provenance audit/readiness inspection and development account survived container removal/recreation with retained volumes.",

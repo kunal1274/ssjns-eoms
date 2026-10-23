@@ -351,6 +351,17 @@ try {
         "utf8",
       ),
     );
+    await c.query(
+      await readFile("db/migrations/022_mapping_policy_review.sql", "utf8"),
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.mapping_policy_versions")).rowCount,
+      0,
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.mapping_policy_reviews")).rowCount,
+      0,
+    );
     assert.equal(
       (await c.query("SELECT * FROM eoms.source_provenance_reviews")).rowCount,
       0,

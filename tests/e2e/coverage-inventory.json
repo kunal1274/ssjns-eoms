@@ -1650,6 +1650,54 @@
         "caseId": "E2E-JRN-06-008",
         "step": "Recover a temporary inspection failure and clear report metadata after setup and membership revocation"
       }
+    },
+    {
+      "id": "COV-POLICY-AUTHOR",
+      "journey": "JRN-06",
+      "screen": "Mapping policy design review",
+      "category": "form",
+      "control": "Policy criteria and lost response",
+      "assertion": "Author explicit R0 criteria and recover a lost committed proposal response without duplicate versions",
+      "binding": {
+        "caseId": "E2E-JRN-06-009",
+        "step": "Author explicit R0 criteria and recover a lost committed proposal response without duplicate versions"
+      }
+    },
+    {
+      "id": "COV-POLICY-REVIEW",
+      "journey": "JRN-06",
+      "screen": "Mapping policy design review",
+      "category": "action",
+      "control": "Independent review and audit",
+      "assertion": "Record independent design concerns and linked corrections with short and detailed audit",
+      "binding": {
+        "caseId": "E2E-JRN-06-009",
+        "step": "Record independent design concerns and linked corrections with short and detailed audit"
+      }
+    },
+    {
+      "id": "COV-POLICY-REVISE",
+      "journey": "JRN-06",
+      "screen": "Mapping policy design review",
+      "category": "navigation",
+      "control": "Linked policy version and old history",
+      "assertion": "Revise criteria into a linked new version while retaining superseded proposal and review history",
+      "binding": {
+        "caseId": "E2E-JRN-06-009",
+        "step": "Revise criteria into a linked new version while retaining superseded proposal and review history"
+      }
+    },
+    {
+      "id": "COV-POLICY-RECOVERY",
+      "journey": "JRN-06",
+      "screen": "Mapping policy design review",
+      "category": "action",
+      "control": "Read recovery and denied scope",
+      "assertion": "Recover a policy read interruption and clear private criteria after setup and membership revocation",
+      "binding": {
+        "caseId": "E2E-JRN-06-009",
+        "step": "Recover a policy read interruption and clear private criteria after setup and membership revocation"
+      }
     }
   ]
 }

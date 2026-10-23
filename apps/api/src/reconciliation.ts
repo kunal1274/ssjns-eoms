@@ -1,3 +1,4 @@
+import { mappingPolicyRoutes, policyReviewSummary } from "./mapping-policy";
 import {
   mappingPolicyProposal,
   readinessFindings,
@@ -144,6 +145,7 @@ async function evaluate(
 }
 
 export function reconciliationRoutes(app: Express, estateTx: EstateTx) {
+  mappingPolicyRoutes(app, estateTx);
   app.get("/api/estates/:estateId/reconciliation/context", async (req, res) => {
     res.json(
       await estateTx(req, res, false, async (c, id) => ({
@@ -546,6 +548,7 @@ export function reconciliationRoutes(app: Express, estateTx: EstateTx) {
           transactionalRevalidationRequired: true,
           estateActive,
           policy: mappingPolicyProposal,
+          policyReview: await policyReviewSummary(c, id),
           saved: { createdAt: job.created_at, summary: job.snapshot.summary },
           current,
           evidence,

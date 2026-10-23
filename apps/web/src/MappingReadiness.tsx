@@ -165,6 +165,15 @@ export function MappingReadiness({ path, api }: { path: string; api: Api }) {
               Draft — owner review required. Approval enabled: No. Application
               enabled: No.
             </p>
+            <p>
+              Recorded design proposal:{" "}
+              {report.policyReview.latest
+                ? `Version ${report.policyReview.latest.revision} · ${report.policyReview.latest.id}`
+                : "None"}
+              . Individual design reviews do not activate policy. Open Mapping
+              policy design review in the source mapping panel to inspect
+              criteria and history.
+            </p>
             <p>{report.policy.approach}</p>
             <p>{report.policy.next}</p>
             <p>

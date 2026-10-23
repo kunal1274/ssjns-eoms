@@ -1,3 +1,4 @@
+import { MappingPolicy } from "./MappingPolicy";
 import { useEffect, useRef, useState } from "react";
 import { ReconciliationJobs } from "./ReconciliationJobs";
 import { RequestFailure } from "./feedback";
@@ -333,21 +334,24 @@ export function ReconciliationPreview({
         </section>
       )}
       {allowed && !checking && !permissionError && (
-        <ReconciliationJobs
-          base={base}
-          api={api}
-          result={result}
-          draft={draft}
-          onPending={setSavePending}
-          onLoad={(value) => {
-            generation.current++;
-            setDraft(value);
-            setFileName("");
-            if (file.current) file.current.value = "";
-            setResult(null);
-            setError("");
-          }}
-        />
+        <>
+          <MappingPolicy path={base + "/reconciliation/policies"} api={api} />
+          <ReconciliationJobs
+            base={base}
+            api={api}
+            result={result}
+            draft={draft}
+            onPending={setSavePending}
+            onLoad={(value) => {
+              generation.current++;
+              setDraft(value);
+              setFileName("");
+              if (file.current) file.current.value = "";
+              setResult(null);
+              setError("");
+            }}
+          />
+        </>
       )}
     </section>
   );
