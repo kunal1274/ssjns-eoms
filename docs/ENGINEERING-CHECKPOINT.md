@@ -1,5 +1,7 @@
 # Current engineering evidence
 
+First 23 October candidate499ccf8 / CI39970849847 passed157 unit/API and56 viewport executions, ledger256/40; dependency audit failed before Docker on Vite/ip-address findings. Replacement patches dependencies and long-criteria mobile wrapping; full replacement gate pending. Do not treat the first run as complete proof.
+
 23 October candidate: ten connected versioned policy design-review steps are implemented; local51 unit/contract tests, type/build and full formatting passed. Real PostgreSQL, browser and Docker gates are pending. See [ten-step status matrix and manual/visible replay](F06-POLICY-REVIEW.md). Individual design statements do not constitute authoritative policy acceptance or mapping approval/application. Original facts remain unchanged; F06 stays In progress, no merge/deploy. Latest verified application evidence remains the source/run below.
 
 19 October 2026. Full F01–F25/product scope remains in force; F06 is In progress, F07+ not started. F05 owner exception permits development progression and remains a release consideration. No merge/deploy authorization is implied.

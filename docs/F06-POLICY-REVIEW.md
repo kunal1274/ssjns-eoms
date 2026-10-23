@@ -1,6 +1,8 @@
 # Versioned mapping policy design review
 
-23 October 2026. F06 remains In progress. This increment records R0 design proposals and individual review statements; it does not activate business policy, approve mappings, authenticate sources or modify historical facts. Authoritative owner/client policy, role and custody acceptance remain open. Full F01–F25 and reusable visible testing remain delivery scope.
+23 October 2026. First candidate 499ccf8 / CI39970849847 passed157 unit/API tests and all56 browser executions (new journey3.7s desktop/3.8s mobile; ledger256passed/40untested), but failed the dependency audit before Docker. It is not complete application proof. Replacement includes pinned Vite7.3.7 and ip-address10.7.4 lockfile updates for the reported advisories, plus mobile wrapping for long criteria and an overflow assertion. Full replacement gate is pending.
+
+F06 remains In progress. This increment records R0 design proposals and individual review statements; it does not activate business policy, approve mappings, authenticate sources or modify historical facts. Authoritative owner/client policy, role and custody acceptance remain open. Full F01–F25 and reusable visible testing remain delivery scope.
 
 ## Ten connected delivery steps
 

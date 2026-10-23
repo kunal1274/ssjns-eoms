@@ -197,7 +197,8 @@ test("E2E-JRN-06-009 @regression version and independently review policy criteri
       await panel
         .getByLabel(labels[0], { exact: true })
         .fill(
-          "Revised named archive custodian with signed controlled original reference",
+          "Revised named archive custodian with signed controlled original reference " +
+            "archive".repeat(70),
         );
       await panel
         .getByLabel("Policy proposal reason", { exact: true })
@@ -205,6 +206,11 @@ test("E2E-JRN-06-009 @regression version and independently review policy criteri
       await save.click();
       await expect(selected).toContainText("Selected proposal version 2");
       await expect(panel).toContainText("Latest proposal version: 2");
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth + 1,
+        ),
+      ).toBe(true);
       await panel
         .getByRole("button", { name: "Inspect policy version 1", exact: true })
         .click();

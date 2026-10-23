@@ -6,7 +6,9 @@ import { upgradedWorkFixture } from "./upgraded-work-fixture";
 import { independentSourceReviewer } from "./source-review-fixture";
 let f: Awaited<ReturnType<typeof upgradedWorkFixture>>,
   peer: Awaited<ReturnType<typeof independentSourceReviewer>>,
-  p: any;
+  p: any,
+  originalReviewPayload: any,
+  originalReviewId: string;
 const content = {
   version: 1,
   basis: "mapping-policy-r0",
@@ -93,6 +95,7 @@ test("proposal saves canonical immutable content real actor request and digest w
 });
 test("review requires independent scoped actor and exact version digest; retries and append-only corrections preserve audit", async () => {
   const input = review();
+  originalReviewPayload = input;
   assert.equal((await call("/" + p.id + "/reviews", input)).status, 403);
   assert.equal(
     (
@@ -112,6 +115,7 @@ test("review requires independent scoped actor and exact version digest; retries
   const a: any = await responses[0].json(),
     b: any = await responses[1].json();
   assert.equal(a.review.id, b.review.id);
+  originalReviewId = a.review.id;
   assert.equal(a.review.actor_id, peer.id);
   assert.equal(
     (
@@ -172,6 +176,15 @@ test("competing new proposals serialize and supersede without moving earlier rev
   assert.equal(latest.replayed, true);
   assert.equal(latest.policy.previous_id, p.id);
   assert.equal(latest.policy.revision, 2);
+  const oldRetry = await call(
+    "/" + p.id + "/reviews",
+    originalReviewPayload,
+    peer.raw,
+  );
+  assert.equal(oldRetry.status, 200);
+  const oldReceipt: any = await oldRetry.json();
+  assert.equal(oldReceipt.replayed, true);
+  assert.equal(oldReceipt.review.id, originalReviewId);
   assert.equal(
     (await call("/" + p.id + "/reviews", review(2), peer.raw)).status,
     409,

@@ -183,7 +183,10 @@ export function MappingPolicy({ path, api }: { path: string; api: Api }) {
   }
   const locked = busy || pending || loading || !!readError;
   return (
-    <section aria-label="Mapping policy design review">
+    <section
+      aria-label="Mapping policy design review"
+      style={{ overflowWrap: "anywhere", minWidth: 0 }}
+    >
       <h4>Mapping policy design review</h4>
       <ol>
         <li>
