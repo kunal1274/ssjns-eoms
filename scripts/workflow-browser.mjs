@@ -1,8 +1,9 @@
+import { browserOptions } from "./browser-options.mjs";
 import { chromium } from "playwright";
 import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 const accounts = JSON.parse(await readFile(".local/dev-accounts.json", "utf8")),
-  browser = await chromium.launch({ headless: true, channel: "chrome" }),
+  browser = await chromium.launch(browserOptions()),
   page = await browser.newPage({ viewport: { width: 1440, height: 1100 } }),
   suffix = String(Date.now()),
   errors = [];
@@ -12,6 +13,25 @@ try {
   const a = accounts.find((a) => a.email === "manager@eoms.local");
   await page.getByLabel("Email", { exact: true }).fill(a.email);
   await page.getByLabel("Password", { exact: true }).fill(a.password);
+  // A failed sign-in must offer safe recovery and a traceable support reference.
+  await page.route("**/api/auth/login", (route) =>
+    route.fulfill({
+      status: 503,
+      contentType: "application/json",
+      body: JSON.stringify({
+        error: "PRIVATE-DB-DETAIL",
+        requestId: "12345678-1234-1234-1234-123456789abc",
+      }),
+    }),
+  );
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page
+    .getByRole("alert")
+    .filter({ hasText: "Support reference:" })
+    .waitFor();
+  assert.doesNotMatch(await page.getByRole("alert").innerText(), /PRIVATE-DB/);
+  assert.match(await page.getByRole("alert").innerText(), /before retrying/);
+  await page.unroute("**/api/auth/login");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page
     .getByRole("heading", { name: "Muster register", exact: true })
@@ -135,6 +155,25 @@ try {
       ),
   );
   await page.screenshot({ path: "docs/workflow-mobile.png", fullPage: true });
+  await page.getByRole("button", { name: "Audit trail", exact: true }).click();
+  const event = page
+    .getByRole("article")
+    .filter({ hasText: "Muster reversed" })
+    .filter({ hasText: saved.id })
+    .first();
+  await event.waitFor();
+  assert.equal(await event.locator("details").getAttribute("open"), null);
+  await event.getByText("View event details", { exact: true }).click();
+  await event
+    .getByText("Duplicate capture identified in browser test", { exact: true })
+    .waitFor();
+  await event.getByText("Support reference", { exact: true }).waitFor();
+  assert.equal(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+    true,
+  );
   assert.equal(errors.length, 0, errors.join("\n"));
   console.log(
     "PASS workflow browser: gang assignment, new task, capture, confirm, approve, reasoned reversal and persisted read-only evidence.",

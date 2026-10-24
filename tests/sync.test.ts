@@ -82,3 +82,28 @@ test("business conflicts are blocked; session and server failures retain pending
     assert.equal(rows[0].status, "pending");
   }
 });
+
+test("stopped sync exposes safe recovery information without changing the pending submission", async () => {
+  for (const status of [401, 429, 503]) {
+    const { store, rows } = fixture();
+    const original = structuredClone(rows[0]);
+    const result = await syncDrafts("a", store, async () => ({
+      status,
+      error: "Safe guidance; support reference: test-reference",
+    }));
+    assert.equal(
+      result.message,
+      "Safe guidance; support reference: test-reference",
+    );
+    assert.deepEqual(rows[0], original);
+  }
+});
+test("transport exceptions never escape as user diagnostic content", async () => {
+  const { store, rows } = fixture();
+  const result = await syncDrafts("a", store, async () => {
+    throw Error("PRIVATE-TRANSPORT-SECRET");
+  });
+  assert.equal(result.stopped, true);
+  assert.equal(result.message, undefined);
+  assert.equal(rows[0].status, "pending");
+});

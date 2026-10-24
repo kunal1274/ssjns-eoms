@@ -15,9 +15,20 @@ export type Store = {
 export async function syncDrafts(
   owner: string,
   store: Store,
+  // Caller supplies public, sanitized guidance only; do not pass raw exceptions.
   send: (draft: Draft) => Promise<{ status: number; error?: string }>,
-): Promise<{ saved: number; blocked: number; stopped: boolean }> {
-  const result = { saved: 0, blocked: 0, stopped: false };
+): Promise<{
+  saved: number;
+  blocked: number;
+  stopped: boolean;
+  message?: string;
+}> {
+  const result: {
+    saved: number;
+    blocked: number;
+    stopped: boolean;
+    message?: string;
+  } = { saved: 0, blocked: 0, stopped: false };
   for (const draft of await store.list(owner)) {
     if (draft.ownerId !== owner || draft.status !== "pending") continue;
     let response;
@@ -42,6 +53,7 @@ export async function syncDrafts(
       continue;
     }
     result.stopped = true;
+    result.message = response.error;
     break;
   }
   return result;

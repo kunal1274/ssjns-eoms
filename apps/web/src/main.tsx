@@ -1,3 +1,8 @@
+import { SearchSelect } from "./SearchSelect";
+import { WorkAvailability } from "./EstateLifecycle";
+import { Organization } from "./Organization";
+import { AuditTrail } from "./AuditTrail";
+import { requestFailure, connectionFailure, RequestFailure } from "./feedback";
 import React, { useEffect, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
@@ -70,6 +75,7 @@ function App() {
     [audit, setAudit] = useState<Row[]>([]),
     [cursor, setCursor] = useState<string | null>(null),
     [detail, setDetail] = useState<Row | null>(null),
+    [legacyWorkEstate, setLegacyWorkEstate] = useState(""),
     [tab, setTab] = useState("Muster register"),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
@@ -111,21 +117,27 @@ function App() {
       throw Error(
         "Reconnect for this action. You can save a device draft using references already loaded.",
       );
-    const r = await fetch("/api" + path, {
-      method: body === undefined ? "GET" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": csrf,
-        ...(key ? { "Idempotency-Key": key } : {}),
-      },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
+    let r: Response;
+    try {
+      r = await fetch("/api" + path, {
+        method: body === undefined ? "GET" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrf,
+          ...(key ? { "Idempotency-Key": key } : {}),
+        },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+    } catch {
+      throw new Error(connectionFailure);
+    }
     if (r.status === 204) return null;
-    const value = await r.json();
+    const value = await r.json().catch(() => null);
     if (!r.ok) {
       if (r.status === 401) setUser(null);
-      throw new Error(value.error || "Request failed");
+      throw new RequestFailure(r.status, value, r.headers.get("X-Request-ID"));
     }
+    if (value === null) throw new Error(connectionFailure);
     return value;
   }
   async function act(fn: () => Promise<void>) {
@@ -149,17 +161,36 @@ function App() {
       .finally(() => setReady(true));
   }, []);
   useEffect(() => {
-    if (user)
-      api("/estates")
+    let current = true;
+    setEstates([]);
+    setEstate("");
+    if (user) {
+      const preferred = sessionStorage.getItem("eoms-estate");
+      const params = new URLSearchParams({ limit: "25" });
+      if (preferred) params.set("selectedId", preferred);
+      api("/navigation/estates?" + params)
         .then((v) => {
-          setEstates(v);
-          const preferred = sessionStorage.getItem("eoms-estate");
+          if (!current) return;
+          setEstates(v.selected ? [...v.items, v.selected] : v.items);
           setEstate(
-            v.find((e: Row) => e.id === preferred)?.id || v[0]?.id || "",
+            (chosen) => chosen || v.selected?.id || v.items[0]?.id || "",
           );
         })
-        .catch((e) => setError(e.message));
+        .catch((e) => {
+          if (current) setError(e.message);
+        });
+    }
+    return () => {
+      current = false;
+    };
   }, [user]);
+  function chooseEstate(id: string, row?: Row) {
+    sessionStorage.setItem("eoms-estate", id);
+    if (row) setEstates((old) => [...old.filter((e) => e.id !== id), row]);
+    setEstate(id);
+  }
+  const currentEstate = useRef(estate);
+  currentEstate.current = estate;
   const base = "/estates/" + estate;
   async function refresh() {
     const [list, w, t, a, g] = await Promise.all([
@@ -169,6 +200,7 @@ function App() {
       api(base + "/audit"),
       api(base + "/gangs?assignable=true"),
     ]);
+    if (currentEstate.current !== estate) return;
     setRows(list.items);
     setCursor(list.nextCursor);
     setWorkers(w.items);
@@ -187,11 +219,19 @@ function App() {
   }
   useEffect(() => {
     setDetail(null);
+    setLegacyWorkEstate("");
     setReviewAction(null);
     setCreating(false);
     setRows([]);
+    setWorkers([]);
+    setTasks([]);
+    setGangs([]);
+    setAudit([]);
     if (estate) void act(refresh);
   }, [estate]);
+  useEffect(() => {
+    if (detail) document.getElementById("muster-detail")?.focus();
+  }, [detail?.id]);
   const role = estates.find((e) => e.id === estate)?.role,
     canWrite = ["manager", "supervisor"].includes(role || "");
   if (!ready)
@@ -274,6 +314,7 @@ function App() {
         <small>WORKSPACE</small>
         {[
           "Muster register",
+          "Organization",
           "Task capacity",
           "Workers",
           "Gangs",
@@ -285,6 +326,7 @@ function App() {
             key={x}
             onClick={() => {
               setTab(x);
+              setLegacyWorkEstate("");
               setDetail(null);
               setReviewAction(null);
               setCreating(false);
@@ -303,24 +345,28 @@ function App() {
       </aside>
       <div className="body">
         <header>
-          <label className="estate">
-            Estate
-            <select
-              aria-label="Estate"
+          <div className="estate">
+            <SearchSelect
+              key={user.id}
+              api={api}
+              path="/navigation/estates"
+              label="Estate"
               value={estate}
+              onChange={chooseEstate}
+              onResolved={(row) =>
+                setEstates((old) => [
+                  ...old.filter((e) => e.id !== row.id),
+                  row,
+                ])
+              }
+              seed={estates
+                .filter((e) => e.id === estate)
+                .map((e) => ({ ...e, id: String(e.id), name: String(e.name) }))}
+              showCode={false}
               disabled={busy || !online}
-              onChange={(e) => {
-                sessionStorage.setItem("eoms-estate", e.target.value);
-                setEstate(e.target.value);
-              }}
-            >
-              {estates.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.name}
-                </option>
-              ))}
-            </select>
-          </label>
+              placeholder="Choose assigned estate"
+            />
+          </div>
           <div>
             {user.name}
             <small className="role">{role}</small>
@@ -369,6 +415,19 @@ function App() {
             {online ? "Online" : "Offline — local draft capture only"}
           </div>
           <PwaInstall />
+          {estate && tab === "Muster register" && (
+            <WorkAvailability
+              api={api}
+              online={online}
+              estate={estate}
+              onSetup={() => {
+                setTab("Organization");
+                setDetail(null);
+                setReviewAction(null);
+                setCreating(false);
+              }}
+            />
+          )}
           {deviceMessage && <p role="status">{deviceMessage}</p>}
           {!online && (
             <p className="notice">
@@ -390,8 +449,9 @@ function App() {
               <p className="eyebrow">FIELD OPERATIONS</p>
               <h1>{tab}</h1>
               <p>
-                Record work with clear ownership and a traceable approval
-                history.
+                {tab === "Organization"
+                  ? "Review your assigned customer, company and estate, then continue to operations."
+                  : "Record work with clear ownership and a traceable approval history."}
               </p>
             </div>
             {canWrite && tab === "Muster register" && (
@@ -510,6 +570,12 @@ function App() {
                   )}
                 </div>
                 <div className="grid">
+                  <p>
+                    Only available tasks are listed. Reactivate paused
+                    estates/blocks in Organization → Estate and unit
+                    availability, then search tasks again. Legacy unlinked tasks
+                    are governed by estate availability.
+                  </p>
                   <label>
                     Task / activity
                     <select name="task" aria-label="Task / activity" required>
@@ -750,7 +816,7 @@ function App() {
             </section>
           )}
           {detail && (
-            <section className="card">
+            <section className="card" id="muster-detail" tabIndex={-1}>
               <div className="cardtitle">
                 <h2>Muster detail · {detail.status}</h2>
                 <button className="secondary" onClick={() => setDetail(null)}>
@@ -761,6 +827,44 @@ function App() {
                 {detail.business_date} · {detail.gang_code} ·{" "}
                 {detail.quantity_ha} Ha
               </p>
+              <p data-work-attribution="true">
+                {detail.legal_company_id
+                  ? `Recorded responsible company: ${detail.legal_company_name} · ${detail.legal_responsibility_id ? "Dated assignment" : "Baseline assignment"}`
+                  : "Legacy record: company attribution was not captured."}
+              </p>
+              {!detail.legal_company_id && (
+                <section aria-label="Historical attribution guidance">
+                  <p>
+                    Company attribution was not recorded for this historical
+                    work. Today's company or the task's current block link
+                    cannot establish that historical fact. Ask the migration
+                    owner to reconcile the source record; opening this detail
+                    does not assign or correct attribution.
+                  </p>
+                  <details>
+                    <summary>View historical record references</summary>
+                    <dl>
+                      <dt>Work record ID</dt>
+                      <dd>{detail.id}</dd>
+                      <dt>Estate ID</dt>
+                      <dd>{detail.estate_id}</dd>
+                      <dt>Task ID</dt>
+                      <dd>{detail.occurrence_id}</dd>
+                    </dl>
+                  </details>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLegacyWorkEstate(estate);
+                      setDetail(null);
+                      setReviewAction(null);
+                      setTab("Task capacity");
+                    }}
+                  >
+                    Return to unresolved work review
+                  </button>
+                </section>
+              )}
               <table>
                 <thead>
                   <tr>
@@ -888,6 +992,15 @@ function App() {
           {["Task capacity", "Workers", "Operational periods"].includes(tab) &&
             estate && (
               <Maintenance
+                onOpenHierarchy={() => setTab("Organization")}
+                openLegacyWork={legacyWorkEstate === estate}
+                onOpenWork={(value) => {
+                  if (currentEstate.current !== estate) return;
+                  setDetail(value);
+                  setCreating(false);
+                  setReviewAction(null);
+                  setTab("Muster register");
+                }}
                 key={estate + tab}
                 base={base}
                 api={api}
@@ -909,26 +1022,20 @@ function App() {
               manager={role === "manager"}
             />
           )}
+          {tab === "Organization" && (
+            <Organization
+              api={api}
+              onOpenEstate={(id) => {
+                chooseEstate(id);
+                setTab("Muster register");
+                setDetail(null);
+                setCreating(false);
+                setReviewAction(null);
+              }}
+            />
+          )}
           {tab === "Audit trail" && (
-            <section className="card">
-              <h2>Latest 50 estate events</h2>
-              {!audit.length && (
-                <p className="empty">Events appear when work is recorded.</p>
-              )}
-              {audit.map((a) => (
-                <div className="event" key={a.id}>
-                  <span className="dot" />
-                  <div>
-                    <strong>{a.action}</strong>
-                    <small>
-                      {a.actor} · {new Date(a.created_at).toLocaleString()}
-                    </small>
-                    <code>{a.record_id || a.detail?.month}</code>
-                    {a.detail?.reason && <p>{a.detail.reason}</p>}
-                  </div>
-                </div>
-              ))}
-            </section>
+            <AuditTrail events={audit as import("./AuditTrail").AuditEvent[]} />
           )}
         </main>
       </div>

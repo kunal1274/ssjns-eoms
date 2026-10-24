@@ -1,3 +1,4 @@
+import { browserOptions } from "./browser-options.mjs";
 import pg from "pg";
 import { loadEnvFile } from "node:process";
 import { randomUUID } from "node:crypto";
@@ -17,7 +18,7 @@ await fixtureDb.query(
 import { chromium } from "playwright";
 import { readFile } from "node:fs/promises";
 const accounts = JSON.parse(await readFile(".local/dev-accounts.json", "utf8"));
-const browser = await chromium.launch({ headless: true, channel: "chrome" });
+const browser = await chromium.launch(browserOptions());
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
@@ -88,7 +89,14 @@ try {
   );
   if (denied !== 403) throw Error("Cross-estate access not denied");
   await page.getByRole("button", { name: "Audit trail", exact: true }).click();
-  await page.getByText("muster.confirmed", { exact: true }).first().waitFor();
+  const confirmation = page
+    .getByRole("article")
+    .filter({ hasText: saved.id })
+    .filter({ hasText: "Muster confirmed" })
+    .first();
+  await confirmation.getByText("Muster confirmed", { exact: true }).waitFor();
+  await confirmation.getByText("View event details", { exact: true }).click();
+  await confirmation.getByText("muster.confirmed", { exact: true }).waitFor();
   await page
     .getByRole("button", { name: "Muster register", exact: true })
     .click();

@@ -4,27 +4,37 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=24.0.0 <25"
   },
   "scripts": {
     "dev:api": "node --watch --import tsx apps/api/src/server.ts",
     "dev:web": "vite --config apps/web/vite.config.ts",
     "build": "tsc --noEmit && vite build --config apps/web/vite.config.ts && node scripts/build-sw.mjs",
     "check": "tsc --noEmit",
-    "test": "node --import tsx --test tests/allocation.test.ts tests/sync.test.ts",
+    "test": "node --import tsx --test tests/allocation.test.ts tests/sync.test.ts tests/docker-config.test.ts tests/http-errors.test.ts tests/repository-gates.test.ts tests/user-feedback.test.tsx tests/browser-options.test.mjs tests/coverage-ledger.test.ts tests/decision-ledger.test.ts tests/reconciliation-contract.test.ts tests/source-evidence-contract.test.ts tests/source-review-contract.test.ts tests/mapping-readiness-contract.test.ts tests/mapping-policy-contract.test.ts tests/policy-acceptance-contract.test.ts",
     "db:migrate": "node --import tsx scripts/migrate.ts",
     "db:seed": "node --import tsx scripts/seed.ts",
-    "test:integration": "node --import tsx --test --test-concurrency=1 tests/api.test.ts tests/workflow.test.ts",
+    "test:integration": "node --import tsx --test --test-concurrency=1 tests/api.test.ts tests/workflow.test.ts tests/organization.test.ts tests/hierarchy.test.ts tests/sites.test.ts tests/legacy-review.test.ts tests/reconciliation.test.ts tests/reconciliation-jobs.test.ts tests/source-evidence.test.ts tests/source-review.test.ts tests/mapping-readiness.test.ts tests/mapping-policy.test.ts tests/policy-acceptance.test.ts && node --import tsx scripts/test-hierarchy-upgrade.ts",
     "db:test": "node --import tsx scripts/test-db.ts",
     "test:browser": "node scripts/browser-check.mjs",
-    "format": "prettier --write apps packages scripts tests",
+    "format": "prettier --write apps packages scripts tests .github package.json compose.yaml playwright.config.ts",
     "test:maintenance-browser": "node scripts/maintenance-browser.mjs",
     "test:workflow-browser": "node scripts/workflow-browser.mjs",
     "preview:pwa": "vite preview --config apps/web/vite.config.ts",
     "test:offline-browser": "node scripts/offline-browser.mjs",
     "verify:browser": "node scripts/verify-browser.mjs",
     "check:install": "node scripts/check-install.mjs",
-    "dev:pwa-api": "node --import tsx scripts/pwa-server.ts"
+    "dev:pwa-api": "node --import tsx scripts/pwa-server.ts",
+    "format:check": "prettier --check apps packages scripts tests .github package.json compose.yaml playwright.config.ts",
+    "check:repository-gates": "node --import tsx scripts/repository-gates.ts",
+    "test:journeys:visible": "node scripts/run-visible-journeys.mjs",
+    "test:journeys:record": "playwright codegen --channel=chrome --target=playwright-test --output=.local/recorded-journey.spec.ts http://localhost:5174",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui --ui-host=127.0.0.1",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report .local/e2e-report --host 127.0.0.1",
+    "test:coverage": "node --import tsx scripts/coverage-report.ts",
+    "test:coverage-ui": "node scripts/check-coverage-ledger.mjs"
   },
   "dependencies": {
     "express": "5.2.1",
@@ -34,9 +44,10 @@
     "pg": "8.23.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "zod": "3.25.76"
+    "zod": "4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "1.58.2",
     "@types/express": "5.0.6",
     "@types/node": "22.19.19",
     "@types/pg": "8.15.6",
@@ -49,6 +60,6 @@
     "supertest": "7.2.2",
     "tsx": "4.23.15",
     "typescript": "5.9.3",
-    "vite": "7.3.6"
+    "vite": "7.3.7"
   }
 }

@@ -1,25 +1,33 @@
-import express, {
-  type Request,
-  type Response,
-  type NextFunction,
-} from "express";
+import { siteRoutes } from "./sites";
+import { decisionLedgerRoutes } from "./decision-ledgers";
+import { navigationRoutes } from "./navigation";
+import {
+  lifecycleRoutes,
+  lifecycleLock,
+  assertTaskAvailable,
+} from "./lifecycle";
+import { responsibilityGovernanceRoutes } from "./responsibility-governance";
+import { responsibilityRoutes } from "./responsibility";
+import { placementGovernanceRoutes } from "./placement-governance";
+import { placementRoutes } from "./placement";
+import { hierarchyRoutes } from "./hierarchy";
+import { organizationRoutes } from "./organization";
+import express, { type Request, type Response } from "express";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
-import { z, ZodError } from "zod";
+import { z } from "zod";
 import type { Pool, PoolClient } from "pg";
 import { webOrigin } from "./config.ts";
 import { hash, token, verifyPassword, passwordHash } from "./security.ts";
 import { allocateHundredths } from "../../../packages/domain/allocation.ts";
 import { workflowRoutes, assertGangAllowed } from "./workflow.ts";
 import { maintenanceRoutes } from "./maintenance.ts";
-class ApiError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}
+import {
+  ApiError,
+  requestContext,
+  safeErrorHandler,
+  type FailureLogger,
+} from "./http.ts";
 const uuid = z.string().uuid();
 const createSchema = z
   .object({
@@ -48,15 +56,20 @@ const createSchema = z
       .refine((v) => new Set(v).size === v.length, "Workers must be unique"),
   })
   .strict();
-export function createApp(pool: Pool) {
+export function createApp(
+  pool: Pool,
+  options: { log?: FailureLogger; webOrigin?: string } = {},
+) {
   const app = express();
   app.disable("x-powered-by");
+  app.use("/api", requestContext);
   app.use(helmet());
+  // Only the bounded source-check upload accepts a larger JSON envelope.
+  app.post(
+    "/api/estates/:estateId/reconciliation/jobs/:jobId/evidence",
+    express.json({ limit: "3mb" }),
+  );
   app.use(express.json({ limit: "64kb" }));
-  app.use("/api", (_req, res, next) => {
-    res.set("Cache-Control", "no-store");
-    next();
-  });
   app.get("/api/health", async (_req, res) => {
     await pool.query("SELECT 1");
     res.json({ status: "ok", service: "eoms-api", stage: "foundation" });
@@ -64,9 +77,9 @@ export function createApp(pool: Pool) {
   app.use("/api", (req, res, next) => {
     if (
       !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
-      req.get("Origin") !== webOrigin
+      req.get("Origin") !== (options.webOrigin ?? webOrigin)
     )
-      return res.status(403).json({ error: "Untrusted request origin" });
+      throw new ApiError(403, "Untrusted request origin", "ORIGIN_REJECTED");
     next();
   });
   const dummy = passwordHash("dummy-unknown-account-" + token());
@@ -77,6 +90,14 @@ export function createApp(pool: Pool) {
       limit: 20,
       standardHeaders: "draft-8",
       legacyHeaders: false,
+      handler: (_req, _res, next) =>
+        next(
+          new ApiError(
+            429,
+            "Too many sign-in attempts. Try again later.",
+            "RATE_LIMITED",
+          ),
+        ),
     }),
     async (req, res) => {
       const input = z
@@ -136,7 +157,7 @@ export function createApp(pool: Pool) {
       !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
       req.get("X-CSRF-Token") !== rows.rows[0].csrf
     )
-      throw new ApiError(403, "Invalid CSRF token");
+      throw new ApiError(403, "Invalid CSRF token", "CSRF_REJECTED");
     next();
   });
   app.get("/api/auth/session", (req, res) => {
@@ -170,6 +191,16 @@ export function createApp(pool: Pool) {
       c.release();
     }
   }
+  organizationRoutes(app, tx);
+  navigationRoutes(app, tx);
+  decisionLedgerRoutes(app, tx);
+  hierarchyRoutes(app, tx);
+  siteRoutes(app, tx);
+  lifecycleRoutes(app, tx);
+  placementRoutes(app, tx);
+  placementGovernanceRoutes(app, tx);
+  responsibilityRoutes(app, tx);
+  responsibilityGovernanceRoutes(app, tx);
   async function estateTx<T>(
     req: Request,
     res: Response,
@@ -185,6 +216,7 @@ export function createApp(pool: Pool) {
       if (!m.rowCount) throw new ApiError(403, "Estate access denied");
       if (write && !["manager", "supervisor"].includes(m.rows[0].role))
         throw new ApiError(403, "Your role cannot record or confirm muster");
+      if (write) await lifecycleLock(c, id);
       return fn(c, id);
     });
   }
@@ -198,7 +230,13 @@ export function createApp(pool: Pool) {
   ) {
     await c.query(
       "INSERT INTO eoms.audit(estate_id,actor_id,action,record_id,detail) VALUES($1,$2,$3,$4,$5)",
-      [estateId, res.locals.user.id, action, id, JSON.stringify(detail)],
+      [
+        estateId,
+        res.locals.user.id,
+        action,
+        id,
+        JSON.stringify({ ...detail, requestId: res.locals.requestId }),
+      ],
     );
   }
   async function openPeriod(c: PoolClient, estateId: string, date: string) {
@@ -221,7 +259,7 @@ export function createApp(pool: Pool) {
         async (c) =>
           (
             await c.query(
-              "SELECT e.id,e.code,e.name,m.role FROM eoms.estates e JOIN eoms.memberships m ON m.estate_id=e.id WHERE m.user_id=$1 ORDER BY e.name",
+              "SELECT e.id,e.code,e.name,e.active,m.role FROM eoms.estates e JOIN eoms.memberships m ON m.estate_id=e.id WHERE m.user_id=$1 ORDER BY e.name",
               [res.locals.user.id],
             )
           ).rows,
@@ -345,12 +383,13 @@ export function createApp(pool: Pool) {
       await assertGangAllowed(c, res, id, input.gangCode, ApiError);
       const occurrence = (
         await c.query(
-          "SELECT id,capacity_ha FROM eoms.occurrences WHERE estate_id=$1 AND id=$2",
+          "SELECT id,capacity_ha,block_unit_id FROM eoms.occurrences WHERE estate_id=$1 AND id=$2",
           [id, input.occurrenceId],
         )
       ).rows[0];
       if (!occurrence)
         throw new ApiError(422, "Task does not belong to this estate");
+      await assertTaskAvailable(c, id, occurrence.block_unit_id);
       if (input.quantityHa > Number(occurrence.capacity_ha))
         throw new ApiError(422, "Work exceeds registered task area");
       const workers = (
@@ -386,6 +425,9 @@ export function createApp(pool: Pool) {
       await audit(c, id, res, "muster.created", row.id, {
         quantityHa: input.quantityHa,
         workers: input.workerIds.length,
+        legalCompanyId: row.legal_company_id,
+        legalCompanyName: row.legal_company_name,
+        legalResponsibilityId: row.legal_responsibility_id,
       });
       await c.query(
         "INSERT INTO eoms.idempotency(estate_id,user_id,key,request_hash,response) VALUES($1,$2,$3,$4,$5)",
@@ -415,6 +457,13 @@ export function createApp(pool: Pool) {
         await openPeriod(c, id, first.business_date);
         await assertGangAllowed(c, res, id, first.gang_code, ApiError);
         if (first.status === "confirmed") return first;
+        const block = (
+          await c.query(
+            "SELECT block_unit_id FROM eoms.occurrences WHERE estate_id=$1 AND id=$2",
+            [id, first.occurrence_id],
+          )
+        ).rows[0];
+        await assertTaskAvailable(c, id, block?.block_unit_id ?? null);
         const occurrence = (
           await c.query(
             "SELECT capacity_ha FROM eoms.occurrences WHERE estate_id=$1 AND id=$2 FOR UPDATE",
@@ -501,33 +550,9 @@ export function createApp(pool: Pool) {
       ),
     ),
   );
-  app.use("/api", (_req, res) =>
-    res.status(404).json({ error: "API route not found" }),
-  );
-  app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
-    if (error instanceof ZodError)
-      return res.status(422).json({
-        error: error.errors
-          .map((e) => `${e.path.join(".")}: ${e.message}`)
-          .join("; "),
-      });
-    if (error instanceof ApiError)
-      return res.status(error.status).json({ error: error.message });
-    if (error.code === "23503")
-      return res.status(422).json({ error: "Invalid record reference" });
-    if (error.code === "23505")
-      return res
-        .status(409)
-        .json({ error: "A matching record already exists" });
-    if (error.type === "entity.too.large")
-      return res.status(413).json({ error: "Request too large" });
-    if (error.type === "entity.parse.failed")
-      return res.status(400).json({ error: "Invalid JSON" });
-    console.error("API error", {
-      code: error.code || "unknown",
-      message: error.message,
-    });
-    res.status(500).json({ error: "Request could not be completed" });
+  app.use("/api", () => {
+    throw new ApiError(404, "API route not found");
   });
+  app.use(safeErrorHandler(options.log));
   return app;
 }

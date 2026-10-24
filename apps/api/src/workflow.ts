@@ -15,7 +15,10 @@ type Audit = (
   record: string | null,
   detail: object,
 ) => Promise<void>;
-type ErrorType = new (status: number, message: string) => Error;
+type ErrorType = new (
+  status: 400 | 401 | 403 | 404 | 409 | 413 | 422 | 429 | 500 | 503,
+  message: string,
+) => Error;
 export async function assertGangAllowed(
   c: PoolClient,
   res: Response,
