@@ -1,3 +1,4 @@
+import { PolicyGovernance } from "./PolicyGovernance";
 import { useEffect, useRef, useState } from "react";
 import { RequestFailure } from "./feedback";
 type Api = (path: string, body?: unknown) => Promise<any>;
@@ -12,6 +13,7 @@ const fields = {
   evidenceCriteria: "Proposed evidence and concern resolution criteria",
 };
 export function MappingPolicy({ path, api }: { path: string; api: Api }) {
+  const [governancePending, setGovernancePending] = useState(false);
   const [list, setList] = useState<any>(null),
     [detail, setDetail] = useState<any>(null),
     [reviews, setReviews] = useState<any>(null),
@@ -96,6 +98,7 @@ export function MappingPolicy({ path, api }: { path: string; api: Api }) {
   async function submit(kind: "proposal" | "review") {
     if (
       busy ||
+      governancePending ||
       loading ||
       readError ||
       (!write.current && !(kind === "proposal" ? proposalValid : reviewValid))
@@ -181,7 +184,7 @@ export function MappingPolicy({ path, api }: { path: string; api: Api }) {
       if (live.current && epoch.current === ticket) setBusy(false);
     }
   }
-  const locked = busy || pending || loading || !!readError;
+  const locked = busy || pending || governancePending || loading || !!readError;
   return (
     <section
       aria-label="Mapping policy design review"
@@ -214,7 +217,7 @@ export function MappingPolicy({ path, api }: { path: string; api: Api }) {
         recorded.
       </p>
       <button
-        disabled={busy || pending || loading}
+        disabled={busy || pending || governancePending || loading}
         onClick={() => {
           setCursor(null);
           setReviewCursor(null);
@@ -279,6 +282,7 @@ export function MappingPolicy({ path, api }: { path: string; api: Api }) {
             <button
               disabled={
                 busy ||
+                governancePending ||
                 loading ||
                 !!readError ||
                 (pending ? write.current?.kind !== "proposal" : !proposalValid)
@@ -415,6 +419,7 @@ export function MappingPolicy({ path, api }: { path: string; api: Api }) {
             <button
               disabled={
                 busy ||
+                governancePending ||
                 loading ||
                 !!readError ||
                 (pending ? write.current?.kind !== "review" : !reviewValid)
@@ -455,6 +460,14 @@ export function MappingPolicy({ path, api }: { path: string; api: Api }) {
           </button>
         </section>
       )}
+      <PolicyGovernance
+        path={path}
+        policyId={selected}
+        api={api}
+        blocked={busy || pending}
+        onPending={setGovernancePending}
+        onChanged={() => setAttempt((n) => n + 1)}
+      />
       {busy && <p role="status">Recording policy history…</p>}
       {error && <p role="alert">{error}</p>}
       {notice && <p role="status">{notice}</p>}

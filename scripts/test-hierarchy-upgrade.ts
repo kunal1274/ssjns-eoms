@@ -354,6 +354,25 @@ try {
     await c.query(
       await readFile("db/migrations/022_mapping_policy_review.sql", "utf8"),
     );
+    await c.query(
+      await readFile(
+        "db/migrations/023_policy_acceptance_authority.sql",
+        "utf8",
+      ),
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.mapping_policy_scope_events"))
+        .rowCount,
+      0,
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.mapping_policy_authority")).rowCount,
+      0,
+    );
+    assert.equal(
+      (await c.query("SELECT * FROM eoms.mapping_policy_acceptance")).rowCount,
+      0,
+    );
     assert.equal(
       (await c.query("SELECT * FROM eoms.mapping_policy_versions")).rowCount,
       0,

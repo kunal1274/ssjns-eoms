@@ -1698,6 +1698,54 @@
         "caseId": "E2E-JRN-06-009",
         "step": "Recover a policy read interruption and clear private criteria after setup and membership revocation"
       }
+    },
+    {
+      "id": "COV-POLICY-EXTERNAL-APPOINT",
+      "journey": "JRN-06",
+      "screen": "Policy authority and external decisions",
+      "category": "form",
+      "control": "Explicit authority appointment and retry",
+      "assertion": "Create exact policy criteria and appoint a separate scoped recorder with lost-response receipt recovery",
+      "binding": {
+        "caseId": "E2E-JRN-06-010",
+        "step": "Create exact policy criteria and appoint a separate scoped recorder with lost-response receipt recovery"
+      }
+    },
+    {
+      "id": "COV-POLICY-EXTERNAL-ACCEPT",
+      "journey": "JRN-06",
+      "screen": "Policy authority and external decisions",
+      "category": "form",
+      "control": "Attested exact external acceptance and recovery",
+      "assertion": "Record referenced external acceptance under an explicit appointment and recover one immutable decision",
+      "binding": {
+        "caseId": "E2E-JRN-06-010",
+        "step": "Record referenced external acceptance under an explicit appointment and recover one immutable decision"
+      }
+    },
+    {
+      "id": "COV-POLICY-EXTERNAL-WITHDRAW",
+      "journey": "JRN-06",
+      "screen": "Policy authority and external decisions",
+      "category": "action",
+      "control": "Linked external withdrawal and renewal",
+      "assertion": "Withdraw and renew external acceptance through linked audit events while historical business facts stay unchanged",
+      "binding": {
+        "caseId": "E2E-JRN-06-010",
+        "step": "Withdraw and renew external acceptance through linked audit events while historical business facts stay unchanged"
+      }
+    },
+    {
+      "id": "COV-POLICY-EXTERNAL-REVOKE",
+      "journey": "JRN-06",
+      "screen": "Policy authority and external decisions",
+      "category": "navigation",
+      "control": "Authority revocation and denied scope",
+      "assertion": "Revoke and reappoint without reviving earlier acceptance then recover read failure and clear denied private records",
+      "binding": {
+        "caseId": "E2E-JRN-06-010",
+        "step": "Revoke and reappoint without reviving earlier acceptance then recover read failure and clear denied private records"
+      }
     }
   ]
 }

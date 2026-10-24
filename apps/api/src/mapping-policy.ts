@@ -1,3 +1,7 @@
+import {
+  policyAcceptanceRoutes,
+  currentPolicyAcceptance,
+} from "./policy-acceptance";
 import type { Express } from "express";
 import type { PoolClient } from "pg";
 import { z } from "zod";
@@ -20,12 +24,14 @@ export async function policyReviewSummary(c: PoolClient, estate: string) {
     ).rows[0] ?? null;
   return {
     latest,
+    acceptance: latest ? await currentPolicyAcceptance(c, latest.id) : null,
     approvalEnabled: false,
     applicationEnabled: false,
     status: "design-review-only",
   };
 }
 export function mappingPolicyRoutes(app: Express, estateTx: EstateTx) {
+  policyAcceptanceRoutes(app, estateTx);
   const base = "/api/estates/:estateId/reconciliation/policies";
   async function gate(c: PoolClient, id: string) {
     if (

@@ -174,6 +174,20 @@ export function MappingReadiness({ path, api }: { path: string; api: Api }) {
               policy design review in the source mapping panel to inspect
               criteria and history.
             </p>
+            {report.policyReview.acceptance && (
+              <p>
+                External decision:{" "}
+                {report.policyReview.acceptance.head?.outcome ??
+                  "None recorded"}{" "}
+                ·{" "}
+                {report.policyReview.acceptance.current
+                  ? "Recorded acceptance current"
+                  : "No current acceptance"}
+                . Open design concerns:{" "}
+                {report.policyReview.acceptance.openDesignConcerns}. This record
+                does not enable mapping application.
+              </p>
+            )}
             <p>{report.policy.approach}</p>
             <p>{report.policy.next}</p>
             <p>
