@@ -1,6 +1,6 @@
 # Next governed mapping decision flow
 
-24 October implementation candidate: the row1 external-decision recording capability and a narrow policy-recorder appointment are implemented in F06-POLICY-ACCEPTANCE.md, with full CI pending. Actual authoritative sign-off remains a human action; the row2 production mapping-decision grant and rows3–10 request/application/compensation/acceptance gates remain open. No planned flow is activated by design-support votes or ordinary manager access.
+24 October verified recording increment: row1's external-decision recording capability and a narrow policy-recorder appointment are implemented and automatically verified in F06-POLICY-ACCEPTANCE.md (sourcef6998c2 / CI40054273869,165tests/58executions/fullDocker). Actual authoritative sign-off remains a human action. The row2 production mapping-decision grant and rows3–10 request/application/compensation/acceptance gates remain open. No planned flow is activated by design-support votes, ordinary manager access or a recorded external decision alone.
 
 23 October 2026. Engineering preparation only, not an implemented endpoint or accepted production policy. Continue the full F01–F25 roadmap. The versioned policy design-review increment is separate from the future business authority described here. No production approver role, acceptance threshold or custody certification is inferred from a design statement.
 
