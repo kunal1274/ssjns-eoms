@@ -183,6 +183,19 @@ test("E2E-JRN-06-010 @regression explicitly appoint external policy recorder and
         .getByRole("button", { name: "Inspect policy version 1", exact: true })
         .click();
       await expect(external).toContainText("Your appointment: Current");
+      await appointments
+        .getByRole("button", {
+          name: new RegExp("Select policy recorder .*" + f.user + "$"),
+        })
+        .click();
+      await gov
+        .getByLabel("Policy authority reference", { exact: true })
+        .fill("Unrelated appointment reference draft");
+      await gov
+        .getByLabel("Policy authority reason", { exact: true })
+        .fill(
+          "Preserve this separate appointment draft while recording a decision",
+        );
       await expect(record).toBeDisabled();
       await fields(
         "accepted-externally",
@@ -203,6 +216,9 @@ test("E2E-JRN-06-010 @regression explicitly appoint external policy recorder and
         "Recovered existing receipt. External policy decision revision 1",
       );
       await expect(external).toContainText("Recorded acceptance current");
+      await expect(
+        gov.getByLabel("Policy authority reference", { exact: true }),
+      ).toHaveValue("Unrelated appointment reference draft");
       const rows = (
         await f.root.query("SELECT * FROM eoms.mapping_policy_acceptance")
       ).rows;

@@ -1,5 +1,7 @@
 # Current engineering evidence
 
+24 October replacement candidate: First candidate6609213 / CI40053281683 passed165 tests(53unit/112PostgreSQL-API), all58 viewport executions (new4.8s desktop/4.8s mobile) and ledger264passed/40untested, but failed dependency audit on body-parser/Zod before Docker. It is not complete application proof. Replacement updates Zod to4.6.7 and body-parser to2.4.0 in the lockfile; local53 unit/type/build/format and zero-finding audit passed. Replacement also preserves unrelated governance form drafts and gives explicit blocked-authority recovery guidance, with browser regression assertions. Full replacement gate pending.
+
 24 October candidate: ten connected explicit policy recording-authority/external-decision steps are implemented. Local53 unit/contract, type/build/format passed; full PostgreSQL/browser/Docker gate pending. See F06-POLICY-ACCEPTANCE.md. No client decision is fabricated and no mapping approval/application is enabled. Actual external authority/acceptance, production mapping approver, bound requests and overlay/compensation flows remain open. Latest fully verified source remains the proof below.
 
 23 October 2026. Full F01–F25/product scope remains in force; F06 is In progress, F07+ not started. F05 owner exception permits continued development and remains a release consideration. No merge/deploy.

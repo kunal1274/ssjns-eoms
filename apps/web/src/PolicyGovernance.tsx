@@ -200,11 +200,14 @@ export function PolicyGovernance({
         submission.current = null;
         setPending(false);
         onPending(false);
-        setAuthorityRef("");
-        setAuthorityReason("");
-        setExternalRef("");
-        setDecisionReason("");
-        setAttested(false);
+        if (saved.kind === "authority") {
+          setAuthorityRef("");
+          setAuthorityReason("");
+        } else {
+          setExternalRef("");
+          setDecisionReason("");
+          setAttested(false);
+        }
         setCursor(null);
         setDecisionCursor(null);
         setAttempt((n) => n + 1);
@@ -469,6 +472,18 @@ export function PolicyGovernance({
               ? "Separate policy author confirmed."
               : "The policy author cannot record independent external decisions."}
           </p>
+          {!acceptance.independent && (
+            <p>
+              Continue with a separate appointed recorder for this proposal.
+            </p>
+          )}
+          {acceptance.independent && !acceptance.authority.effective && (
+            <p>
+              Ask another scoped setup manager to appoint or renew your
+              recording authority, then refresh governance. Self appointment is
+              not allowed; restoring access alone does not renew an appointment.
+            </p>
+          )}
           <details>
             <summary>View acceptance authority and policy identity</summary>
             <p>
@@ -532,7 +547,7 @@ export function PolicyGovernance({
                   onChange={(e) => setDecisionReason(e.target.value)}
                 />
               </label>
-              <label>
+              <label className="check">
                 <input
                   type="checkbox"
                   aria-label="I checked my appointment and the referenced external policy decision"

@@ -1,5 +1,7 @@
 # Explicit policy recording authority and external decisions
 
+24 October replacement candidate: First candidate6609213 / CI40053281683 passed165 tests(53unit/112PostgreSQL-API), all58 viewport executions (new4.8s desktop/4.8s mobile) and ledger264passed/40untested, but failed dependency audit on body-parser/Zod before Docker. It is not complete application proof. Replacement updates Zod to4.6.7 and body-parser to2.4.0 in the lockfile; local53 unit/type/build/format and zero-finding audit passed. Replacement also preserves unrelated governance form drafts and gives explicit blocked-authority recovery guidance, with browser regression assertions. Full replacement gate pending.
+
 24 October 2026. Implementation candidate; full PostgreSQL/browser/Docker gate pending. Local53 unit/contract tests, type/build and formatting checks passed. F06 remains In progress, F07+ not started; full F01–F25 and reusable visible recording/review/one-click testing remain delivery scope. No merge/deployment or hosted-prototype change.
 
 This increment delivers a workflow to record referenced external owner/client policy decisions under explicit scoped appointments. It does not fabricate a client decision, authenticate a signature/custody chain, grant production mapping approval or enable application. Actual authority/delegation and decision references must come from the responsible people. Seeded verification references are synthetic only.
