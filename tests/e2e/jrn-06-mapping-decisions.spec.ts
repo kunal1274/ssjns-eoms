@@ -6,6 +6,8 @@ test("E2E-JRN-06-011 @regression submit bound mapping requests and independently
 }) => {
   const x = await mappingWorkflowFixture(),
     f = x.f;
+  let primaryFailure: unknown = null;
+  let stage = "initialization";
   try {
     const baseline = await f.snapshot();
     await page.route("**/api/**", async (route) => {
@@ -69,7 +71,11 @@ test("E2E-JRN-06-011 @regression submit bound mapping requests and independently
               url: f.apiURL + u.pathname,
               headers: await route.request().allHeaders(),
             });
-          expect(r.status()).toBe(200);
+          if (r.status() !== 200) {
+            await route.fulfill({ response: r });
+            expect(r.status()).toBe(200);
+            return;
+          }
           await route.fulfill({
             status: 503,
             headers: { "Content-Type": "application/json" },
@@ -145,6 +151,15 @@ test("E2E-JRN-06-011 @regression submit bound mapping requests and independently
         f.target,
       ]);
 
+      stage = "candidate-selection";
+      const candidateSelected = page.waitForResponse(
+        (r) =>
+          new URL(r.url()).pathname.endsWith(
+            "/reconciliation/mapping-authority",
+          ) &&
+          new URL(r.url()).searchParams.get("subjectId") === x.decider.id &&
+          r.request().method() === "GET",
+      );
       await panel
         .getByRole("button", {
           name:
@@ -153,6 +168,11 @@ test("E2E-JRN-06-011 @regression submit bound mapping requests and independently
           exact: true,
         })
         .click();
+      expect((await candidateSelected).status()).toBe(200);
+      await expect(panel).toContainText(
+        "Selected person " + x.decider.id + " · Appointment revision 1",
+      );
+      stage = "appointment-renewal";
       await panel
         .getByLabel("Mapping appointment reference", { exact: true })
         .fill("Synthetic owner renewal of separate mapping recorder");
@@ -166,9 +186,17 @@ test("E2E-JRN-06-011 @regression submit bound mapping requests and independently
         })
         .click();
       await expect(panel).toContainText("Mapping appointment revision 2");
+      stage = "request-form";
       await requestForm("Submit exact historical mapping proposal");
       await drop("**/evidence/*/mapping-requests");
+      stage = "request-interruption";
+      const interrupted = page.waitForResponse(
+        (r) =>
+          new URL(r.url()).pathname.endsWith("/mapping-requests") &&
+          r.request().method() === "POST",
+      );
       await submit.click();
+      expect((await interrupted).status()).toBe(503);
       await expect(panel.getByRole("alert")).toContainText(
         "Retry unchanged submission",
       );
@@ -176,7 +204,17 @@ test("E2E-JRN-06-011 @regression submit bound mapping requests and independently
         panel.getByLabel("Mapping custody reference", { exact: true }),
       ).toBeDisabled();
       await expect(refresh).toBeDisabled();
+      stage = "request-recovery";
+      const recovered = page.waitForResponse(
+        (r) =>
+          new URL(r.url()).pathname.endsWith("/mapping-requests") &&
+          r.request().method() === "POST",
+      );
       await submit.click();
+      const recovery = await recovered;
+      expect(recovery.status()).toBe(200);
+      expect((await recovery.json()).replayed).toBe(true);
+      stage = "request-audit";
       await expect(panel).toContainText(
         "Recovered existing receipt. Bound mapping request",
       );
@@ -410,8 +448,17 @@ test("E2E-JRN-06-011 @regression submit bound mapping requests and independently
       await expect(page.locator("[data-mapping-decision]")).toHaveCount(0);
       expect(await f.snapshot()).toEqual(baseline);
     });
+  } catch (e) {
+    primaryFailure = e;
+    console.log("Mapping decision journey failure stage: " + stage);
+    throw e;
   } finally {
-    await page.unrouteAll({ behavior: "wait" });
-    await f.close();
+    try {
+      if (!page.isClosed()) await page.unrouteAll({ behavior: "ignoreErrors" });
+    } catch (e) {
+      if (!primaryFailure && !page.isClosed()) throw e;
+    } finally {
+      await f.close();
+    }
   }
 });
