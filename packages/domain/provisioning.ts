@@ -35,3 +35,14 @@ export const estateProvisionInput = z
     initialManagerId: uuid,
   })
   .strict();
+export const setupGrantInput = z
+  .object({
+    key: uuid,
+    customerId: uuid,
+    subjectId: uuid,
+    action: z.enum(["granted", "revoked"]),
+    expectedGranted: z.boolean(),
+    reference: z.string().trim().min(3).max(240),
+    reason: z.string().trim().min(3).max(500),
+  })
+  .strict();

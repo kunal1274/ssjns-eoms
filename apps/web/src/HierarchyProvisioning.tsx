@@ -1,3 +1,4 @@
+import { CustomerSetupAccess } from "./CustomerSetupAccess";
 import { useEffect, useRef, useState } from "react";
 import { RequestFailure } from "./feedback";
 import { SearchSelect } from "./SearchSelect";
@@ -7,12 +8,15 @@ export function HierarchyProvisioning({
   customerId,
   onPending,
   onOpenEstate,
+  disabled,
 }: {
   api: Api;
   customerId: string;
   onPending: (v: boolean) => void;
   onOpenEstate: (id: string) => void;
+  disabled: boolean;
 }) {
+  const [setupPending, setSetupPending] = useState(false);
   const [caps, setCaps] = useState<any>(null),
     [history, setHistory] = useState<any>(null),
     [operation, setOperation] = useState("company"),
@@ -124,9 +128,18 @@ export function HierarchyProvisioning({
             ? /^[A-Z0-9][A-Z0-9_-]{0,29}$/.test(v)
             : v.length >= (["reference", "reason"].includes(k) ? 3 : 1);
       }),
-    locked = loading || busy || pending || !!readError;
+    locked =
+      disabled || loading || busy || pending || setupPending || !!readError;
   async function submit() {
-    if (loading || busy || readError || (!write.current && !valid)) return;
+    if (
+      disabled ||
+      setupPending ||
+      loading ||
+      busy ||
+      readError ||
+      (!write.current && !valid)
+    )
+      return;
     write.current ??= {
       path: "/provisioning/" + operation,
       body: {
@@ -175,6 +188,7 @@ export function HierarchyProvisioning({
           setCaps(null);
           setHistory(null);
           setLast(null);
+          setInput({});
         }
       }
     } finally {
@@ -193,7 +207,7 @@ export function HierarchyProvisioning({
         Parent creation never grants sibling or descendant work access.
       </p>
       <button
-        disabled={loading || busy || pending}
+        disabled={disabled || setupPending || loading || busy || pending}
         onClick={() => setAttempt((n) => n + 1)}
       >
         Refresh provisioning
@@ -309,7 +323,12 @@ export function HierarchyProvisioning({
                 </fieldset>
                 <button
                   disabled={
-                    loading || busy || !!readError || (!pending && !valid)
+                    disabled ||
+                    setupPending ||
+                    loading ||
+                    busy ||
+                    !!readError ||
+                    (!pending && !valid)
                   }
                 >
                   Save hierarchy provision
@@ -354,6 +373,18 @@ export function HierarchyProvisioning({
                   </button>
                 )}
             </article>
+          )}
+          {caps.canManageCustomer && (
+            <CustomerSetupAccess
+              api={api}
+              customerId={customerId}
+              actorId={caps.actorId}
+              disabled={disabled || loading || busy || pending || !!readError}
+              onPending={(v) => {
+                setSetupPending(v);
+                onPending(v);
+              }}
+            />
           )}
           {history && (
             <section aria-label="Provisioning history">

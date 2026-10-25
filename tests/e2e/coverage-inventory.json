@@ -1890,6 +1890,90 @@
         "caseId": "E2E-JRN-02-017",
         "step": "Remove provisioning controls and private receipt details after actual setup authority revocation"
       }
+    },
+    {
+      "id": "COV-HIERARCHY-SCOPE-GRANT",
+      "journey": "JRN-02",
+      "screen": "Explicit hierarchy read scopes",
+      "category": "form",
+      "control": "Grant",
+      "assertion": "Record node-only hierarchy read with exact uncertain-response recovery and actual audit",
+      "binding": {
+        "caseId": "E2E-JRN-02-018",
+        "step": "Record node-only hierarchy read with exact uncertain-response recovery and actual audit"
+      }
+    },
+    {
+      "id": "COV-HIERARCHY-SCOPE-READ",
+      "journey": "JRN-02",
+      "screen": "Explicit hierarchy read scopes",
+      "category": "action",
+      "control": "Read",
+      "assertion": "Read only the named node with no parent sibling or operational estate access",
+      "binding": {
+        "caseId": "E2E-JRN-02-018",
+        "step": "Read only the named node with no parent sibling or operational estate access"
+      }
+    },
+    {
+      "id": "COV-HIERARCHY-SCOPE-INHERIT",
+      "journey": "JRN-02",
+      "screen": "Explicit hierarchy read scopes",
+      "category": "action",
+      "control": "Inherit",
+      "assertion": "Explicitly renew descendant inheritance and recover a failed scoped read without widening work permissions",
+      "binding": {
+        "caseId": "E2E-JRN-02-018",
+        "step": "Explicitly renew descendant inheritance and recover a failed scoped read without widening work permissions"
+      }
+    },
+    {
+      "id": "COV-HIERARCHY-SCOPE-REVOKE",
+      "journey": "JRN-02",
+      "screen": "Explicit hierarchy read scopes",
+      "category": "navigation",
+      "control": "Revoke",
+      "assertion": "Revoke exact inherited metadata rights retain history and clear the reader context",
+      "binding": {
+        "caseId": "E2E-JRN-02-018",
+        "step": "Revoke exact inherited metadata rights retain history and clear the reader context"
+      }
+    },
+    {
+      "id": "COV-SETUP-HANDOVER-GRANT",
+      "journey": "JRN-02",
+      "screen": "Customer setup access handover",
+      "category": "form",
+      "control": "Grant",
+      "assertion": "Grant a separate setup recipient with frozen receipt recovery and detailed actual audit",
+      "binding": {
+        "caseId": "E2E-JRN-02-019",
+        "step": "Grant a separate setup recipient with frozen receipt recovery and detailed actual audit"
+      }
+    },
+    {
+      "id": "COV-SETUP-HANDOVER-DENY-WORK",
+      "journey": "JRN-02",
+      "screen": "Customer setup access handover",
+      "category": "action",
+      "control": "Deny-Work",
+      "assertion": "Verify configuration capability is separate from every estate work membership",
+      "binding": {
+        "caseId": "E2E-JRN-02-019",
+        "step": "Verify configuration capability is separate from every estate work membership"
+      }
+    },
+    {
+      "id": "COV-SETUP-HANDOVER-REVOKE",
+      "journey": "JRN-02",
+      "screen": "Customer setup access handover",
+      "category": "navigation",
+      "control": "Revoke",
+      "assertion": "Revoke the separate recipient retain last administrator and prevent self authority changes",
+      "binding": {
+        "caseId": "E2E-JRN-02-019",
+        "step": "Revoke the separate recipient retain last administrator and prevent self authority changes"
+      }
     }
   ]
 }

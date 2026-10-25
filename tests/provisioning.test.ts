@@ -1,3 +1,5 @@
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import "../apps/api/src/config";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -262,5 +264,188 @@ test("bootstrap revocation and user suspension restoration do not revive prior c
     assert.equal(
       (await call("provisioning/customer", bootstrap(f.user))).status,
       403,
+    );
+  }));
+test("customer setup handover is explicit audited idempotent and never grants operational membership", async () =>
+  fixture(async (f, call) => {
+    const peer = await independentSourceReviewer(f);
+    await f.root.query(
+      "DELETE FROM eoms.organization_admins WHERE user_id=$1",
+      [peer.id],
+    );
+    await f.root.query("DELETE FROM eoms.memberships WHERE user_id=$1", [
+      peer.id,
+    ]);
+    const body = {
+        key: randomUUID(),
+        customerId: f.customer,
+        subjectId: peer.id,
+        action: "granted",
+        expectedGranted: false,
+        reference: "Synthetic explicit setup handover",
+        reason: "Grant configuration authority without estate work access",
+      },
+      rs = await Promise.all([
+        call("provisioning/setup-grant", body),
+        call("provisioning/setup-grant", body),
+      ]);
+    assert.deepEqual(
+      rs.map((r: any) => r.status),
+      [200, 200],
+    );
+    const a: any = await rs[0].json(),
+      b: any = await rs[1].json();
+    assert.equal(a.receipt.id, b.receipt.id);
+    assert.equal([a, b].filter((v) => v.replayed).length, 1);
+    assert.equal(a.receipt.result.workAccessGranted, false);
+    assert.equal(a.receipt.actor_id, f.user);
+    const caps: any = await (
+      await call(
+        "provisioning/capabilities?customerId=" + f.customer,
+        undefined,
+        peer.raw,
+      )
+    ).json();
+    assert.equal(caps.canManageCustomer, true);
+    assert.equal(
+      (await call("estates/" + f.estate + "/musters", undefined, peer.raw))
+        .status,
+      403,
+    );
+    assert.equal(
+      (
+        await f.root.query("SELECT * FROM eoms.memberships WHERE user_id=$1", [
+          peer.id,
+        ])
+      ).rowCount,
+      0,
+    );
+    assert.equal(
+      (
+        await call("provisioning/setup-grant", {
+          ...body,
+          key: randomUUID(),
+          subjectId: f.user,
+          action: "revoked",
+          expectedGranted: true,
+        })
+      ).status,
+      403,
+    );
+    const revoked = await call("provisioning/setup-grant", {
+      ...body,
+      key: randomUUID(),
+      action: "revoked",
+      expectedGranted: true,
+    });
+    assert.equal(revoked.status, 200);
+    assert.equal(
+      (
+        await call(
+          "customers/" + f.customer + "/setup-subject?subjectId=" + f.user,
+          undefined,
+          peer.raw,
+        )
+      ).status,
+      403,
+    );
+    assert.equal(
+      (
+        await call("provisioning/setup-grant", {
+          ...body,
+          key: randomUUID(),
+          reason: "Foreign forged permission",
+          force: true,
+        })
+      ).status,
+      422,
+    );
+  }));
+test("concurrent setup revocation and company provisioning serialize without deadlock or partial writes", async () =>
+  fixture(async (f, call) => {
+    const peer = await independentSourceReviewer(f),
+      revoke = {
+        key: randomUUID(),
+        customerId: f.customer,
+        subjectId: peer.id,
+        action: "revoked",
+        expectedGranted: true,
+        reference: "Synthetic concurrent access removal",
+        reason:
+          "Revoke setup scope while a different actor attempts provisioning",
+      },
+      company = {
+        key: randomUUID(),
+        customerId: f.customer,
+        companyCode: "RACE-COMPANY",
+        companyName: "Synthetic serialized company",
+        reference: "Synthetic scoped creation",
+        reason: "Creation must finish before revocation or be denied after it",
+      };
+    const rs = await Promise.all([
+      call("provisioning/setup-grant", revoke),
+      call("provisioning/company", company, peer.raw),
+    ]);
+    assert.equal(rs[0].status, 200);
+    assert.ok([200, 403].includes(rs[1].status));
+    const count = (
+      await f.root.query(
+        "SELECT count(*)::int AS n FROM eoms.companies WHERE customer_id=$1 AND code='RACE-COMPANY'",
+        [f.customer],
+      )
+    ).rows[0].n;
+    assert.equal(count, rs[1].status === 200 ? 1 : 0);
+    assert.equal(
+      (
+        await f.root.query(
+          "SELECT * FROM eoms.organization_admins WHERE customer_id=$1 AND user_id=$2",
+          [f.customer, f.user],
+        )
+      ).rowCount,
+      1,
+    );
+  }));
+
+test("the explicit administrative bootstrap command grants and revokes the capability without issuing tenant memberships", async () =>
+  fixture(async (f, call) => {
+    const execute = promisify(execFile),
+      before = (
+        await f.root.query("SELECT * FROM eoms.memberships WHERE user_id=$1", [
+          f.user,
+        ])
+      ).rowCount;
+    for (const action of ["granted", "revoked"]) {
+      const result = await execute(
+        process.execPath,
+        [
+          "--import",
+          "tsx",
+          "scripts/authorize-bootstrap.ts",
+          f.user,
+          action,
+          "Synthetic controlled operator reference",
+          "Explicit isolated CLI authority test",
+        ],
+        {
+          env: {
+            ...process.env,
+            ADMIN_DATABASE_URL: f.root.options.connectionString,
+          },
+        },
+      );
+      assert.match(
+        result.stdout,
+        /Recorded explicit platform bootstrap authority change/,
+      );
+      const caps: any = await (await call("provisioning/capabilities")).json();
+      assert.equal(caps.canBootstrap, action === "granted");
+    }
+    assert.equal(
+      (
+        await f.root.query("SELECT * FROM eoms.memberships WHERE user_id=$1", [
+          f.user,
+        ])
+      ).rowCount,
+      before,
     );
   }));

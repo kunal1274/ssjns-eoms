@@ -378,8 +378,27 @@ try {
     await c.query(
       await readFile("db/migrations/027_hierarchy_provisioning.sql", "utf8"),
     );
+    await c.query(
+      await readFile(
+        "db/migrations/028_hierarchy_read_inheritance.sql",
+        "utf8",
+      ),
+    );
+    await c.query(
+      await readFile(
+        "db/migrations/029_customer_setup_administration.sql",
+        "utf8",
+      ),
+    );
+    await c.query(
+      await readFile(
+        "db/migrations/030_provisioning_scope_lock_order.sql",
+        "utf8",
+      ),
+    );
     for (const table of [
       "mapping_requests",
+      "hierarchy_read_grants",
       "platform_bootstrap_authority",
       "hierarchy_provision_receipts",
       "mapping_execution_authority",

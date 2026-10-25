@@ -1,3 +1,4 @@
+import { HierarchyScopes } from "./HierarchyScopes";
 import { HierarchyProvisioning } from "./HierarchyProvisioning";
 import { SearchSelect } from "./SearchSelect";
 import { OperationalSites } from "./OperationalSites";
@@ -35,6 +36,7 @@ export function Organization({
   onPending: (v: boolean) => void;
 }) {
   const [provisioningPending, setProvisioningPending] = useState(false);
+  const [scopePending, setScopePending] = useState(false);
   const [rows, setRows] = useState<Node[]>([]),
     [customer, setCustomer] = useState(""),
     [customerReady, setCustomerReady] = useState(false),
@@ -100,17 +102,27 @@ export function Organization({
   return (
     <section className="card" aria-label="Organization guide">
       <h2>Choose your operating context</h2>
+      <HierarchyScopes
+        api={api}
+        customerId={customerReady ? customer : ""}
+        disabled={provisioningPending}
+        onPending={(v) => {
+          setScopePending(v);
+          onPending(v || provisioningPending);
+        }}
+      />
       <HierarchyProvisioning
+        disabled={scopePending}
         api={api}
         customerId={customerReady ? customer : ""}
         onOpenEstate={onOpenEstate}
         onPending={(v) => {
           setProvisioningPending(v);
-          onPending(v);
+          onPending(v || scopePending);
         }}
       />
       <fieldset
-        disabled={provisioningPending}
+        disabled={provisioningPending || scopePending}
         style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}
       >
         <ol>

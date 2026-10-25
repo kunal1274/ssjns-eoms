@@ -1,3 +1,4 @@
+import { hierarchyScopeRoutes } from "./hierarchy-scope";
 import { provisioningRoutes } from "./provisioning";
 import { siteRoutes } from "./sites";
 import { decisionLedgerRoutes } from "./decision-ledgers";
@@ -194,6 +195,7 @@ export function createApp(
   }
   organizationRoutes(app, tx);
   provisioningRoutes(app, tx);
+  hierarchyScopeRoutes(app, tx);
   navigationRoutes(app, tx);
   decisionLedgerRoutes(app, tx);
   hierarchyRoutes(app, tx);

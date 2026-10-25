@@ -1,3 +1,4 @@
+import { setupGrantInput } from "../../../packages/domain/provisioning";
 import type { Express } from "express";
 import type { Transaction } from "./organization";
 import { ApiError } from "./http";
@@ -63,6 +64,54 @@ export function provisioningRoutes(app: Express, tx: Transaction) {
           ...pageResult(rows, q.limit, binding, (r) => r.id),
           actorId: res.locals.user.id,
         };
+      }),
+    );
+  });
+  app.get("/api/customers/:customerId/setup-subject", async (req, res) => {
+    const customer = z.string().uuid().parse(req.params.customerId),
+      q = z.object({ subjectId: z.string().uuid() }).strict().parse(req.query);
+    res.set("Cache-Control", "no-store").json(
+      await tx(res, async (c) => ({
+        subjectId: q.subjectId,
+        granted: (
+          await c.query("SELECT eoms.customer_setup_subject($1,$2) AS value", [
+            customer,
+            q.subjectId,
+          ])
+        ).rows[0].value,
+      })),
+    );
+  });
+  app.post("/api/provisioning/setup-grant", async (req, res) => {
+    const v = setupGrantInput.parse(req.body);
+    res.json(
+      await tx(res, async (c) => {
+        await c.query("SELECT set_config('app.request_id',$1,true)", [
+          res.locals.requestId,
+        ]);
+        try {
+          return (
+            await c.query(
+              "SELECT eoms.set_customer_setup($1,$2,$3,$4,$5,$6,$7) AS value",
+              [
+                v.customerId,
+                v.subjectId,
+                v.action,
+                v.expectedGranted,
+                v.key,
+                v.reference,
+                v.reason,
+              ],
+            )
+          ).rows[0].value;
+        } catch (e) {
+          if ((e as { code?: string }).code === "23505")
+            throw new ApiError(
+              409,
+              "Setup authority or retry content changed. Refresh the named recipient and inspect history before changing the retained draft.",
+            );
+          throw e;
+        }
       }),
     );
   });
