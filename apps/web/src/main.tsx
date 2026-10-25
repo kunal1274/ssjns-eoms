@@ -324,6 +324,7 @@ function App() {
           <button
             className={tab === x ? "nav active" : "nav"}
             key={x}
+            disabled={busy}
             onClick={() => {
               setTab(x);
               setLegacyWorkEstate("");
@@ -1025,6 +1026,7 @@ function App() {
           {tab === "Organization" && (
             <Organization
               api={api}
+              onPending={setBusy}
               onOpenEstate={(id) => {
                 chooseEstate(id);
                 setTab("Muster register");

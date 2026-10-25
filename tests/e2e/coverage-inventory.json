@@ -1842,6 +1842,54 @@
         "caseId": "E2E-JRN-06-012",
         "step": "Clear failed reconciliation reports recover real reads and remove private overlay data after scope denial"
       }
+    },
+    {
+      "id": "COV-PROVISION-BOOTSTRAP",
+      "journey": "JRN-02",
+      "screen": "Hierarchy provisioning",
+      "category": "form",
+      "control": "Bootstrap",
+      "assertion": "Bootstrap an explicit named administrator without granting operator tenant work access",
+      "binding": {
+        "caseId": "E2E-JRN-02-017",
+        "step": "Bootstrap an explicit named administrator without granting operator tenant work access"
+      }
+    },
+    {
+      "id": "COV-PROVISION-COMPANY",
+      "journey": "JRN-02",
+      "screen": "Hierarchy provisioning",
+      "category": "action",
+      "control": "Company",
+      "assertion": "Hand off to the named tenant administrator and recover one coded company from a lost response",
+      "binding": {
+        "caseId": "E2E-JRN-02-017",
+        "step": "Hand off to the named tenant administrator and recover one coded company from a lost response"
+      }
+    },
+    {
+      "id": "COV-PROVISION-ESTATE",
+      "journey": "JRN-02",
+      "screen": "Hierarchy provisioning",
+      "category": "navigation",
+      "control": "Estate",
+      "assertion": "Provision an explicitly assigned estate preserve detailed audit and navigate into its empty work register",
+      "binding": {
+        "caseId": "E2E-JRN-02-017",
+        "step": "Provision an explicitly assigned estate preserve detailed audit and navigate into its empty work register"
+      }
+    },
+    {
+      "id": "COV-PROVISION-REVOKE",
+      "journey": "JRN-02",
+      "screen": "Hierarchy provisioning",
+      "category": "action",
+      "control": "Revoke",
+      "assertion": "Remove provisioning controls and private receipt details after actual setup authority revocation",
+      "binding": {
+        "caseId": "E2E-JRN-02-017",
+        "step": "Remove provisioning controls and private receipt details after actual setup authority revocation"
+      }
     }
   ]
 }

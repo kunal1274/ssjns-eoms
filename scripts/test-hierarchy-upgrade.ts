@@ -375,8 +375,13 @@ try {
     await c.query(
       await readFile("db/migrations/026_mapping_overlay_execution.sql", "utf8"),
     );
+    await c.query(
+      await readFile("db/migrations/027_hierarchy_provisioning.sql", "utf8"),
+    );
     for (const table of [
       "mapping_requests",
+      "platform_bootstrap_authority",
+      "hierarchy_provision_receipts",
       "mapping_execution_authority",
       "mapping_overlay_receipts",
       "mapping_overlay_rows",

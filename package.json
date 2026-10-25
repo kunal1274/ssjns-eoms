@@ -11,10 +11,10 @@
     "dev:web": "vite --config apps/web/vite.config.ts",
     "build": "tsc --noEmit && vite build --config apps/web/vite.config.ts && node scripts/build-sw.mjs",
     "check": "tsc --noEmit",
-    "test": "node --import tsx --test tests/allocation.test.ts tests/sync.test.ts tests/docker-config.test.ts tests/http-errors.test.ts tests/repository-gates.test.ts tests/user-feedback.test.tsx tests/browser-options.test.mjs tests/coverage-ledger.test.ts tests/decision-ledger.test.ts tests/reconciliation-contract.test.ts tests/source-evidence-contract.test.ts tests/source-review-contract.test.ts tests/mapping-readiness-contract.test.ts tests/mapping-policy-contract.test.ts tests/policy-acceptance-contract.test.ts tests/mapping-decision-contract.test.ts tests/mapping-overlay-contract.test.ts",
+    "test": "node --import tsx --test tests/allocation.test.ts tests/sync.test.ts tests/docker-config.test.ts tests/http-errors.test.ts tests/repository-gates.test.ts tests/user-feedback.test.tsx tests/browser-options.test.mjs tests/coverage-ledger.test.ts tests/decision-ledger.test.ts tests/reconciliation-contract.test.ts tests/source-evidence-contract.test.ts tests/source-review-contract.test.ts tests/mapping-readiness-contract.test.ts tests/mapping-policy-contract.test.ts tests/policy-acceptance-contract.test.ts tests/mapping-decision-contract.test.ts tests/mapping-overlay-contract.test.ts tests/provisioning-contract.test.ts",
     "db:migrate": "node --import tsx scripts/migrate.ts",
     "db:seed": "node --import tsx scripts/seed.ts",
-    "test:integration": "node --import tsx --test --test-concurrency=1 tests/api.test.ts tests/workflow.test.ts tests/organization.test.ts tests/hierarchy.test.ts tests/sites.test.ts tests/legacy-review.test.ts tests/reconciliation.test.ts tests/reconciliation-jobs.test.ts tests/source-evidence.test.ts tests/source-review.test.ts tests/mapping-readiness.test.ts tests/mapping-policy.test.ts tests/policy-acceptance.test.ts tests/mapping-decision.test.ts tests/mapping-overlay.test.ts && node --import tsx scripts/test-hierarchy-upgrade.ts",
+    "test:integration": "node --import tsx --test --test-concurrency=1 tests/api.test.ts tests/workflow.test.ts tests/organization.test.ts tests/hierarchy.test.ts tests/sites.test.ts tests/legacy-review.test.ts tests/reconciliation.test.ts tests/reconciliation-jobs.test.ts tests/source-evidence.test.ts tests/source-review.test.ts tests/mapping-readiness.test.ts tests/mapping-policy.test.ts tests/policy-acceptance.test.ts tests/mapping-decision.test.ts tests/mapping-overlay.test.ts tests/provisioning.test.ts && node --import tsx scripts/test-hierarchy-upgrade.ts",
     "db:test": "node --import tsx scripts/test-db.ts",
     "test:browser": "node scripts/browser-check.mjs",
     "format": "prettier --write apps packages scripts tests .github package.json compose.yaml playwright.config.ts",
@@ -34,7 +34,8 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report .local/e2e-report --host 127.0.0.1",
     "test:coverage": "node --import tsx scripts/coverage-report.ts",
-    "test:coverage-ui": "node scripts/check-coverage-ledger.mjs"
+    "test:coverage-ui": "node scripts/check-coverage-ledger.mjs",
+    "provisioning:authorize": "node --import tsx scripts/authorize-bootstrap.ts"
   },
   "dependencies": {
     "express": "5.2.1",
