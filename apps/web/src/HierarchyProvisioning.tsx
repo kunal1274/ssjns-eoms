@@ -55,6 +55,10 @@ export function HierarchyProvisioning({
             )
           : null;
       if (active) {
+        if (!c.canManageCustomer && !c.canBootstrap) {
+          setLast(null);
+          setInput({});
+        }
         setCaps(c);
         setHistory(h);
       }
