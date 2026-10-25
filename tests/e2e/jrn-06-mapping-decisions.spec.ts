@@ -136,6 +136,16 @@ test("E2E-JRN-06-011 @regression submit bound mapping requests and independently
       );
       await expect(submit).toBeDisabled();
       await panel
+        .getByText("View current submission row findings", { exact: true })
+        .click();
+      await expect(panel.locator("[data-mapping-row-finding]")).toContainText([
+        "Row checks valid",
+      ]);
+      await expect(panel.locator("[data-mapping-row-finding]")).toContainText([
+        f.target,
+      ]);
+
+      await panel
         .getByRole("button", {
           name:
             "Select mapping recorder Independent synthetic source reviewer " +

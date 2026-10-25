@@ -139,7 +139,9 @@ export function MappingRequests({
       appointmentRef.trim().length >= 3 &&
       appointmentReason.trim().length >= 3 &&
       (action === "appointed"
-        ? subject !== context?.actorId && context?.acceptance?.current
+        ? subject !== context?.actorId &&
+          authority?.state?.eligible &&
+          context?.acceptance?.current
         : target?.action === "appointed"),
     requestValid =
       context?.binding?.eligible &&
@@ -370,6 +372,61 @@ export function MappingRequests({
               Record a current external decision for a policy version in Policy
               authority and external decisions above, then refresh.
             </p>
+          )}
+          {context.binding && (
+            <details>
+              <summary>View current submission row findings</summary>
+              {context.binding.records.map((r: any, i: number) => (
+                <article key={i} data-mapping-row-finding={i}>
+                  <strong>
+                    Row {r.sourceRow} · {r.kind} ·{" "}
+                    {r.valid ? "Row checks valid" : "Row blocked"}
+                  </strong>
+                  <p>
+                    Record {r.recordId} · Proposed version {r.recordVersion} ·
+                    Current version {r.currentVersion ?? "Unavailable"} · Target{" "}
+                    {r.targetName ?? "Unavailable"} / {r.targetId}
+                  </p>
+                  {r.kind !== "work-company" ? (
+                    <p>Use the existing task-link workflow for this row.</p>
+                  ) : (
+                    <>
+                      {r.currentVersion == null && (
+                        <p>The record is unavailable in this estate.</p>
+                      )}
+                      {r.currentVersion != null &&
+                        r.currentVersion !== r.recordVersion && (
+                          <p>
+                            The record version changed; save a corrected
+                            manifest.
+                          </p>
+                        )}
+                      {r.recordedCompany && (
+                        <p>
+                          Company attribution is already recorded and remains
+                          unchanged.
+                        </p>
+                      )}
+                      {!r.targetName && (
+                        <p>
+                          The company target is unavailable in this customer
+                          scope.
+                        </p>
+                      )}
+                    </>
+                  )}
+                </article>
+              ))}
+              {(new Set(context.binding.records.map((r: any) => r.recordId))
+                .size !== context.binding.records.length ||
+                new Set(context.binding.records.map((r: any) => r.sourceRow))
+                  .size !== context.binding.records.length) && (
+                <p>
+                  Duplicate record or source-row references block the complete
+                  request. Save a corrected manifest.
+                </p>
+              )}
+            </details>
           )}
           <form
             aria-label="Submit bound mapping request"

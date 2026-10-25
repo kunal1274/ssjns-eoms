@@ -106,6 +106,13 @@ export function mappingDecisionRoutes(app: Express, estateTx: EstateTx) {
               )
             ).rows[0].value
           : null;
+        if (state)
+          state.eligible = (
+            await c.query(
+              "SELECT eoms.policy_authority_state($1,$2) AS value",
+              [id, subject],
+            )
+          ).rows[0].value.eligible;
         return {
           ...pageResult(rows, q.limit, binding, (r) => r.id),
           state,

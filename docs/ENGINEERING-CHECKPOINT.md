@@ -1,5 +1,7 @@
 # Current engineering evidence
 
+25 October final-inspection patch: initialmappingcandidate852b151 / CI40187160928 passed migration/database/API/upgrade/build stages. Final source adds expandable pre-submission row findings and current target eligibility for appointment forms, with browser assertions; full final-source gate is required. No earlier partial run is complete application proof.
+
 25 October candidate: ten connected explicit mapping-decision appointment, exact-bound request/correction, independent decision/withdrawal and guided recovery/audit steps are implemented; full gate pending. Local55 unit/type/build/format and audit0 passed. See F06-MAPPING-REQUESTS.md. Earlier documentation follow-up8723084/CI40055194897 failed4 estate-selection executions; short-code ambiguity is addressed through actual scoped code/name search and UI pagination without dropping assertions or adding retries. Previous verified application proof remains below. F06open/fullF01–F25; no application/historical rewrite/merge/deploy.
 
 24 October 2026. Full F01–F25/product scope remains in force; F06 is In progress, F07+ not started. F05 owner exception permits continued development and remains a release consideration. No merge/deploy.
