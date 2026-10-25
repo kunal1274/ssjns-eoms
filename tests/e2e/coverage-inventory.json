@@ -1974,6 +1974,42 @@
         "caseId": "E2E-JRN-02-019",
         "step": "Revoke the separate recipient retain last administrator and prevent self authority changes"
       }
+    },
+    {
+      "id": "COV-SESSION-RESTORE",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "navigation",
+      "control": "Server session",
+      "assertion": "Sign in with a real isolated account and restore the authenticated screen",
+      "binding": {
+        "caseId": "E2E-JRN-03-002",
+        "step": "Sign in with a real isolated account and restore the authenticated screen"
+      }
+    },
+    {
+      "id": "COV-SESSION-EXPIRY",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "journey",
+      "control": "Server session",
+      "assertion": "Expire the actual server session and recover with a fresh sign-in",
+      "binding": {
+        "caseId": "E2E-JRN-03-002",
+        "step": "Expire the actual server session and recover with a fresh sign-in"
+      }
+    },
+    {
+      "id": "COV-SESSION-NO-REVIVAL",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "journey",
+      "control": "Server session",
+      "assertion": "Suspend and restore the user without reviving the previous session",
+      "binding": {
+        "caseId": "E2E-JRN-03-002",
+        "step": "Suspend and restore the user without reviving the previous session"
+      }
     }
   ]
 }

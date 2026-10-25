@@ -1,3 +1,4 @@
+import { sessionCookie } from "./session-cookie.ts";
 import { hierarchyScopeRoutes } from "./hierarchy-scope";
 import { provisioningRoutes } from "./provisioning";
 import { siteRoutes } from "./sites";
@@ -66,6 +67,10 @@ export function createApp(
   app.disable("x-powered-by");
   app.use("/api", requestContext);
   app.use(helmet());
+  app.use("/api/auth", (_req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    next();
+  });
   // Only the bounded source-check upload accepts a larger JSON envelope.
   app.post(
     "/api/estates/:estateId/reconciliation/jobs/:jobId/evidence",
@@ -122,10 +127,19 @@ export function createApp(
         throw new ApiError(401, "Email or password is incorrect");
       const raw = token(),
         csrf = token();
-      await pool.query(
-        "INSERT INTO eoms.sessions(token_hash,user_id,csrf,expires_at) VALUES($1,$2,$3,now()+interval '8 hours')",
-        [hash(raw), u.id, csrf],
+      const previous = sessionCookie(req.headers.cookie);
+      const opened = await pool.query(
+        "SELECT eoms.open_verified_session($1,$2,$3,$4,$5) AS opened",
+        [
+          u.id,
+          u.password_hash,
+          hash(raw),
+          csrf,
+          previous ? hash(previous) : null,
+        ],
       );
+      if (!opened.rows[0]?.opened)
+        throw new ApiError(401, "Email or password is incorrect");
       res.cookie("eoms_session", raw, {
         httpOnly: true,
         sameSite: "strict",
@@ -140,13 +154,8 @@ export function createApp(
     },
   );
   app.use("/api", async (req, res, next) => {
-    const cookie = req.headers.cookie
-      ?.split(";")
-      .map((s) => s.trim())
-      .find((s) => s.startsWith("eoms_session="))
-      ?.slice(13);
-    if (!cookie || !/^[a-f0-9]{64}$/.test(cookie))
-      throw new ApiError(401, "Sign in to continue");
+    const cookie = sessionCookie(req.headers.cookie);
+    if (!cookie) throw new ApiError(401, "Sign in to continue");
     const rows = await pool.query(
       "SELECT u.id,u.email,u.display_name,s.csrf FROM eoms.sessions s JOIN eoms.users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() AND u.active",
       [hash(cookie)],

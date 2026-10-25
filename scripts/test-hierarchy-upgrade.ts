@@ -471,6 +471,12 @@ try {
       (await c.query("SELECT * FROM eoms.organization_admins")).rowCount,
       0,
     );
+    await c.query(
+      await readFile(
+        "db/migrations/031_session_credential_invalidation.sql",
+        "utf8",
+      ),
+    );
     await c.query("COMMIT");
     const raw = token();
     await root.query(
