@@ -338,6 +338,14 @@ if (mode === "create") {
   assert.equal(appointment.state.current.id, saved.authorityId);
   const mappingPath =
     baseReview + "/evidence/" + saved.evidenceId + "/mapping-requests";
+  const overlay = await call(
+    `/api/estates/${saved.estateId}/reconciliation/overlay-register`,
+  );
+  assert.equal(overlay.totals.active_overlay_rows, 0);
+  assert.equal(
+    overlay.totals.original_quantity_ha,
+    overlay.totals.adjusted_quantity_ha,
+  );
   const mapping = await call(mappingPath + "/context");
   assert.equal(mapping.binding.eligible, false);
   assert.equal(mapping.binding.sourceSha256, saved.sourceSha);

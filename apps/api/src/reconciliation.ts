@@ -1,3 +1,4 @@
+import { mappingOverlayRoutes } from "./mapping-overlay";
 import { mappingDecisionRoutes } from "./mapping-decision";
 import { mappingPolicyRoutes, policyReviewSummary } from "./mapping-policy";
 import {
@@ -148,6 +149,7 @@ async function evaluate(
 export function reconciliationRoutes(app: Express, estateTx: EstateTx) {
   mappingPolicyRoutes(app, estateTx);
   mappingDecisionRoutes(app, estateTx);
+  mappingOverlayRoutes(app, estateTx);
   app.get("/api/estates/:estateId/reconciliation/context", async (req, res) => {
     res.json(
       await estateTx(req, res, false, async (c, id) => ({

@@ -372,8 +372,14 @@ try {
         "utf8",
       ),
     );
+    await c.query(
+      await readFile("db/migrations/026_mapping_overlay_execution.sql", "utf8"),
+    );
     for (const table of [
       "mapping_requests",
+      "mapping_execution_authority",
+      "mapping_overlay_receipts",
+      "mapping_overlay_rows",
       "mapping_decisions",
       "mapping_decision_authority",
     ])

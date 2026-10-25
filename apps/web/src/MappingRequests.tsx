@@ -1,3 +1,4 @@
+import { OverlayExecution } from "./OverlayExecution";
 import { useEffect, useRef, useState } from "react";
 import { RequestFailure } from "./feedback";
 type Api = (path: string, body?: unknown) => Promise<any>;
@@ -18,6 +19,8 @@ export function MappingRequests({
     [candidates, setCandidates] = useState<any>(null),
     [authority, setAuthority] = useState<any>(null),
     [selected, setSelected] = useState(""),
+    [showExecution, setShowExecution] = useState(false),
+    [overlayPending, setOverlayPending] = useState(false),
     [subject, setSubject] = useState(""),
     [search, setSearch] = useState(""),
     [query, setQuery] = useState(""),
@@ -173,6 +176,7 @@ export function MappingRequests({
   async function submit(kind: "request" | "appointment" | "decision") {
     if (
       busy ||
+      overlayPending ||
       loading ||
       readError ||
       (!write.current &&
@@ -289,12 +293,16 @@ export function MappingRequests({
       if (live.current && epoch.current === ticket) setBusy(false);
     }
   }
-  const locked = loading || busy || pending || !!readError;
+  const locked = loading || busy || pending || overlayPending || !!readError;
+  useEffect(() => {
+    onPending(busy || pending || overlayPending);
+  }, [busy, pending, overlayPending]);
   const buttonDisabled = (
     kind: "request" | "appointment" | "decision",
     valid: any,
   ) =>
     busy ||
+    overlayPending ||
     loading ||
     !!readError ||
     (pending ? write.current?.kind !== kind : !valid);
@@ -323,7 +331,7 @@ export function MappingRequests({
         </li>
       </ol>
       <button
-        disabled={loading || busy || pending}
+        disabled={loading || busy || pending || overlayPending}
         onClick={() => {
           setCursor(null);
           setDecisionCursor(null);
@@ -344,7 +352,8 @@ export function MappingRequests({
             {context.acceptance?.current
               ? "Recorded external acceptance current"
               : "Current external acceptance required"}
-            . Application disabled.
+            . Decision recording alone: Application disabled. Separate request
+            execution authorization is required.
           </p>
           {context.binding ? (
             <>
@@ -642,6 +651,11 @@ export function MappingRequests({
       {detail && decisions && (
         <section aria-label="Selected mapping decision">
           <h5>Request {detail.mappingRequest.id}</h5>
+          <button disabled={locked} onClick={() => setShowExecution((v) => !v)}>
+            {showExecution
+              ? "Close overlay execution and reconciliation"
+              : "Open overlay execution and reconciliation"}
+          </button>
           <p>
             Decision:{" "}
             {detail.state.head?.outcome ?? "Awaiting independent decision"} ·{" "}
@@ -652,7 +666,8 @@ export function MappingRequests({
             {detail.state.bindingUnchanged
               ? "Binding unchanged"
               : "Bound evidence or records changed"}
-            . Application disabled.
+            . Decision recording alone: Application disabled. Separate request
+            execution authorization is required.
           </p>
           <p>
             {detail.state.independent
@@ -784,6 +799,15 @@ export function MappingRequests({
               Record independent mapping decision
             </button>
           </form>
+          {showExecution && (
+            <OverlayExecution
+              key={selected}
+              path={base + "/mapping-requests/" + selected}
+              api={api}
+              disabled={loading || busy || pending || !!readError}
+              onPending={setOverlayPending}
+            />
+          )}
           {decisions.items.map((d: any) => (
             <article key={d.id} data-mapping-decision={d.id}>
               <strong>

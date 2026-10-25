@@ -1794,6 +1794,54 @@
         "caseId": "E2E-JRN-06-011",
         "step": "Invalidate approval on a current concern retain withdrawal history and recover read or access failures"
       }
+    },
+    {
+      "id": "COV-MAPPING-OVERLAY-AUTHORITY",
+      "journey": "JRN-06",
+      "screen": "Overlay execution and reconciliation",
+      "category": "form",
+      "control": "Authority",
+      "assertion": "Authorize a separate exact request executor with frozen lost-response recovery and actual audit",
+      "binding": {
+        "caseId": "E2E-JRN-06-012",
+        "step": "Authorize a separate exact request executor with frozen lost-response recovery and actual audit"
+      }
+    },
+    {
+      "id": "COV-MAPPING-OVERLAY-APPLY",
+      "journey": "JRN-06",
+      "screen": "Overlay execution and reconciliation",
+      "category": "action",
+      "control": "Apply",
+      "assertion": "Reject stale authority then apply exactly once with immutable receipt conserved totals and paged reconciliation",
+      "binding": {
+        "caseId": "E2E-JRN-06-012",
+        "step": "Reject stale authority then apply exactly once with immutable receipt conserved totals and paged reconciliation"
+      }
+    },
+    {
+      "id": "COV-MAPPING-OVERLAY-COMPENSATE",
+      "journey": "JRN-06",
+      "screen": "Overlay execution and reconciliation",
+      "category": "action",
+      "control": "Compensate",
+      "assertion": "Separately authorize independent compensation after source concerns and retain original application lineage",
+      "binding": {
+        "caseId": "E2E-JRN-06-012",
+        "step": "Separately authorize independent compensation after source concerns and retain original application lineage"
+      }
+    },
+    {
+      "id": "COV-MAPPING-OVERLAY-RECOVERY",
+      "journey": "JRN-06",
+      "screen": "Overlay execution and reconciliation",
+      "category": "navigation",
+      "control": "Recovery",
+      "assertion": "Clear failed reconciliation reports recover real reads and remove private overlay data after scope denial",
+      "binding": {
+        "caseId": "E2E-JRN-06-012",
+        "step": "Clear failed reconciliation reports recover real reads and remove private overlay data after scope denial"
+      }
     }
   ]
 }
