@@ -1,5 +1,7 @@
 # Current engineering evidence
 
+25 October browser synchronization correction: candidate46bbc51/CI40187849986 passed175 unit/API tests and all58 earlier browser executions. New journey011 failed at an immediate database read before its third submission response completed. The test now waits for the actual200 receipt and asserts matching response/database/UI identities before inspecting the snapshot; all prior assertions and zero automatic retries remain. Full corrected-source gate pending; this failed run is not complete proof.
+
 25 October additive boundary patch025: invalid large proposal versions remain inspectable as blocked rows; row-array bounds are validated before joins. The final gate must include this regression alongside the ten-step request/decision increment. Prior in-progress candidate runs are partial evidence only.
 
 25 October final-inspection patch: initialmappingcandidate852b151 / CI40187160928 passed migration/database/API/upgrade/build stages. Final source adds expandable pre-submission row findings and current target eligibility for appointment forms, with browser assertions; full final-source gate is required. No earlier partial run is complete application proof.

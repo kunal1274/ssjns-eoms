@@ -295,13 +295,29 @@ test("E2E-JRN-06-011 @regression submit bound mapping requests and independently
       await requestForm(
         "Renewed request binds latest corroborating observation",
       );
+      await expect(
+        panel.getByLabel("Previous returned or withdrawn request", {
+          exact: true,
+        }),
+      ).toHaveValue(child.id);
+      const submitted = page.waitForResponse(
+        (r) =>
+          new URL(r.url()).pathname.endsWith(
+            "/evidence/" + x.check.id + "/mapping-requests",
+          ) && r.request().method() === "POST",
+      );
       await submit.click();
+      const submissionResponse = await submitted;
+      expect(submissionResponse.status()).toBe(200);
+      const receipt = await submissionResponse.json();
       third = (
         await f.root.query(
           "SELECT * FROM eoms.mapping_requests WHERE previous_id=$1",
           [child.id],
         )
       ).rows[0];
+      expect(third.id).toBe(receipt.mappingRequest.id);
+      await expect(selected).toContainText(third.id);
       expect(third.snapshot.observations[0].revision).toBe(2);
       await navigate(x.decider.raw);
       await panel

@@ -1,5 +1,7 @@
 # Bound mapping requests and independent decisions
 
+25 October browser synchronization correction: candidate46bbc51/CI40187849986 passed175 unit/API tests and all58 earlier browser executions. New journey011 failed at an immediate database read before its third submission response completed. The test now waits for the actual200 receipt and asserts matching response/database/UI identities before inspecting the snapshot; all prior assertions and zero automatic retries remain. Full corrected-source gate pending; this failed run is not complete proof.
+
 25 October boundary patch: additive migration025 preserves blocked inspection for proposed versions beyond the work table's integer range, and validates row-array bounds before joins. The API regression includes2147483648 and requires blocked eligibility/422 submission, not a server error. No business facts or saved snapshots are rewritten. Full final-source verification remains pending.
 
 25 October final-inspection patch: initialmappingcandidate852b151 / CI40187160928 passed migration/database/API/upgrade/build stages. Final source adds expandable pre-submission row findings and current target eligibility for appointment forms, with browser assertions; full final-source gate is required. No earlier partial run is complete application proof.
