@@ -35,13 +35,40 @@ test("E2E-JRN-02-019 @regression hand over customer setup without work grants an
         sameSite: "Lax",
       },
     ]);
-    await page.goto("/");
-    await page
-      .getByRole("button", { name: "Organization", exact: true })
-      .click();
-    await expect(
-      page.getByRole("heading", { name: "Organization", exact: true }),
-    ).toBeVisible();
+    // Hold a genuine background read: ordinary navigation must remain usable,
+    // while later uncertain configuration writes still lock navigation.
+    let releaseBackground!: () => void;
+    const backgroundGate = new Promise<void>((resolve) => {
+      releaseBackground = resolve;
+    });
+    let holdBackground = true;
+    await page.route("**/api/estates/*/musters", async (route) => {
+      if (holdBackground && route.request().method() === "GET") {
+        holdBackground = false;
+        await backgroundGate;
+      }
+      await route.fallback();
+    });
+    const backgroundStarted = page.waitForRequest(
+      (r) =>
+        new URL(r.url()).pathname.endsWith("/musters") && r.method() === "GET",
+    );
+    stage = "background-load-navigation";
+    try {
+      await page.goto("/");
+      await backgroundStarted;
+      await expect(
+        page.getByRole("button", { name: "Organization", exact: true }),
+      ).toBeEnabled();
+      await page
+        .getByRole("button", { name: "Organization", exact: true })
+        .click();
+      await expect(
+        page.getByRole("heading", { name: "Organization", exact: true }),
+      ).toBeVisible();
+    } finally {
+      releaseBackground();
+    }
     const panel = page.getByRole("region", {
         name: "Customer setup access handover",
         exact: true,
