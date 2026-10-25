@@ -1746,6 +1746,54 @@
         "caseId": "E2E-JRN-06-010",
         "step": "Revoke and reappoint without reviving earlier acceptance then recover read failure and clear denied private records"
       }
+    },
+    {
+      "id": "COV-MAPPING-DECISION-SUBMIT",
+      "journey": "JRN-06",
+      "screen": "Governed mapping requests",
+      "category": "form",
+      "control": "Bound request appointment and recovery",
+      "assertion": "Renew explicit mapping appointment and recover one bound submission with actual snapshot audit",
+      "binding": {
+        "caseId": "E2E-JRN-06-011",
+        "step": "Renew explicit mapping appointment and recover one bound submission with actual snapshot audit"
+      }
+    },
+    {
+      "id": "COV-MAPPING-DECISION-RETURN",
+      "journey": "JRN-06",
+      "screen": "Governed mapping requests",
+      "category": "navigation",
+      "control": "Independent return and linked correction",
+      "assertion": "Record independent return and submit one linked immutable correction",
+      "binding": {
+        "caseId": "E2E-JRN-06-011",
+        "step": "Record independent return and submit one linked immutable correction"
+      }
+    },
+    {
+      "id": "COV-MAPPING-DECISION-APPROVE",
+      "journey": "JRN-06",
+      "screen": "Governed mapping requests",
+      "category": "action",
+      "control": "Stale binding and immutable approval recovery",
+      "assertion": "Reject stale approval after a real observation revision then correct and recover one independent approval",
+      "binding": {
+        "caseId": "E2E-JRN-06-011",
+        "step": "Reject stale approval after a real observation revision then correct and recover one independent approval"
+      }
+    },
+    {
+      "id": "COV-MAPPING-DECISION-WITHDRAW",
+      "journey": "JRN-06",
+      "screen": "Governed mapping requests",
+      "category": "action",
+      "control": "Current concern withdrawal and private clearing",
+      "assertion": "Invalidate approval on a current concern retain withdrawal history and recover read or access failures",
+      "binding": {
+        "caseId": "E2E-JRN-06-011",
+        "step": "Invalidate approval on a current concern retain withdrawal history and recover read or access failures"
+      }
     }
   ]
 }

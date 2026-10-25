@@ -360,6 +360,18 @@ try {
         "utf8",
       ),
     );
+    await c.query(
+      await readFile(
+        "db/migrations/024_mapping_requests_decisions.sql",
+        "utf8",
+      ),
+    );
+    for (const table of [
+      "mapping_requests",
+      "mapping_decisions",
+      "mapping_decision_authority",
+    ])
+      assert.equal((await c.query("SELECT * FROM eoms." + table)).rowCount, 0);
     assert.equal(
       (await c.query("SELECT * FROM eoms.mapping_policy_scope_events"))
         .rowCount,

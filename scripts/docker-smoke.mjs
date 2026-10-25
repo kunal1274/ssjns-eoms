@@ -127,7 +127,11 @@ if (mode === "create") {
   const recorderCandidates = await call(
     root + "/reconciliation/policy-authority/candidates",
   );
-  const recorder = recorderCandidates.items.find((c) => c.id !== login.user.id);
+  const matchingRecorders = recorderCandidates.items.filter(
+    (c) => c.name === "Development Setup Reviewer" && c.id !== login.user.id,
+  );
+  assert.equal(matchingRecorders.length, 1);
+  const recorder = matchingRecorders[0];
   assert.ok(recorder);
   const authorityInput = {
     key: randomUUID(),
@@ -231,6 +235,32 @@ if (mode === "create") {
   );
   assert.equal(externalState.state.current, false);
   assert.equal(externalState.state.head.outcome, "changes-requested");
+  const mappingPath =
+    evidencePath + "/" + evidence.check.id + "/mapping-requests";
+  const mappingContext = await call(mappingPath + "/context");
+  assert.equal(mappingContext.binding.eligible, false);
+  assert.equal(mappingContext.binding.records[0].valid, false);
+  assert.equal(mappingContext.applicationEnabled, false);
+  const denied = await fetch(base + mappingPath, {
+    method: "POST",
+    headers: {
+      Cookie: cookie,
+      Origin: "http://localhost:5174",
+      "Content-Type": "application/json",
+      "X-CSRF-Token": csrf,
+    },
+    body: JSON.stringify({
+      key: randomUUID(),
+      policyId: policy.policy.id,
+      acceptanceId: acceptance.acceptance.id,
+      previousId: null,
+      custodyRef: "Synthetic blocked mapping reference",
+      reason:
+        "Already attributed modern row and unaccepted policy must not submit",
+    }),
+  });
+  assert.equal(denied.status, 422);
+  assert.equal((await call(mappingPath)).items.length, 0);
   await writeFile(
     ".local/docker-smoke-record.json",
     JSON.stringify({
@@ -306,6 +336,16 @@ if (mode === "create") {
   );
   assert.equal(appointment.state.effective, true);
   assert.equal(appointment.state.current.id, saved.authorityId);
+  const mappingPath =
+    baseReview + "/evidence/" + saved.evidenceId + "/mapping-requests";
+  const mapping = await call(mappingPath + "/context");
+  assert.equal(mapping.binding.eligible, false);
+  assert.equal(mapping.binding.sourceSha256, saved.sourceSha);
+  assert.equal(mapping.applicationEnabled, false);
+  assert.equal((await call(mappingPath)).items.length, 0);
+  console.log(
+    "Mapping context and blocked submission through proxy preserved original records and recovered after recreation.",
+  );
   console.log(
     "Explicit policy appointment and external decision audit survived exact retry and retained-volume recreation.",
   );

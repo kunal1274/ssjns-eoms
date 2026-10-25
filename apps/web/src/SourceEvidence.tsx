@@ -1,3 +1,4 @@
+import { MappingRequests } from "./MappingRequests";
 import { MappingReadiness } from "./MappingReadiness";
 import { SourceReview } from "./SourceReview";
 import { useEffect, useRef, useState } from "react";
@@ -21,6 +22,7 @@ export function SourceEvidence({
     [pending, setPending] = useState(false),
     [reviewPending, setReviewPending] = useState(false),
     [selectedReview, setSelectedReview] = useState<string | null>(null),
+    [selectedMapping, setSelectedMapping] = useState<string | null>(null),
     [selectedReadiness, setSelectedReadiness] = useState<string | null>(null),
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
@@ -246,9 +248,21 @@ export function SourceEvidence({
             <p>Source authenticity: Unverified. No changes applied.</p>
             <button
               disabled={busy || pending || reviewPending}
-              onClick={() => setSelectedReview(v.id)}
+              onClick={() => {
+                setSelectedMapping(null);
+                setSelectedReview(v.id);
+              }}
             >
               Open provenance review {v.id}
+            </button>
+            <button
+              disabled={loading || busy || reviewPending}
+              onClick={() => {
+                setSelectedReview(null);
+                setSelectedMapping(v.id);
+              }}
+            >
+              Open mapping requests {v.id}
             </button>
             <button
               disabled={busy || pending || reviewPending}
@@ -284,6 +298,17 @@ export function SourceEvidence({
           </div>
         </article>
       ))}
+      {selectedMapping && (
+        <MappingRequests
+          key={selectedMapping}
+          path={path + "/" + selectedMapping + "/mapping-requests"}
+          api={api}
+          onPending={(v) => {
+            setReviewPending(v);
+            onPending(v);
+          }}
+        />
+      )}
       {selectedReadiness && (
         <MappingReadiness
           key={selectedReadiness}

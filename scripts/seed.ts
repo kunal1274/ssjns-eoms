@@ -104,6 +104,12 @@ try {
     role: "manager",
     estates: estates.map((e) => e.id),
   });
+  accounts.push({
+    email: "mapping-recorder@eoms.local",
+    name: "Development Mapping Decision Recorder",
+    role: "manager",
+    estates: estates.map((e) => e.id),
+  });
   for (const a of accounts) {
     const existing = await c.query("SELECT id FROM eoms.users WHERE email=$1", [
       a.email,
@@ -118,7 +124,13 @@ try {
       id = row.rows[0].id;
       credentials.push({ email: a.email, password, role: a.role });
     }
-    if (["manager@eoms.local", "reviewer@eoms.local"].includes(a.email))
+    if (
+      [
+        "manager@eoms.local",
+        "reviewer@eoms.local",
+        "mapping-recorder@eoms.local",
+      ].includes(a.email)
+    )
       await c.query(
         "INSERT INTO eoms.organization_admins(customer_id,user_id) VALUES($1,$2) ON CONFLICT DO NOTHING",
         [customer, id],

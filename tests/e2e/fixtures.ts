@@ -65,8 +65,36 @@ export async function chooseEstate(page: Page, id: string) {
   );
   expect(response.status()).toBe(200);
   const row = (await response.json()).selected;
-  await page.getByLabel("Search Estate", { exact: true }).fill(row.code);
+  const query = (row.code + " " + row.name).slice(0, 100).trim();
+  await page.getByLabel("Search Estate", { exact: true }).fill(query);
+  const found = page.waitForResponse(
+    (r) =>
+      new URL(r.url()).pathname === "/api/navigation/estates" &&
+      new URL(r.url()).searchParams.get("q") === query &&
+      !new URL(r.url()).searchParams.has("cursor"),
+  );
   await page.getByRole("button", { name: "Find Estate", exact: true }).click();
+  expect((await found).status()).toBe(200);
+  const option = page
+    .getByLabel("Estate", { exact: true })
+    .locator(`option[value="${id}"]`);
+  await expect(
+    page.getByRole("status").filter({ hasText: "Loading Estate choices…" }),
+  ).toHaveCount(0);
+  while (!(await option.count())) {
+    const more = page.getByRole("button", { name: "More Estate", exact: true });
+    await expect(more).toBeVisible();
+    const response = page.waitForResponse(
+      (r) =>
+        new URL(r.url()).pathname === "/api/navigation/estates" &&
+        new URL(r.url()).searchParams.has("cursor"),
+    );
+    await more.click();
+    expect((await response).status()).toBe(200);
+    await expect(
+      page.getByRole("status").filter({ hasText: "Loading Estate choices…" }),
+    ).toHaveCount(0);
+  }
   await expect(
     page.getByLabel("Estate", { exact: true }).locator(`option[value="${id}"]`),
   ).toBeAttached();
