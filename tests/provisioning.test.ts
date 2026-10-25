@@ -5,7 +5,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { upgradedWorkFixture } from "./upgraded-work-fixture";
-import { independentSourceReviewer } from "./source-review-fixture";
+import {
+  independentSourceReviewer,
+  freshSyntheticSession,
+} from "./source-review-fixture";
 async function fixture(run: (f: any, call: any, grant: any) => Promise<void>) {
   const f = await upgradedWorkFixture({ setupAdmin: true });
   try {
@@ -259,6 +262,8 @@ test("bootstrap revocation and user suspension restoration do not revive prior c
     await f.root.query("UPDATE eoms.users SET active=true WHERE id=$1", [
       f.user,
     ]);
+    assert.equal((await call("provisioning/capabilities")).status, 401);
+    f.raw = await freshSyntheticSession(f, f.user);
     const caps: any = await (await call("provisioning/capabilities")).json();
     assert.equal(caps.canBootstrap, false);
     assert.equal(

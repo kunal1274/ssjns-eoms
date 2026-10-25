@@ -3,7 +3,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { upgradedWorkFixture } from "./upgraded-work-fixture";
-import { independentSourceReviewer } from "./source-review-fixture";
+import {
+  independentSourceReviewer,
+  freshSyntheticSession,
+} from "./source-review-fixture";
 async function fixture(run: (x: any) => Promise<void>) {
   const f = await upgradedWorkFixture({ setupAdmin: true });
   try {
@@ -249,6 +252,11 @@ test("revocation grantor setup restoration and subject activation restoration ne
     await x.f.root.query("UPDATE eoms.users SET active=true WHERE id=$1", [
       x.peer.id,
     ]);
+    assert.equal(
+      (await x.call(x.path + "/read", undefined, x.peer.raw)).status,
+      401,
+    );
+    x.peer.raw = await freshSyntheticSession(x.f, x.peer.id);
     assert.equal(
       (await x.call(x.path + "/read", undefined, x.peer.raw)).status,
       403,
