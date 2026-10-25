@@ -60,6 +60,9 @@ test("E2E-JRN-02-018 @regression explicitly grant node or descendant hierarchy v
         .getByRole("button", { name: "Organization", exact: true })
         .click();
       await expect(
+        page.getByRole("heading", { name: "Organization", exact: true }),
+      ).toBeVisible();
+      await expect(
         panel.getByLabel("Granted hierarchy customer", { exact: true }),
       ).toBeVisible();
     }

@@ -7,6 +7,7 @@ test("E2E-JRN-02-019 @regression hand over customer setup without work grants an
 }) => {
   const f = await upgradedWorkFixture({ setupAdmin: true });
   let primary: unknown = null;
+  let stage = "initialization";
   try {
     const peer = await independentSourceReviewer(f);
     await f.root.query(
@@ -38,6 +39,9 @@ test("E2E-JRN-02-019 @regression hand over customer setup without work grants an
     await page
       .getByRole("button", { name: "Organization", exact: true })
       .click();
+    await expect(
+      page.getByRole("heading", { name: "Organization", exact: true }),
+    ).toBeVisible();
     const panel = page.getByRole("region", {
         name: "Customer setup access handover",
         exact: true,
@@ -93,6 +97,8 @@ test("E2E-JRN-02-019 @regression hand over customer setup without work grants an
           r.url().endsWith("/provisioning/setup-grant") &&
           r.request().method() === "POST",
       );
+      stage = "initial-lost-response";
+      await expect(save).toBeEnabled();
       await save.click();
       expect((await first).status()).toBe(503);
       await expect(panel.getByRole("alert")).toContainText(
@@ -109,6 +115,8 @@ test("E2E-JRN-02-019 @regression hand over customer setup without work grants an
           r.url().endsWith("/provisioning/setup-grant") &&
           r.request().method() === "POST",
       );
+      stage = "exact-retry";
+      await expect(save).toBeEnabled();
       await save.click();
       expect((await retried).status()).toBe(200);
       await expect(panel).toContainText(
@@ -191,6 +199,7 @@ test("E2E-JRN-02-019 @regression hand over customer setup without work grants an
       ).toBe(true);
     });
   } catch (e) {
+    console.log("Setup handover failure stage: " + stage);
     primary = e;
     throw e;
   } finally {

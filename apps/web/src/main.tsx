@@ -78,10 +78,12 @@ function App() {
     [legacyWorkEstate, setLegacyWorkEstate] = useState(""),
     [tab, setTab] = useState("Muster register"),
     [error, setError] = useState(""),
-    [busy, setBusy] = useState(false),
+    [actionBusy, setBusy] = useState(false),
     [ready, setReady] = useState(false),
     [creating, setCreating] = useState(false),
     [selected, setSelected] = useState<string[]>([]);
+  const [organizationPending, setOrganizationPending] = useState(false);
+  const busy = actionBusy || organizationPending;
   const [workerSearch, setWorkerSearch] = useState(""),
     [taskSearch, setTaskSearch] = useState(""),
     [workerNext, setWorkerNext] = useState<string | null>(null),
@@ -324,7 +326,7 @@ function App() {
           <button
             className={tab === x ? "nav active" : "nav"}
             key={x}
-            disabled={busy}
+            disabled={organizationPending}
             onClick={() => {
               setTab(x);
               setLegacyWorkEstate("");
@@ -1026,7 +1028,7 @@ function App() {
           {tab === "Organization" && (
             <Organization
               api={api}
-              onPending={setBusy}
+              onPending={setOrganizationPending}
               onOpenEstate={(id) => {
                 chooseEstate(id);
                 setTab("Muster register");
