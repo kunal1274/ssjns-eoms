@@ -51,7 +51,12 @@ async function prepared(run: (x: any) => Promise<void>) {
 test("explicit execution authorization excludes self grant and decision executor and scopes direct requests", async () =>
   prepared(async (x) => {
     assert.equal(
-      (await x.call(x.path + "/execution-authority", x.grant())).status,
+      (
+        await x.call(
+          x.path + "/execution-authority",
+          x.grant("apply", x.f.user, 1),
+        )
+      ).status,
       403,
     );
     assert.equal(
