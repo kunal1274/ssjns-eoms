@@ -1,5 +1,7 @@
 # Current engineering evidence
 
+25 October policy-journey synchronization/cleanup correction: source067561e/CI40188658136 passed175 unit/API tests and59/60 browser executions, including journey011 at both widths. Earlier policy journey010 mobile timed out and cleanup masked the original location. Its assertions now wait for real policy/candidate/appointment/recovery responses; unexpected backend responses are fulfilled before asserting, and cleanup always closes the owned fixture without masking a primary failure. Assertions/retries/timeouts are unchanged. Full corrected-source gate pending; failed runs remain partial evidence only.
+
 25 October browser synchronization correction: candidate46bbc51/CI40187849986 passed175 unit/API tests and all58 earlier browser executions. New journey011 failed at an immediate database read before its third submission response completed. The test now waits for the actual200 receipt and asserts matching response/database/UI identities before inspecting the snapshot; all prior assertions and zero automatic retries remain. Full corrected-source gate pending; this failed run is not complete proof.
 
 25 October additive boundary patch025: invalid large proposal versions remain inspectable as blocked rows; row-array bounds are validated before joins. The final gate must include this regression alongside the ten-step request/decision increment. Prior in-progress candidate runs are partial evidence only.

@@ -6,6 +6,8 @@ test("E2E-JRN-06-010 @regression explicitly appoint external policy recorder and
   context,
 }) => {
   const f = await upgradedWorkFixture({ setupAdmin: true });
+  let primaryFailure: unknown = null;
+  let stage = "initialization";
   try {
     const peer = await independentSourceReviewer(f),
       baseline = await f.snapshot();
@@ -104,7 +106,11 @@ test("E2E-JRN-06-010 @regression explicitly appoint external policy recorder and
               url: f.apiURL + u.pathname,
               headers: await route.request().allHeaders(),
             });
-          expect(r.status()).toBe(200);
+          if (r.status() !== 200) {
+            await route.fulfill({ response: r });
+            expect(r.status()).toBe(200);
+            return;
+          }
           await route.fulfill({
             status: 503,
             headers: { "Content-Type": "application/json" },
@@ -112,6 +118,7 @@ test("E2E-JRN-06-010 @regression explicitly appoint external policy recorder and
               error: "Temporary policy governance response interruption",
             }),
           });
+          expect(r.status()).toBe(200);
         } else await route.fallback();
       });
     }
@@ -128,15 +135,31 @@ test("E2E-JRN-06-010 @regression explicitly appoint external policy recorder and
       await panel
         .getByLabel("Policy proposal reason", { exact: true })
         .fill("Prepare external policy decision journey");
+      stage = "policy-save";
+      const policySaved = page.waitForResponse(
+        (r) =>
+          new URL(r.url()).pathname.endsWith("/reconciliation/policies") &&
+          r.request().method() === "POST",
+      );
       await panel
         .getByRole("button", { name: "Save policy proposal", exact: true })
         .click();
+      expect((await policySaved).status()).toBe(200);
       await expect(external).toContainText("No recorded external decision");
       await expect(record).toBeDisabled();
       const self = appointments.getByRole("button", {
         name: new RegExp("Select policy recorder .*" + f.user + "$"),
       });
       await expect(self).toBeDisabled();
+      stage = "candidate-selection";
+      const candidateSelected = page.waitForResponse(
+        (r) =>
+          new URL(r.url()).pathname.endsWith(
+            "/reconciliation/policy-authority",
+          ) &&
+          new URL(r.url()).searchParams.get("subjectId") === peer.id &&
+          r.request().method() === "GET",
+      );
       await appointments
         .getByRole("button", {
           name:
@@ -145,6 +168,10 @@ test("E2E-JRN-06-010 @regression explicitly appoint external policy recorder and
           exact: true,
         })
         .click();
+      expect((await candidateSelected).status()).toBe(200);
+      await expect(
+        appointments.locator("[data-policy-authority-state]"),
+      ).toContainText(peer.id);
       await gov
         .getByLabel("Policy authority reference", { exact: true })
         .fill("Synthetic owner delegated recording appointment");
@@ -152,7 +179,15 @@ test("E2E-JRN-06-010 @regression explicitly appoint external policy recorder and
         .getByLabel("Policy authority reason", { exact: true })
         .fill("Explicitly appoint separate recorder for this estate");
       await dropResponse("**/reconciliation/policy-authority");
+      stage = "appointment-lost-response";
+      const interrupted = page.waitForResponse(
+        (r) =>
+          new URL(r.url()).pathname.endsWith(
+            "/reconciliation/policy-authority",
+          ) && r.request().method() === "POST",
+      );
       await appoint.click();
+      expect((await interrupted).status()).toBe(503);
       await expect(gov.getByRole("alert")).toContainText(
         "Retry unchanged submission",
       );
@@ -165,7 +200,18 @@ test("E2E-JRN-06-010 @regression explicitly appoint external policy recorder and
           exact: true,
         }),
       ).toBeDisabled();
+      stage = "appointment-retry";
+      const recovered = page.waitForResponse(
+        (r) =>
+          new URL(r.url()).pathname.endsWith(
+            "/reconciliation/policy-authority",
+          ) && r.request().method() === "POST",
+      );
       await appoint.click();
+      const recovery = await recovered;
+      expect(recovery.status()).toBe(200);
+      expect((await recovery.json()).replayed).toBe(true);
+      stage = "appointment-current-state";
       await expect(gov).toContainText(
         "Recovered existing receipt. Policy recording appointment revision 1",
       );
@@ -334,8 +380,17 @@ test("E2E-JRN-06-010 @regression explicitly appoint external policy recorder and
       await expect(page.locator("[data-policy-acceptance]")).toHaveCount(0);
       expect(await f.snapshot()).toEqual(baseline);
     });
+  } catch (e) {
+    primaryFailure = e;
+    console.log("Policy acceptance journey failure stage: " + stage);
+    throw e;
   } finally {
-    await page.unrouteAll({ behavior: "wait" });
-    await f.close();
+    try {
+      if (!page.isClosed()) await page.unrouteAll({ behavior: "ignoreErrors" });
+    } catch (e) {
+      if (!primaryFailure && !page.isClosed()) throw e;
+    } finally {
+      await f.close();
+    }
   }
 });
