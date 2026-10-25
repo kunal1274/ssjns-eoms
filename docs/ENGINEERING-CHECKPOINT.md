@@ -1,5 +1,7 @@
 # Current engineering evidence
 
+25 October additive boundary patch025: invalid large proposal versions remain inspectable as blocked rows; row-array bounds are validated before joins. The final gate must include this regression alongside the ten-step request/decision increment. Prior in-progress candidate runs are partial evidence only.
+
 25 October final-inspection patch: initialmappingcandidate852b151 / CI40187160928 passed migration/database/API/upgrade/build stages. Final source adds expandable pre-submission row findings and current target eligibility for appointment forms, with browser assertions; full final-source gate is required. No earlier partial run is complete application proof.
 
 25 October candidate: ten connected explicit mapping-decision appointment, exact-bound request/correction, independent decision/withdrawal and guided recovery/audit steps are implemented; full gate pending. Local55 unit/type/build/format and audit0 passed. See F06-MAPPING-REQUESTS.md. Earlier documentation follow-up8723084/CI40055194897 failed4 estate-selection executions; short-code ambiguity is addressed through actual scoped code/name search and UI pagination without dropping assertions or adding retries. Previous verified application proof remains below. F06open/fullF01–F25; no application/historical rewrite/merge/deploy.

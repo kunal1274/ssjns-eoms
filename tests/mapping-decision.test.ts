@@ -107,10 +107,11 @@ test("mismatched bytes adverse observations and changed reviewer scope block cle
   assert.equal(ctx.binding.observationTotals.concerns, 1);
   assert.equal(ctx.binding.observationTotals.authorizationChanged, 1);
 });
-test("task links and duplicate mapping rows stay outside overlay request eligibility", async () => {
+test("task links duplicate mapping rows and oversized version references stay outside overlay request eligibility", async () => {
   for (const rows of [
     [{ ...x.manifest.rows[0], kind: "task-block", recordId: x.f.task }],
     [x.manifest.rows[0], { ...x.manifest.rows[0] }],
+    [{ ...x.manifest.rows[0], recordVersion: 2147483648 }],
   ]) {
     const job = (
       await x.post("jobs", {

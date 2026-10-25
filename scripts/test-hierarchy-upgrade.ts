@@ -366,6 +366,12 @@ try {
         "utf8",
       ),
     );
+    await c.query(
+      await readFile(
+        "db/migrations/025_mapping_binding_version_boundary.sql",
+        "utf8",
+      ),
+    );
     for (const table of [
       "mapping_requests",
       "mapping_decisions",

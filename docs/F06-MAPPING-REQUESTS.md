@@ -1,5 +1,7 @@
 # Bound mapping requests and independent decisions
 
+25 October boundary patch: additive migration025 preserves blocked inspection for proposed versions beyond the work table's integer range, and validates row-array bounds before joins. The API regression includes2147483648 and requires blocked eligibility/422 submission, not a server error. No business facts or saved snapshots are rewritten. Full final-source verification remains pending.
+
 25 October final-inspection patch: initialmappingcandidate852b151 / CI40187160928 passed migration/database/API/upgrade/build stages. Final source adds expandable pre-submission row findings and current target eligibility for appointment forms, with browser assertions; full final-source gate is required. No earlier partial run is complete application proof.
 
 25 October 2026. Implementation candidate; full PostgreSQL/browser/Docker gate pending. Local55 unit/contract tests, type/build/format and zero-finding dependency audit passed. F06 remains In progress; F07+ not started. Full F01–F25 and reusable visible recording/review/one-click testing remain delivery scope. No merge/deploy or hosted-prototype update.
