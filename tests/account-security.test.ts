@@ -82,6 +82,31 @@ test("own session inventory is paged and private; runtime cannot read credential
       422,
     );
     assert.equal((await call("auth/sessions?userId=" + peer.id)).status, 422);
+    const overflowCursor = Buffer.from(
+      JSON.stringify({
+        actor: f.user,
+        view: "events",
+        limit: 2,
+        after: "9223372036854775808",
+      }),
+    ).toString("base64url");
+    assert.equal(
+      (await call("auth/events?limit=2&cursor=" + overflowCursor)).status,
+      422,
+    );
+    assert.equal(
+      (
+        await call("auth/admin/revoke", {
+          targetId: peer.id,
+          revision: "9223372036854775808",
+          key: randomUUID(),
+          reference: "Synthetic input boundary",
+          reason: "Out of range revisions must fail as validation",
+        })
+      ).status,
+      422,
+    );
+
     assert.doesNotMatch(
       JSON.stringify(a),
       /token_hash|password_hash|csrf|synthetic-history/,

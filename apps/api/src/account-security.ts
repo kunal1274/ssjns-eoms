@@ -21,7 +21,13 @@ export function accountSecurityRoutes(app: Express, pool: Pool) {
         revision: z
           .string()
           .regex(/^(0|[1-9][0-9]*)$/)
-          .max(19),
+          .max(19)
+          .refine(
+            (v) =>
+              v.length <= 19 &&
+              /^[0-9]+$/.test(v) &&
+              BigInt(v) <= 9223372036854775807n,
+          ),
         key: z.string().uuid(),
         reference: z.string().trim().min(5).max(200),
         reason: z.string().trim().min(10).max(500),
@@ -73,7 +79,9 @@ export function accountSecurityRoutes(app: Express, pool: Pool) {
             c.limit !== input.limit ||
             !(view === "sessions"
               ? z.string().uuid().safeParse(c.after).success
-              : /^[1-9][0-9]*$/.test(c.after))
+              : /^[1-9][0-9]*$/.test(c.after) &&
+                c.after.length <= 19 &&
+                BigInt(c.after) <= 9223372036854775807n)
           )
             throw Error();
           after = c.after;
