@@ -77,9 +77,15 @@ export async function waitForAccountBootstrap(page: Page, estate: string) {
   ];
   const responses = await Promise.all(
     paths.map((path) =>
-      page.waitForResponse(
-        (response) => new URL(response.url()).pathname === path,
-      ),
+      page.waitForResponse((response) => {
+        const u = new URL(response.url());
+        return (
+          u.pathname === path &&
+          (path !== "/api/navigation/estates" ||
+            (u.searchParams.get("selectedId") === estate &&
+              u.searchParams.has("q")))
+        );
+      }),
     ),
   );
   for (const response of responses) {
@@ -87,6 +93,9 @@ export async function waitForAccountBootstrap(page: Page, estate: string) {
     expect(await response.finished()).toBeNull();
   }
   await expect(page.getByLabel("Estate", { exact: true })).toHaveValue(estate);
+  await expect(
+    page.getByRole("status").filter({ hasText: "Loading Estate choices…" }),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("status").filter({ hasText: "Saving or loading records…" }),
   ).toHaveCount(0);
