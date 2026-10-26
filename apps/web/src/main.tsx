@@ -156,6 +156,7 @@ function App() {
   function clearIdentity() {
     identityGeneration.current++;
     setUser(null);
+    setTab("Muster register");
     setCsrf("");
     setEstate("");
     setEstates([]);
