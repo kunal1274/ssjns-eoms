@@ -277,7 +277,11 @@
       "screen": "Sign in",
       "category": "action",
       "control": "Revoked session",
-      "assertion": "Protected action denied after revocation"
+      "assertion": "Protected action denied after revocation",
+      "binding": {
+        "caseId": "E2E-JRN-03-003",
+        "step": "Recover a committed revocation after losing its response without replaying new effects"
+      }
     },
     {
       "id": "COV-KEYBOARD-FORM",
@@ -2009,6 +2013,150 @@
       "binding": {
         "caseId": "E2E-JRN-03-002",
         "step": "Suspend and restore the user without reviving the previous session"
+      }
+    },
+    {
+      "id": "COV-F07-003-1",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Open own account security and identify current and other sessions",
+      "binding": {
+        "caseId": "E2E-JRN-03-003",
+        "step": "Open own account security and identify current and other sessions"
+      }
+    },
+    {
+      "id": "COV-F07-003-2",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Recover a committed revocation after losing its response without replaying new effects",
+      "binding": {
+        "caseId": "E2E-JRN-03-003",
+        "step": "Recover a committed revocation after losing its response without replaying new effects"
+      }
+    },
+    {
+      "id": "COV-F07-003-3",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Inspect the real revocation audit and revoke only other sessions",
+      "binding": {
+        "caseId": "E2E-JRN-03-003",
+        "step": "Inspect the real revocation audit and revoke only other sessions"
+      }
+    },
+    {
+      "id": "COV-F07-003-4",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Confirm sign out everywhere and return to the sign-in journey",
+      "binding": {
+        "caseId": "E2E-JRN-03-003",
+        "step": "Confirm sign out everywhere and return to the sign-in journey"
+      }
+    },
+    {
+      "id": "COV-F07-004-1",
+      "journey": "JRN-03",
+      "screen": "Sign in and recovery",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Request non-enumerating recovery guidance with accessible field validation",
+      "binding": {
+        "caseId": "E2E-JRN-03-004",
+        "step": "Request non-enumerating recovery guidance with accessible field validation"
+      }
+    },
+    {
+      "id": "COV-F07-004-2",
+      "journey": "JRN-03",
+      "screen": "Sign in and recovery",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Reject an invalid token then consume an operator-issued token and sign in",
+      "binding": {
+        "caseId": "E2E-JRN-03-004",
+        "step": "Reject an invalid token then consume an operator-issued token and sign in"
+      }
+    },
+    {
+      "id": "COV-F07-004-3",
+      "journey": "JRN-03",
+      "screen": "Sign in and recovery",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Verify the current password before changing it and ending all sessions",
+      "binding": {
+        "caseId": "E2E-JRN-03-004",
+        "step": "Verify the current password before changing it and ending all sessions"
+      }
+    },
+    {
+      "id": "COV-F07-005-1",
+      "journey": "JRN-03",
+      "screen": "Sign in and recovery",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Recover safely from an identity response without required MFA",
+      "binding": {
+        "caseId": "E2E-JRN-03-005",
+        "step": "Recover safely from an identity response without required MFA"
+      }
+    },
+    {
+      "id": "COV-F07-005-2",
+      "journey": "JRN-03",
+      "screen": "Sign in and recovery",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Complete controlled MFA sign-in and open provider-managed account security",
+      "binding": {
+        "caseId": "E2E-JRN-03-005",
+        "step": "Complete controlled MFA sign-in and open provider-managed account security"
+      }
+    },
+    {
+      "id": "COV-F07-006-1",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Guide a user without estate access to account security without granting work scope",
+      "binding": {
+        "caseId": "E2E-JRN-03-006",
+        "step": "Guide a user without estate access to account security without granting work scope"
+      }
+    },
+    {
+      "id": "COV-F07-007-1",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "journey",
+      "control": "Explicit security operator",
+      "assertion": "Preview a named account under an explicit global revocation mandate",
+      "binding": {
+        "caseId": "E2E-JRN-03-007",
+        "step": "Preview a named account under an explicit global revocation mandate"
+      }
+    },
+    {
+      "id": "COV-F07-007-2",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "journey",
+      "control": "Explicit security operator",
+      "assertion": "Recover the same administrative revocation without terminating a later fresh session",
+      "binding": {
+        "caseId": "E2E-JRN-03-007",
+        "step": "Recover the same administrative revocation without terminating a later fresh session"
       }
     }
   ]

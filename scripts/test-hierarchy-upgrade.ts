@@ -477,6 +477,34 @@ try {
         "utf8",
       ),
     );
+    const legacySession = token();
+    await c.query(
+      "INSERT INTO eoms.sessions(token_hash,user_id,csrf,expires_at) VALUES($1,$2,'synthetic-legacy-session',now()+interval '1 hour')",
+      [hash(legacySession), user],
+    );
+    for (const migration of [
+      "032_account_security.sql",
+      "033_credential_recovery.sql",
+      "034_oidc_identity.sql",
+      "035_security_operator.sql",
+    ])
+      await c.query(await readFile("db/migrations/" + migration, "utf8"));
+    assert.equal(
+      (
+        await c.query("SELECT id FROM eoms.sessions WHERE token_hash=$1", [
+          hash(legacySession),
+        ])
+      ).rowCount,
+      0,
+    );
+    const upgradeAudit = (
+      await c.query(
+        "SELECT detail FROM eoms.security_events WHERE subject_id=$1 AND action='sessions.security-upgrade'",
+        [user],
+      )
+    ).rows;
+    assert.equal(upgradeAudit.length, 1);
+    assert.equal(upgradeAudit[0].detail.count, 1);
     await c.query("COMMIT");
     const raw = token();
     await root.query(

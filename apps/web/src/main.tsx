@@ -1,3 +1,5 @@
+import { SignInHelp } from "./SignInHelp";
+import { AccountSecurity } from "./AccountSecurity";
 import { SearchSelect } from "./SearchSelect";
 import { WorkAvailability } from "./EstateLifecycle";
 import { Organization } from "./Organization";
@@ -32,10 +34,7 @@ function App() {
   useEffect(() => {
     const logout = (e: StorageEvent) => {
       if (e.key === "eoms-logout") {
-        setUser(null);
-        setEstate("");
-        setRows([]);
-        setCreating(false);
+        clearIdentity();
       }
     };
     window.addEventListener("storage", logout);
@@ -83,7 +82,10 @@ function App() {
     [creating, setCreating] = useState(false),
     [selected, setSelected] = useState<string[]>([]);
   const [organizationPending, setOrganizationPending] = useState(false);
-  const busy = actionBusy || organizationPending;
+  const [securityPending, setSecurityPending] = useState(false);
+  const [authOptions, setAuthOptions] = useState<any>(null);
+  const identityGeneration = useRef(0);
+  const busy = actionBusy || organizationPending || securityPending;
   const [workerSearch, setWorkerSearch] = useState(""),
     [taskSearch, setTaskSearch] = useState(""),
     [workerNext, setWorkerNext] = useState<string | null>(null),
@@ -119,6 +121,7 @@ function App() {
       throw Error(
         "Reconnect for this action. You can save a device draft using references already loaded.",
       );
+    const generation = identityGeneration.current;
     let r: Response;
     try {
       r = await fetch("/api" + path, {
@@ -133,14 +136,69 @@ function App() {
     } catch {
       throw new Error(connectionFailure);
     }
+    if (path !== "/auth/options" && generation !== identityGeneration.current)
+      throw Error("Your account changed. Reload this view.");
     if (r.status === 204) return null;
     const value = await r.json().catch(() => null);
     if (!r.ok) {
-      if (r.status === 401) setUser(null);
+      if (r.status === 401 && path !== "/auth/login") {
+        clearIdentity();
+        if (path !== "/auth/session" || value?.error?.includes("expired"))
+          setDeviceMessage(
+            "Your session has ended. Sign in again to continue. Device drafts remain available to their owner after sign-in.",
+          );
+      }
       throw new RequestFailure(r.status, value, r.headers.get("X-Request-ID"));
     }
     if (value === null) throw new Error(connectionFailure);
     return value;
+  }
+  function clearIdentity() {
+    identityGeneration.current++;
+    setUser(null);
+    setCsrf("");
+    setEstate("");
+    setEstates([]);
+    setRows([]);
+    setWorkers([]);
+    setTasks([]);
+    setGangs([]);
+    setAudit([]);
+    setDetail(null);
+    setCreating(false);
+    setSecurityPending(false);
+    setOrganizationPending(false);
+    sessionStorage.removeItem("eoms-estate");
+  }
+  async function signOut(all: boolean) {
+    await act(async () => {
+      if (!online)
+        throw Error("Reconnect to sign out and revoke the server session.");
+      if (!navigator.locks)
+        throw Error("This browser cannot coordinate device storage safely.");
+      let signedOut = false;
+      await navigator.locks.request("eoms-device-sync", async () => {
+        const count = await deviceDraftCount();
+        if (
+          count &&
+          !confirm(
+            `Sign out and discard ${count} device draft(s)? Sync them first to retain them on the server.`,
+          )
+        )
+          return;
+        await api(all ? "/auth/sign-out-all" : "/auth/logout", {});
+        await clearDeviceDrafts();
+        signedOut = true;
+      });
+      if (!signedOut) return;
+      localStorage.setItem("eoms-logout", String(Date.now()));
+      clearIdentity();
+      setDeviceMessage(
+        all
+          ? "All EOMS sessions have ended. Your identity-provider session is managed separately."
+          : "You have signed out.",
+      );
+    });
   }
   async function act(fn: () => Promise<void>) {
     setBusy(true);
@@ -154,6 +212,18 @@ function App() {
     }
   }
   useEffect(() => {
+    void api("/auth/options")
+      .then(setAuthOptions)
+      .catch(() => {});
+    const currentURL = new URL(window.location.href);
+    if (currentURL.searchParams.has("authError")) {
+      const ref = currentURL.searchParams.get("reference") ?? "";
+      setError(
+        "Organization sign-in could not be completed. Start again or contact your administrator." +
+          (/^[a-f0-9-]{36}$/.test(ref) ? " Reference: " + ref : ""),
+      );
+      window.history.replaceState({}, "", currentURL.pathname);
+    }
     api("/auth/session")
       .then((v) => {
         setUser(v.user);
@@ -264,45 +334,60 @@ function App() {
               retained until you reconnect or clear browser data.
             </p>
           )}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const f = new FormData(e.currentTarget);
-              void act(async () => {
-                const v = await api("/auth/login", {
-                  email: f.get("email"),
-                  password: f.get("password"),
+          {deviceMessage && <p role="status">{deviceMessage}</p>}
+          {authOptions?.localEnabled !== false && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const f = new FormData(e.currentTarget);
+                void act(async () => {
+                  const v = await api("/auth/login", {
+                    email: f.get("email"),
+                    password: f.get("password"),
+                  });
+                  identityGeneration.current++;
+                  setUser(v.user);
+                  setCsrf(v.csrf);
                 });
-                setUser(v.user);
-                setCsrf(v.csrf);
-              });
-            }}
-          >
-            <label>
-              Email
-              <input
-                name="email"
-                type="email"
-                autoComplete="username"
-                required
-              />
-            </label>
-            <label>
-              Password
-              <input
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-              />
-            </label>
-            {error && (
-              <p role="alert" className="error">
-                {error}
-              </p>
-            )}
-            <button disabled={busy || !online}>Sign in</button>
-          </form>
+              }}
+            >
+              <label>
+                Email
+                <input
+                  name="email"
+                  type="email"
+                  autoComplete="username"
+                  required
+                />
+              </label>
+              <label>
+                Password
+                <input
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                />
+              </label>
+              {error && (
+                <p role="alert" className="error">
+                  {error}
+                </p>
+              )}
+              <button disabled={busy || !online}>Sign in</button>
+            </form>
+          )}
+          <SignInHelp
+            api={api}
+            options={authOptions}
+            busy={busy}
+            onOrganizationSignIn={() =>
+              void act(async () => {
+                const v = await api("/auth/oidc/start", {});
+                window.location.assign(v.authorizationUrl);
+              })
+            }
+          />
           <small>Development environment · Synthetic estate data</small>
         </section>
       </main>
@@ -322,11 +407,12 @@ function App() {
           "Gangs",
           "Operational periods",
           "Audit trail",
+          "Account security",
         ].map((x) => (
           <button
             className={tab === x ? "nav active" : "nav"}
             key={x}
-            disabled={organizationPending}
+            disabled={organizationPending || securityPending}
             onClick={() => {
               setTab(x);
               setLegacyWorkEstate("");
@@ -377,37 +463,7 @@ function App() {
           <button
             className="secondary"
             disabled={busy}
-            onClick={() =>
-              void act(async () => {
-                if (!online)
-                  throw Error(
-                    "Reconnect to sign out and revoke the server session.",
-                  );
-                if (!navigator.locks)
-                  throw Error(
-                    "This browser cannot coordinate device storage safely.",
-                  );
-                let signedOut = false;
-                await navigator.locks.request("eoms-device-sync", async () => {
-                  const count = await deviceDraftCount();
-                  if (
-                    count &&
-                    !confirm(
-                      `Sign out and discard ${count} device draft(s)? Sync them first to retain them on the server.`,
-                    )
-                  )
-                    return;
-                  await api("/auth/logout", {});
-                  await clearDeviceDrafts();
-                  signedOut = true;
-                });
-                if (!signedOut) return;
-                localStorage.setItem("eoms-logout", String(Date.now()));
-                setUser(null);
-                setEstate("");
-                setRows([]);
-              })
-            }
+            onClick={() => void signOut(false)}
           >
             Sign out
           </button>
@@ -418,6 +474,26 @@ function App() {
             {online ? "Online" : "Offline — local draft capture only"}
           </div>
           <PwaInstall />
+          {!estate && (
+            <p role="status">
+              No estate is selected or assigned. Use Organization to review your
+              explicit assignments, or contact your administrator. Account
+              security is available without an estate assignment.
+            </p>
+          )}
+          {tab === "Account security" && (
+            <AccountSecurity
+              api={api}
+              onPending={setSecurityPending}
+              onSignOutAll={() => signOut(true)}
+              onCredentialChanged={() => {
+                clearIdentity();
+                setDeviceMessage(
+                  "Password changed. All previous sessions have ended. Sign in with your new password. Device drafts remain assigned to their owner.",
+                );
+              }}
+            />
+          )}
           {estate && tab === "Muster register" && (
             <WorkAvailability
               api={api}

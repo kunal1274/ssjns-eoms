@@ -8,7 +8,10 @@ import { hash, token } from "../apps/api/src/security";
 // Dedicated synthetic database: actual records precede migration 009.
 // No disabled guards, runtime bypass role, guessed backfill or invented audit events.
 export async function upgradedWorkFixture(
-  options: { setupAdmin?: boolean } = {},
+  options: {
+    setupAdmin?: boolean;
+    appOptions?: Parameters<typeof createApp>[1];
+  } = {},
 ) {
   const rootURL = new URL(process.env.ADMIN_DATABASE_URL!),
     runtimeURL = new URL(process.env.DATABASE_URL!);
@@ -147,7 +150,10 @@ export async function upgradedWorkFixture(
         [customer, user],
       );
     }
-    const app = createApp(runtime, { webOrigin: "http://localhost:5284" });
+    const app = createApp(runtime, {
+      ...options.appOptions,
+      webOrigin: "http://localhost:5284",
+    });
     server = await new Promise<Server>((resolve, reject) => {
       const listening = app.listen(0, "127.0.0.1", () => resolve(listening));
       listening.once("error", reject);

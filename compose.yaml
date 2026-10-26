@@ -42,7 +42,17 @@ services:
       DATABASE_URL: postgresql://eoms_app:${APP_DB_PASSWORD}@postgres:5432/eoms
       API_HOST: 0.0.0.0
       API_PORT: 4100
-      WEB_ORIGIN: http://localhost:5174
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:5174}
+      OIDC_ISSUER: ${OIDC_ISSUER:-}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+      OIDC_AUTHORIZATION_ENDPOINT: ${OIDC_AUTHORIZATION_ENDPOINT:-}
+      OIDC_TOKEN_ENDPOINT: ${OIDC_TOKEN_ENDPOINT:-}
+      OIDC_JWKS_URI: ${OIDC_JWKS_URI:-}
+      OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-}
+      OIDC_RECOVERY_URL: ${OIDC_RECOVERY_URL:-}
+      OIDC_SECURITY_URL: ${OIDC_SECURITY_URL:-}
+      OIDC_MFA_ACRS: ${OIDC_MFA_ACRS:-}
     ports: ["127.0.0.1:4100:4100"]
     depends_on:
       migrate: { condition: service_completed_successfully }

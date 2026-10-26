@@ -95,6 +95,18 @@ export function classifyError(error: unknown): {
     };
   if (detail.type === "entity.parse.failed")
     return { status: 400, code: "BAD_REQUEST", error: "Invalid JSON" };
+  if (detail.code === "28000")
+    return {
+      status: 401,
+      code: "UNAUTHENTICATED",
+      error: "Your session has ended. Sign in again to continue.",
+    };
+  if (detail.code === "22023")
+    return {
+      status: 422,
+      code: "VALIDATION_FAILED",
+      error: "Check the submitted values and refresh before retrying.",
+    };
   if (detail.code === "23514")
     return {
       status: 422,

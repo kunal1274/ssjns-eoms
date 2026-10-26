@@ -446,3 +446,17 @@ textarea {
 .editor form > label {
   margin: 12px 0;
 }
+
+.account-security article {
+  border-top: 1px solid #dbe3ec;
+  padding: 12px 0;
+}
+.account-security small,
+.account-security dd,
+.account-security button {
+  overflow-wrap: anywhere;
+}
+.account-security pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

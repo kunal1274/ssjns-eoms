@@ -1,3 +1,9 @@
+import { oidcRoutes, oidcFromEnv, type OidcConfig } from "./oidc";
+import {
+  publicRecoveryRoutes,
+  credentialChangeRoute,
+} from "./credential-recovery";
+import { accountSecurityRoutes } from "./account-security";
 import { sessionCookie } from "./session-cookie.ts";
 import { hierarchyScopeRoutes } from "./hierarchy-scope";
 import { provisioningRoutes } from "./provisioning";
@@ -61,7 +67,7 @@ const createSchema = z
   .strict();
 export function createApp(
   pool: Pool,
-  options: { log?: FailureLogger; webOrigin?: string } = {},
+  options: { log?: FailureLogger; webOrigin?: string; oidc?: OidcConfig } = {},
 ) {
   const app = express();
   app.disable("x-powered-by");
@@ -89,6 +95,14 @@ export function createApp(
       throw new ApiError(403, "Untrusted request origin", "ORIGIN_REJECTED");
     next();
   });
+  oidcRoutes(
+    app,
+    pool,
+    options.oidc ?? oidcFromEnv(),
+    options.webOrigin ?? webOrigin,
+  );
+  const localAllowed = process.env.NODE_ENV !== "production";
+  publicRecoveryRoutes(app, pool, localAllowed);
   const dummy = passwordHash("dummy-unknown-account-" + token());
   app.post(
     "/api/auth/login",
@@ -107,6 +121,7 @@ export function createApp(
         ),
     }),
     async (req, res) => {
+      if (!localAllowed) throw new ApiError(403, "Use organization sign-in.");
       const input = z
         .object({
           email: z.string().email().max(254),
@@ -114,8 +129,18 @@ export function createApp(
         })
         .strict()
         .parse(req.body);
+      const attempts = await pool.query(
+        "SELECT eoms.auth_attempt_allowed($1,60) AS account_allowed,eoms.auth_attempt_allowed($2,1000) AS ip_allowed",
+        [hash("account:" + input.email.toLowerCase()), hash("ip:" + req.ip)],
+      );
+      if (!attempts.rows[0]?.account_allowed || !attempts.rows[0]?.ip_allowed)
+        throw new ApiError(
+          429,
+          "Too many sign-in attempts. Try again later.",
+          "RATE_LIMITED",
+        );
       const result = await pool.query(
-        "SELECT id,email,display_name,password_hash,active FROM eoms.users WHERE email=$1",
+        "SELECT * FROM eoms.login_credential($1)",
         [input.email.toLowerCase()],
       );
       const u = result.rows[0];
@@ -123,19 +148,25 @@ export function createApp(
         input.password,
         u?.password_hash ?? (await dummy),
       );
-      if (!valid || !u?.active)
+      if (!valid || !u?.active) {
+        await pool.query("SELECT eoms.auth_failure($1,$2)", [
+          input.email.toLowerCase(),
+          res.locals.requestId,
+        ]);
         throw new ApiError(401, "Email or password is incorrect");
+      }
       const raw = token(),
         csrf = token();
       const previous = sessionCookie(req.headers.cookie);
       const opened = await pool.query(
-        "SELECT eoms.open_verified_session($1,$2,$3,$4,$5) AS opened",
+        "SELECT eoms.open_local_session($1,$2,$3,$4,$5,$6) AS opened",
         [
           u.id,
           u.password_hash,
           hash(raw),
           csrf,
           previous ? hash(previous) : null,
+          res.locals.requestId,
         ],
       );
       if (!opened.rows[0]?.opened)
@@ -156,10 +187,9 @@ export function createApp(
   app.use("/api", async (req, res, next) => {
     const cookie = sessionCookie(req.headers.cookie);
     if (!cookie) throw new ApiError(401, "Sign in to continue");
-    const rows = await pool.query(
-      "SELECT u.id,u.email,u.display_name,s.csrf FROM eoms.sessions s JOIN eoms.users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() AND u.active",
-      [hash(cookie)],
-    );
+    const rows = await pool.query("SELECT * FROM eoms.auth_session($1)", [
+      hash(cookie),
+    ]);
     if (!rows.rowCount)
       throw new ApiError(401, "Session expired. Sign in again.");
     res.locals.user = rows.rows[0];
@@ -179,11 +209,23 @@ export function createApp(
     });
   });
   app.post("/api/auth/logout", async (_req, res) => {
-    await pool.query("DELETE FROM eoms.sessions WHERE token_hash=$1", [
+    await pool.query("SELECT eoms.close_session($1,$2)", [
       res.locals.sessionHash,
+      res.locals.requestId,
     ]);
     res.clearCookie("eoms_session", { path: "/api" }).status(204).end();
   });
+  app.post("/api/auth/sign-out-all", async (req, res) => {
+    z.object({}).strict().parse(req.body);
+    await pool.query("SELECT eoms.close_all_sessions($1,$2,$3)", [
+      res.locals.sessionHash,
+      req.get("X-CSRF-Token"),
+      res.locals.requestId,
+    ]);
+    res.clearCookie("eoms_session", { path: "/api" }).status(204).end();
+  });
+  accountSecurityRoutes(app, pool);
+  credentialChangeRoute(app, pool, localAllowed);
   async function tx<T>(res: Response, fn: (c: PoolClient) => Promise<T>) {
     const c = await pool.connect();
     try {
