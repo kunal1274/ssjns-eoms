@@ -111,12 +111,12 @@ test("E2E-JRN-03-014 @regression recover a mistakenly deactivated registration w
       }),
     ).toBeEnabled();
     await test.step("Validate and recover the registration without sign-in or estate grants", async () => {
-      const form = p.locator("form").filter({
-        has: p.getByRole("button", {
-          name: "Reopen registration without activating",
+      const form = p
+        .getByRole("heading", {
+          name: "Recover an unaccepted registration",
           exact: true,
-        }),
-      });
+        })
+        .locator("..");
       await form.getByRole("button").click();
       await expect(
         form.getByLabel("Registration recovery reference", { exact: true }),
