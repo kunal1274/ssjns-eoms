@@ -210,7 +210,13 @@ export function UserLifecycle({
             >
               <label>
                 New account state
-                <select name="state" required defaultValue="" disabled={locked}>
+                <select
+                  aria-label="New account state"
+                  name="state"
+                  required
+                  defaultValue=""
+                  disabled={locked}
+                >
                   <option value="" disabled>
                     Choose a state change
                   </option>
