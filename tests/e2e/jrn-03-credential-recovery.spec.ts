@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { upgradedWorkFixture } from "../upgraded-work-fixture";
-import { accountBrowser } from "./account-browser";
+import { accountBrowser, closeAccountBrowser } from "./account-browser";
 import { passwordHash } from "../../apps/api/src/security";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -9,6 +9,7 @@ test("E2E-JRN-03-004 @regression recover a development credential and change it 
   context,
 }) => {
   const f = await upgradedWorkFixture();
+  let primaryFailure: unknown = null;
   try {
     await f.root.query("UPDATE eoms.users SET password_hash=$2 WHERE id=$1", [
       f.user,
@@ -129,7 +130,10 @@ test("E2E-JRN-03-004 @regression recover a development credential and change it 
         page.getByRole("heading", { name: "Muster register", exact: true }),
       ).toBeVisible();
     });
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
   } finally {
-    await f.close();
+    await closeAccountBrowser(page, f, primaryFailure);
   }
 });

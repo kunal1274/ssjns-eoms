@@ -1,11 +1,12 @@
 import { test, expect } from "./fixtures";
 import { upgradedWorkFixture } from "../upgraded-work-fixture";
-import { accountBrowser } from "./account-browser";
+import { accountBrowser, closeAccountBrowser } from "./account-browser";
 test("E2E-JRN-03-006 @regression an unassigned account receives guidance and can manage its own security", async ({
   page,
   context,
 }) => {
   const f = await upgradedWorkFixture();
+  let primaryFailure: unknown = null;
   try {
     await f.root.query("DELETE FROM eoms.memberships WHERE user_id=$1", [
       f.user,
@@ -32,7 +33,10 @@ test("E2E-JRN-03-006 @regression an unassigned account receives guidance and can
       );
       expect(denied).toBe(403);
     });
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
   } finally {
-    await f.close();
+    await closeAccountBrowser(page, f, primaryFailure);
   }
 });

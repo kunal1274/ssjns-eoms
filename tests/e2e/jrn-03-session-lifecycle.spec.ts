@@ -1,3 +1,4 @@
+import { routeAccountBrowser, closeAccountBrowser } from "./account-browser";
 import { test, expect } from "./fixtures";
 import { upgradedWorkFixture } from "../upgraded-work-fixture";
 import { passwordHash, hash } from "../../apps/api/src/security";
@@ -6,6 +7,7 @@ test("E2E-JRN-03-002 @regression session expiry and suspension require a fresh s
   context,
 }) => {
   const f = await upgradedWorkFixture();
+  let primaryFailure: unknown = null;
   try {
     const password = "synthetic-browser-session-password";
     await f.root.query("UPDATE eoms.users SET password_hash=$2 WHERE id=$1", [
@@ -15,14 +17,7 @@ test("E2E-JRN-03-002 @regression session expiry and suspension require a fresh s
     const email = (
       await f.root.query("SELECT email FROM eoms.users WHERE id=$1", [f.user])
     ).rows[0].email;
-    await page.route("**/api/**", async (route) => {
-      const url = new URL(route.request().url());
-      const response = await route.fetch({
-        url: f.apiURL + url.pathname + url.search,
-        headers: await route.request().allHeaders(),
-      });
-      await route.fulfill({ response });
-    });
+    await routeAccountBrowser(page, f);
     async function signIn() {
       await page.getByLabel("Email", { exact: true }).fill(email);
       await page.getByLabel("Password", { exact: true }).fill(password);
@@ -81,7 +76,10 @@ test("E2E-JRN-03-002 @regression session expiry and suspension require a fresh s
       ).toBe(0);
       await signIn();
     });
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
   } finally {
-    await f.close();
+    await closeAccountBrowser(page, f, primaryFailure);
   }
 });

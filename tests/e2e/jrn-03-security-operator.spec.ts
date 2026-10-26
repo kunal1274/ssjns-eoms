@@ -4,7 +4,7 @@ import {
   freshSyntheticSession,
   independentSourceReviewer,
 } from "../source-review-fixture";
-import { accountBrowser } from "./account-browser";
+import { accountBrowser, closeAccountBrowser } from "./account-browser";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 test("E2E-JRN-03-007 @regression an explicitly appointed security operator revokes a named account with exact recovery", async ({
@@ -12,6 +12,7 @@ test("E2E-JRN-03-007 @regression an explicitly appointed security operator revok
   context,
 }) => {
   const f = await upgradedWorkFixture();
+  let primaryFailure: unknown = null;
   try {
     const peer = await independentSourceReviewer(f);
     await promisify(execFile)(
@@ -131,7 +132,10 @@ test("E2E-JRN-03-007 @regression an explicitly appointed security operator revok
         ).rowCount,
       ).toBe(1);
     });
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
   } finally {
-    await f.close();
+    await closeAccountBrowser(page, f, primaryFailure);
   }
 });

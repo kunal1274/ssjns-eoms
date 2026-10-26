@@ -2,12 +2,13 @@ import { test, expect } from "./fixtures";
 import { upgradedWorkFixture } from "../upgraded-work-fixture";
 import { freshSyntheticSession } from "../source-review-fixture";
 import { hash } from "../../apps/api/src/security";
-import { accountBrowser } from "./account-browser";
+import { accountBrowser, closeAccountBrowser } from "./account-browser";
 test("E2E-JRN-03-003 @regression review and revoke sessions with lost-response recovery and actual security history", async ({
   page,
   context,
 }) => {
   const f = await upgradedWorkFixture();
+  let primaryFailure: unknown = null;
   try {
     const other = await freshSyntheticSession(f, f.user),
       sid = (
@@ -134,7 +135,10 @@ test("E2E-JRN-03-003 @regression review and revoke sessions with lost-response r
         ).rowCount,
       ).toBe(0);
     });
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
   } finally {
-    await f.close();
+    await closeAccountBrowser(page, f, primaryFailure);
   }
 });
