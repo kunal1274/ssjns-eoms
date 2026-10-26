@@ -279,6 +279,39 @@ test("E2E-JRN-03-015 @regression an existing person reviews and accepts a new cu
         ).rowCount,
       ).toBe(0);
     });
+    await test.step("Find the accepted person by the new customer's user ID", async () => {
+      checkpoint("administrator customer-profile search");
+      const managed = page.getByRole("region", {
+        name: "User onboarding",
+        exact: true,
+      });
+      await managed
+        .getByLabel("Onboarding customer", { exact: true })
+        .selectOption(f.customer);
+      await managed
+        .getByLabel("Search onboarding users", { exact: true })
+        .fill("EXISTING-EMP-UI");
+      await managed
+        .getByRole("button", { name: "Find onboarding users", exact: true })
+        .click();
+      const found = managed.getByRole("list", {
+        name: "Scoped onboarding search results",
+        exact: true,
+      });
+      await expect(found).toContainText("EXISTING-EMP-UI");
+      await found
+        .getByRole("button", {
+          name: "Open onboarding user " + f.peer.id,
+          exact: true,
+        })
+        .click();
+      await expect(
+        managed.getByText(
+          "Registration: EXISTING-EMP-UI · Employee reference: Supplied second customer employee reference",
+          { exact: true },
+        ),
+      ).toBeVisible();
+    });
   } catch (e) {
     console.error("Synthetic customer join failed at checkpoint: " + phase);
     failure = e;

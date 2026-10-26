@@ -2446,6 +2446,18 @@
         "caseId": "E2E-JRN-03-015",
         "step": "Refresh actual access and select a new estate while the original customer stays available"
       }
+    },
+    {
+      "id": "COV-CUSTOMER-JOIN-PROFILE-SEARCH",
+      "journey": "JRN-03",
+      "screen": "Existing account invitations",
+      "category": "navigation",
+      "control": "Accepted customer profile search",
+      "assertion": "Administrator finds and previews an accepted existing person using the new customer-local user ID and supplied employee reference",
+      "binding": {
+        "caseId": "E2E-JRN-03-015",
+        "step": "Find the accepted person by the new customer's user ID"
+      }
     }
   ]
 }

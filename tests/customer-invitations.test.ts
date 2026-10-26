@@ -172,6 +172,36 @@ test("existing customer join requires target consent and preserves the global id
       await f.call(undefined, f.peer.raw, "/api/auth/access-manifest")
     ).json();
     assert.equal(manifest.customerProfiles[0].userCode, "JOIN-EMP-01");
+    const found = await (
+      await f.call(
+        undefined,
+        f.raw,
+        "/api/auth/onboarding/users?customerId=" +
+          f.customer +
+          "&q=JOIN-EMP-01",
+      )
+    ).json();
+    assert.deepEqual(
+      found.items.map((u: any) => u.id),
+      [f.peer.id],
+    );
+    assert.equal(found.items[0].user_code, "JOIN-EMP-01");
+    const profile = await (
+      await f.call(
+        undefined,
+        f.raw,
+        "/api/auth/onboarding/context?customerId=" +
+          f.customer +
+          "&targetId=" +
+          f.peer.id,
+      )
+    ).json();
+    assert.equal(profile.userCode, "JOIN-EMP-01");
+    assert.equal(
+      profile.employeeReference,
+      "Supplied customer employee reference",
+    );
+
     const events = (
       await f.root.query(
         "SELECT * FROM eoms.security_events WHERE subject_id=$1 AND action='registration.join-accept'",
