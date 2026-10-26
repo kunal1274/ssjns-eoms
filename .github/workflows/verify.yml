@@ -43,6 +43,8 @@ jobs:
       - run: npm run db:migrate && npm run db:seed && npm run db:test
       - run: npm test && npm run test:integration && npm run build
       - run: npx playwright install --with-deps chrome
+      - name: Verify existing-account consent smoke journey
+        run: npx playwright test jrn-03-customer-join
       - run: npm run verify:browser
       - run: npm run test:e2e
       - run: npm run test:coverage && npm run test:coverage-ui

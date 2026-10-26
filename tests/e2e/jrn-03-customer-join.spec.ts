@@ -10,18 +10,28 @@ test("E2E-JRN-03-015 @regression an existing person reviews and accepts a new cu
   page,
   context,
 }) => {
+  let phase = "fixture creation";
+  const checkpoint = (name: string) => {
+    phase = name;
+    console.info("Synthetic customer join checkpoint: " + name);
+  };
+  checkpoint(phase);
   const f = await customerJoinFixture();
+  checkpoint("fixture ready");
   let recipient: any = null,
     recipientPage: any = null,
     failure: unknown = null;
   try {
+    checkpoint("administrator browser bootstrap");
     await accountBrowser(page, context, f);
+    checkpoint("administrator page loaded");
     await expect(
       page.getByRole("heading", { name: "Muster register", exact: true }),
     ).toBeVisible();
     await page
       .getByRole("button", { name: "Account security", exact: true })
       .click();
+    checkpoint("administrator account security opened");
     const admin = page.getByRole("region", {
       name: "Existing account invitations",
       exact: true,
@@ -29,7 +39,9 @@ test("E2E-JRN-03-015 @regression an existing person reviews and accepts a new cu
     await admin
       .getByLabel("Existing-account invitation customer", { exact: true })
       .selectOption(f.customer);
+    checkpoint("administrator customer selected");
     await test.step("Prepare an explicit multi-estate proposal without a global directory or grants", async () => {
+      checkpoint("proposal entry");
       await admin
         .getByRole("checkbox", { name: /Historical assigned estate/ })
         .check();
@@ -95,6 +107,7 @@ test("E2E-JRN-03-015 @regression an existing person reviews and accepts a new cu
         ).rowCount,
       ).toBe(0);
     });
+    checkpoint("proposal acknowledged; recipient bootstrap");
     recipient = await context
       .browser()!
       .newContext({ viewport: page.viewportSize()! });
@@ -109,11 +122,13 @@ test("E2E-JRN-03-015 @regression an existing person reviews and accepts a new cu
     await recipientPage
       .getByRole("button", { name: "Account security", exact: true })
       .click();
+    checkpoint("recipient account security opened");
     const own = recipientPage.getByRole("region", {
       name: "Existing account invitations",
       exact: true,
     });
     await test.step("The signed-in recipient reviews roles and recovers the same consent after a lost response", async () => {
+      checkpoint("recipient proposal review");
       const inbox = own.getByLabel("My customer invitation list", {
         exact: true,
       });
@@ -157,6 +172,8 @@ test("E2E-JRN-03-015 @regression an existing person reviews and accepts a new cu
               throw Error("Synthetic customer consent transport failed");
             }
             expect(r.status()).toBe(200);
+            expect((await r.json()).state).toBe("accepted");
+            checkpoint("consent committed before simulated response loss");
             await route.abort("failed");
           } else await route.fallback();
         },
@@ -193,6 +210,7 @@ test("E2E-JRN-03-015 @regression an existing person reviews and accepts a new cu
       await expect(
         inbox.getByRole("heading", { name: /accepted/ }),
       ).toBeVisible();
+      checkpoint("same consent receipt recovered");
       const events = (
         await f.root.query(
           "SELECT id,actor_id FROM eoms.security_events WHERE subject_id=$1 AND action='registration.join-accept'",
@@ -214,6 +232,7 @@ test("E2E-JRN-03-015 @regression an existing person reviews and accepts a new cu
       ).toBeVisible();
     });
     await test.step("Refresh actual access and select a new estate while the original customer stays available", async () => {
+      checkpoint("access manifest refresh");
       const manifest = recipientPage.getByRole("region", {
         name: "Account and device access sync",
         exact: true,
@@ -241,11 +260,13 @@ test("E2E-JRN-03-015 @regression an existing person reviews and accepts a new cu
       await recipientPage
         .getByRole("button", { name: "Find Estate", exact: true })
         .click();
+      checkpoint("new estate bootstrap");
       const ready = waitForAccountBootstrap(recipientPage, f.estate);
       await recipientPage
         .getByLabel("Estate", { exact: true })
         .selectOption(f.estate);
       await ready;
+      checkpoint("new estate ready");
       await expect(
         recipientPage.getByLabel("Estate", { exact: true }),
       ).toHaveValue(f.estate);
@@ -259,10 +280,12 @@ test("E2E-JRN-03-015 @regression an existing person reviews and accepts a new cu
       ).toBe(0);
     });
   } catch (e) {
+    console.error("Synthetic customer join failed at checkpoint: " + phase);
     failure = e;
     throw e;
   } finally {
     try {
+      checkpoint("recipient route cleanup");
       if (recipientPage)
         await closeAccountBrowser(
           recipientPage,
@@ -270,7 +293,9 @@ test("E2E-JRN-03-015 @regression an existing person reviews and accepts a new cu
           failure,
         );
     } finally {
+      checkpoint("administrator route and fixture cleanup");
       await closeAccountBrowser(page, f, failure);
+      checkpoint("cleanup complete");
     }
   }
 });
