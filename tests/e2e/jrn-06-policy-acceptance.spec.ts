@@ -229,11 +229,23 @@ test("E2E-JRN-06-010 @regression explicitly appoint external policy recorder and
         .getByRole("button", { name: "Inspect policy version 1", exact: true })
         .click();
       await expect(external).toContainText("Your appointment: Current");
+      const targetReady = page.waitForResponse((r) => {
+        const u = new URL(r.url());
+        return (
+          u.pathname.endsWith("/reconciliation/policy-authority") &&
+          r.request().method() === "GET" &&
+          u.searchParams.get("subjectId") === f.user
+        );
+      });
       await appointments
         .getByRole("button", {
           name: new RegExp("Select policy recorder .*" + f.user + "$"),
         })
         .click();
+      expect((await targetReady).status()).toBe(200);
+      await expect(
+        gov.getByLabel("Policy authority reference", { exact: true }),
+      ).toBeEditable();
       await gov
         .getByLabel("Policy authority reference", { exact: true })
         .fill("Unrelated appointment reference draft");

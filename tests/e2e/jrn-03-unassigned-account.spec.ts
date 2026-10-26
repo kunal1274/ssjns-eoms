@@ -26,10 +26,11 @@ test("E2E-JRN-03-006 @regression an unassigned account receives guidance and can
       await expect(
         page.getByText("This session", { exact: true }),
       ).toBeVisible();
-      const denied = await page.request.get(
+      const denied = await page.evaluate(
+        async (path) => (await fetch(path)).status,
         "/api/estates/" + f.estate + "/musters",
       );
-      expect(denied.status()).toBe(403);
+      expect(denied).toBe(403);
     });
   } finally {
     await f.close();

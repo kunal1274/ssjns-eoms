@@ -152,7 +152,7 @@ export async function upgradedWorkFixture(
     }
     const app = createApp(runtime, {
       ...options.appOptions,
-      webOrigin: "http://localhost:5284",
+      webOrigin: options.appOptions?.webOrigin ?? "http://localhost:5284",
     });
     server = await new Promise<Server>((resolve, reject) => {
       const listening = app.listen(0, "127.0.0.1", () => resolve(listening));

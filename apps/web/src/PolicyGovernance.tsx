@@ -234,6 +234,10 @@ export function PolicyGovernance({
   }
   const locked = loading || busy || pending || blocked || !!readError;
   const choose = (id: string) => {
+    if (id === subject) return;
+    // Lock the outgoing form in the selection event, before the read effect runs.
+    // A fast keyboard/fill must not edit a form that is about to be replaced.
+    setLoading(true);
     setSubject(id);
     setCursor(null);
     setAuthorityRef("");

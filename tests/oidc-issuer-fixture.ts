@@ -1,7 +1,8 @@
 import { createServer } from "node:http";
 import { generateKeyPairSync, sign, createHash, randomUUID } from "node:crypto";
 import type { OidcConfig } from "../apps/api/src/oidc";
-export async function controlledIssuer() {
+export async function controlledIssuer(webOrigin = "http://localhost:5284") {
+  let issuedTokenCount = 0;
   let pair = generateKeyPairSync("rsa", { modulusLength: 2048 }),
     kid = "first",
     mode = "valid";
@@ -22,7 +23,7 @@ export async function controlledIssuer() {
         nonce: url.searchParams.get("nonce")!,
         challenge: url.searchParams.get("code_challenge")!,
       });
-      const target = new URL("http://localhost:5284/api/auth/oidc/callback");
+      const target = new URL(webOrigin + "/api/auth/oidc/callback");
       target.search = new URLSearchParams({
         state: url.searchParams.get("state")!,
         code,
@@ -55,8 +56,7 @@ export async function controlledIssuer() {
       if (
         !entry ||
         form.get("client_id") !== "fixture-client" ||
-        form.get("redirect_uri") !==
-          "http://localhost:5284/api/auth/oidc/callback" ||
+        form.get("redirect_uri") !== webOrigin + "/api/auth/oidc/callback" ||
         createHash("sha256")
           .update(form.get("code_verifier") ?? "")
           .digest("base64url") !== entry.challenge
@@ -64,6 +64,7 @@ export async function controlledIssuer() {
         res.writeHead(400).end("{}");
         return;
       }
+      issuedTokenCount++;
       const now = Math.floor(Date.now() / 1000),
         payload = {
           iss: issuer,
@@ -98,7 +99,7 @@ export async function controlledIssuer() {
     authorizationEndpoint: issuer + "/authorize",
     tokenEndpoint: issuer + "/token",
     jwksUri: issuer + "/keys",
-    redirectUri: "http://localhost:5284/api/auth/oidc/callback",
+    redirectUri: webOrigin + "/api/auth/oidc/callback",
     recoveryUrl: issuer + "/recovery",
     securityUrl: issuer + "/security",
     mfaAcrs: [],
@@ -106,6 +107,7 @@ export async function controlledIssuer() {
   };
   return {
     config,
+    issuedTokens: () => issuedTokenCount,
     setMode: (v: string) => {
       mode = v;
     },
