@@ -1,3 +1,4 @@
+import { UserLifecycle } from "./UserLifecycle";
 import { SecurityOperator } from "./SecurityOperator";
 import { useEffect, useRef, useState } from "react";
 import { RequestFailure } from "./feedback";
@@ -25,7 +26,8 @@ export function AccountSecurity({
     [detail, setDetail] = useState<string | null>(null),
     [confirmAll, setConfirmAll] = useState(false);
   const [operatorPending, setOperatorPending] = useState(false);
-  const busy = ownBusy || operatorPending;
+  const [lifecyclePending, setLifecyclePending] = useState(false);
+  const busy = ownBusy || operatorPending || lifecyclePending;
   const pending = useRef<any>(null),
     live = useRef(true);
   useEffect(() => {
@@ -282,10 +284,18 @@ export function AccountSecurity({
         )}
       <SecurityOperator
         api={api}
-        disabled={ownBusy || uncertain}
+        disabled={ownBusy || uncertain || lifecyclePending}
         onPending={(pending) => {
           setOperatorPending(pending);
-          onPending(pending || uncertain);
+          onPending(pending || uncertain || lifecyclePending);
+        }}
+      />
+      <UserLifecycle
+        api={api}
+        disabled={ownBusy || uncertain || operatorPending}
+        onPending={(value) => {
+          setLifecyclePending(value);
+          onPending(value || uncertain || operatorPending);
         }}
       />
       <h3>Security history</h3>

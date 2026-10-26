@@ -2158,6 +2158,66 @@
         "caseId": "E2E-JRN-03-007",
         "step": "Recover the same administrative revocation without terminating a later fresh session"
       }
+    },
+    {
+      "id": "COV-LIFECYCLE-VALIDATION",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "form",
+      "control": "Preview and required confirmation",
+      "assertion": "Incomplete state and confirmation prevent lifecycle submission",
+      "binding": {
+        "caseId": "E2E-JRN-03-008",
+        "step": "Preview the account and prevent an incomplete lifecycle decision"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-RETRY",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "action",
+      "control": "Exact lifecycle retry",
+      "assertion": "Unknown result locks navigation and recovers one immutable suspension receipt",
+      "binding": {
+        "caseId": "E2E-JRN-03-008",
+        "step": "Recover a lost response exactly once while navigation remains locked"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-RESTORE",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "action",
+      "control": "Reactivation",
+      "assertion": "Reviewed reactivation requires fresh authentication; old token stays invalid",
+      "binding": {
+        "caseId": "E2E-JRN-03-008",
+        "step": "Reactivate after assignment review without reviving the old session"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-CONTINUITY",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "form",
+      "control": "Last administrator and self protection",
+      "assertion": "Last setup administrator cannot be disabled and self changes require another operator",
+      "binding": {
+        "caseId": "E2E-JRN-03-009",
+        "step": "Explain last administrator protection and require a separate operator for self changes"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-STALE",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "form",
+      "control": "Stale decision",
+      "assertion": "Concurrent state change clears the stale decision without another audit write",
+      "binding": {
+        "caseId": "E2E-JRN-03-009",
+        "step": "A concurrent state change rejects the stale form without another decision"
+      }
     }
   ]
 }

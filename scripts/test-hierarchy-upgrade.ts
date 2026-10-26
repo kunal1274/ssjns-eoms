@@ -487,6 +487,7 @@ try {
       "033_credential_recovery.sql",
       "034_oidc_identity.sql",
       "035_security_operator.sql",
+      "036_user_lifecycle.sql",
     ])
       await c.query(await readFile("db/migrations/" + migration, "utf8"));
     assert.equal(
@@ -505,6 +506,22 @@ try {
     ).rows;
     assert.equal(upgradeAudit.length, 1);
     assert.equal(upgradeAudit[0].detail.count, 1);
+    const lifecycleBaseline = (
+      await c.query(
+        "SELECT lifecycle_state,lifecycle_revision FROM eoms.users WHERE id=$1",
+        [user],
+      )
+    ).rows[0];
+    assert.equal(lifecycleBaseline.lifecycle_state, "active");
+    assert.equal(lifecycleBaseline.lifecycle_revision, "0");
+    assert.equal(
+      (
+        await c.query(
+          "SELECT id FROM eoms.security_events WHERE action LIKE 'lifecycle.%'",
+        )
+      ).rowCount,
+      0,
+    );
     await c.query("COMMIT");
     const raw = token();
     await root.query(

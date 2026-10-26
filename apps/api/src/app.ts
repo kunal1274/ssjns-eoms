@@ -1,3 +1,4 @@
+import { userLifecycleRoutes } from "./user-lifecycle";
 import { oidcRoutes, oidcFromEnv, type OidcConfig } from "./oidc";
 import {
   publicRecoveryRoutes,
@@ -225,6 +226,7 @@ export function createApp(
     res.clearCookie("eoms_session", { path: "/api" }).status(204).end();
   });
   accountSecurityRoutes(app, pool);
+  userLifecycleRoutes(app, pool);
   credentialChangeRoute(app, pool, localAllowed);
   async function tx<T>(res: Response, fn: (c: PoolClient) => Promise<T>) {
     const c = await pool.connect();
