@@ -303,6 +303,7 @@ export function CustomerInvitations({
                 <label>
                   Customer invitation decision
                   <select
+                    aria-label="Customer invitation decision"
                     name="decision"
                     required
                     defaultValue=""
@@ -346,6 +347,7 @@ export function CustomerInvitations({
           <label>
             Existing-account invitation customer
             <select
+              aria-label="Existing-account invitation customer"
               value={customer}
               disabled={locked}
               onChange={(e) => void selectScope(e.target.value)}
@@ -420,6 +422,7 @@ export function CustomerInvitations({
                 <label>
                   Invited estate role
                   <select
+                    aria-label="Invited estate role"
                     name="role"
                     defaultValue={replacement?.estates[0]?.role ?? "clerk"}
                     disabled={locked}
