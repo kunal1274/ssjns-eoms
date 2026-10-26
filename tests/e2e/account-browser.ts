@@ -1,4 +1,4 @@
-import type { Page, BrowserContext } from "@playwright/test";
+import { expect, type Page, type BrowserContext } from "@playwright/test";
 export async function routeAccountBrowser(page: Page, f: { apiURL: string }) {
   await page.route("**/api/**", async (route) => {
     const u = new URL(route.request().url());
@@ -60,4 +60,34 @@ export async function closeAccountBrowser(
     failure ??= error;
   }
   if (failure && !primaryFailure) throw failure;
+}
+
+// The shell heading precedes its asynchronous estate bootstrap. Wait for the
+// actual successful responses and rendered loading state before reload/teardown.
+export async function waitForAccountBootstrap(page: Page, estate: string) {
+  const paths = [
+    "/api/navigation/estates",
+    ...[
+      "musters",
+      "catalog/workers",
+      "catalog/occurrences",
+      "audit",
+      "gangs",
+    ].map((path) => "/api/estates/" + estate + "/" + path),
+  ];
+  const responses = await Promise.all(
+    paths.map((path) =>
+      page.waitForResponse(
+        (response) => new URL(response.url()).pathname === path,
+      ),
+    ),
+  );
+  for (const response of responses) {
+    expect(response.status()).toBe(200);
+    expect(await response.finished()).toBeNull();
+  }
+  await expect(page.getByLabel("Estate", { exact: true })).toHaveValue(estate);
+  await expect(
+    page.getByRole("status").filter({ hasText: "Saving or loading records…" }),
+  ).toHaveCount(0);
 }

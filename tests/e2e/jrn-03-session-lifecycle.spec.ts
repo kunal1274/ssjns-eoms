@@ -1,4 +1,8 @@
-import { routeAccountBrowser, closeAccountBrowser } from "./account-browser";
+import {
+  routeAccountBrowser,
+  closeAccountBrowser,
+  waitForAccountBootstrap,
+} from "./account-browser";
 import { test, expect } from "./fixtures";
 import { upgradedWorkFixture } from "../upgraded-work-fixture";
 import { passwordHash, hash } from "../../apps/api/src/security";
@@ -21,7 +25,9 @@ test("E2E-JRN-03-002 @regression session expiry and suspension require a fresh s
     async function signIn() {
       await page.getByLabel("Email", { exact: true }).fill(email);
       await page.getByLabel("Password", { exact: true }).fill(password);
+      const loaded = waitForAccountBootstrap(page, f.estate);
       await page.getByRole("button", { name: "Sign in", exact: true }).click();
+      await loaded;
       await expect(
         page.getByRole("heading", { name: "Muster register", exact: true }),
       ).toBeVisible();
@@ -29,7 +35,9 @@ test("E2E-JRN-03-002 @regression session expiry and suspension require a fresh s
     await test.step("Sign in with a real isolated account and restore the authenticated screen", async () => {
       await page.goto("/");
       await signIn();
+      const loaded = waitForAccountBootstrap(page, f.estate);
       await page.reload();
+      await loaded;
       await expect(
         page.getByRole("heading", { name: "Muster register", exact: true }),
       ).toBeVisible();

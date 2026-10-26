@@ -1,6 +1,10 @@
 import { test, expect } from "./fixtures";
 import { upgradedWorkFixture } from "../upgraded-work-fixture";
-import { accountBrowser, closeAccountBrowser } from "./account-browser";
+import {
+  accountBrowser,
+  closeAccountBrowser,
+  waitForAccountBootstrap,
+} from "./account-browser";
 import { passwordHash } from "../../apps/api/src/security";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -86,7 +90,9 @@ test("E2E-JRN-03-004 @regression recover a development credential and change it 
       await page
         .getByLabel("Password", { exact: true })
         .fill("synthetic-recovered-password");
+      const loaded = waitForAccountBootstrap(page, f.estate);
       await page.getByRole("button", { name: "Sign in", exact: true }).click();
+      await loaded;
       await expect(
         page.getByRole("heading", { name: "Muster register", exact: true }),
       ).toBeVisible();
@@ -125,7 +131,9 @@ test("E2E-JRN-03-004 @regression recover a development credential and change it 
       await page
         .getByLabel("Password", { exact: true })
         .fill("synthetic-final-password");
+      const loaded = waitForAccountBootstrap(page, f.estate);
       await page.getByRole("button", { name: "Sign in", exact: true }).click();
+      await loaded;
       await expect(
         page.getByRole("heading", { name: "Muster register", exact: true }),
       ).toBeVisible();
