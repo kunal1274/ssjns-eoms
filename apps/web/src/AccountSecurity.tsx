@@ -1,3 +1,4 @@
+import { CustomerInvitations } from "./CustomerInvitations";
 import { Onboarding, AccessManifest } from "./Onboarding";
 import { UserLifecycle } from "./UserLifecycle";
 import { SecurityOperator } from "./SecurityOperator";
@@ -29,8 +30,13 @@ export function AccountSecurity({
   const [operatorPending, setOperatorPending] = useState(false);
   const [lifecyclePending, setLifecyclePending] = useState(false);
   const [onboardingPending, setOnboardingPending] = useState(false);
+  const [joinPending, setJoinPending] = useState(false);
   const busy =
-    ownBusy || operatorPending || lifecyclePending || onboardingPending;
+    ownBusy ||
+    operatorPending ||
+    lifecyclePending ||
+    onboardingPending ||
+    joinPending;
   const pending = useRef<any>(null),
     live = useRef(true);
   useEffect(() => {
@@ -287,28 +293,82 @@ export function AccountSecurity({
         )}
       <SecurityOperator
         api={api}
-        disabled={ownBusy || uncertain || lifecyclePending || onboardingPending}
+        disabled={
+          ownBusy ||
+          uncertain ||
+          lifecyclePending ||
+          onboardingPending ||
+          joinPending
+        }
         onPending={(pending) => {
           setOperatorPending(pending);
           onPending(
-            pending || uncertain || lifecyclePending || onboardingPending,
+            pending ||
+              uncertain ||
+              lifecyclePending ||
+              onboardingPending ||
+              joinPending,
           );
         }}
       />
       <UserLifecycle
         api={api}
-        disabled={ownBusy || uncertain || operatorPending || onboardingPending}
+        disabled={
+          ownBusy ||
+          uncertain ||
+          operatorPending ||
+          onboardingPending ||
+          joinPending
+        }
         onPending={(value) => {
           setLifecyclePending(value);
-          onPending(value || uncertain || operatorPending || onboardingPending);
+          onPending(
+            value ||
+              uncertain ||
+              operatorPending ||
+              onboardingPending ||
+              joinPending,
+          );
         }}
       />
       <Onboarding
         api={api}
-        disabled={ownBusy || uncertain || operatorPending || lifecyclePending}
+        disabled={
+          ownBusy ||
+          uncertain ||
+          operatorPending ||
+          lifecyclePending ||
+          joinPending
+        }
         onPending={(v) => {
           setOnboardingPending(v);
-          onPending(v || uncertain || operatorPending || lifecyclePending);
+          onPending(
+            v ||
+              uncertain ||
+              operatorPending ||
+              lifecyclePending ||
+              joinPending,
+          );
+        }}
+      />
+      <CustomerInvitations
+        api={api}
+        disabled={
+          ownBusy ||
+          uncertain ||
+          operatorPending ||
+          lifecyclePending ||
+          onboardingPending
+        }
+        onPending={(v) => {
+          setJoinPending(v);
+          onPending(
+            v ||
+              uncertain ||
+              operatorPending ||
+              lifecyclePending ||
+              onboardingPending,
+          );
         }}
       />
       <AccessManifest api={api} disabled={busy || uncertain} />

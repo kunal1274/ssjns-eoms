@@ -491,6 +491,7 @@ try {
       "037_user_onboarding.sql",
       "038_registration_recovery.sql",
       "039_onboarding_history_order.sql",
+      "040_customer_join_consent.sql",
     ])
       await c.query(await readFile("db/migrations/" + migration, "utf8"));
     assert.equal(

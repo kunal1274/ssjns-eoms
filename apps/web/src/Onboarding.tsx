@@ -1236,6 +1236,17 @@ export function AccessManifest({
             {new Date(value.checkedAt).toLocaleString()}. Request{" "}
             {value.requestId}.
           </p>
+          <p>
+            Your account UUID: {value.userId}. Share this identifier only with
+            your authorized onboarding administrator when joining another
+            customer. It is not a sign-in credential.
+          </p>
+          {value.customerProfiles?.map((p: any) => (
+            <p key={p.customerId}>
+              {p.name} · Customer user ID: {p.userCode} · Supplied employee
+              reference: {p.employeeReference}
+            </p>
+          ))}
           {value.registration && (
             <p>
               User ID: {value.registration.userCode} · Employee reference

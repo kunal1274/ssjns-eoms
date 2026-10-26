@@ -2410,6 +2410,42 @@
         "caseId": "E2E-JRN-03-014",
         "step": "Open the actual short and detailed registration recovery audit"
       }
+    },
+    {
+      "id": "COV-CUSTOMER-JOIN-PROPOSAL",
+      "journey": "JRN-03",
+      "screen": "Existing account invitations",
+      "category": "form",
+      "control": "Existing account proposal",
+      "assertion": "Reviewed multi-estate proposal grants nothing before recipient consent",
+      "binding": {
+        "caseId": "E2E-JRN-03-015",
+        "step": "Prepare an explicit multi-estate proposal without a global directory or grants"
+      }
+    },
+    {
+      "id": "COV-CUSTOMER-JOIN-CONSENT",
+      "journey": "JRN-03",
+      "screen": "Existing account invitations",
+      "category": "action",
+      "control": "Independent recipient consent",
+      "assertion": "Signed-in recipient reviews estate roles and exact lost-response recovery records one consent event",
+      "binding": {
+        "caseId": "E2E-JRN-03-015",
+        "step": "The signed-in recipient reviews roles and recovers the same consent after a lost response"
+      }
+    },
+    {
+      "id": "COV-CUSTOMER-JOIN-CONTEXT",
+      "journey": "JRN-03",
+      "screen": "Existing account invitations",
+      "category": "navigation",
+      "control": "New customer estate context",
+      "assertion": "Current access includes new customer profile and estates while the original customer remains available",
+      "binding": {
+        "caseId": "E2E-JRN-03-015",
+        "step": "Refresh actual access and select a new estate while the original customer stays available"
+      }
     }
   ]
 }

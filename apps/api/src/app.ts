@@ -1,3 +1,4 @@
+import { customerInvitationRoutes } from "./customer-invitations";
 import { publicOnboardingRoutes, onboardingRoutes } from "./onboarding";
 import { userLifecycleRoutes } from "./user-lifecycle";
 import { oidcRoutes, oidcFromEnv, type OidcConfig } from "./oidc";
@@ -230,6 +231,7 @@ export function createApp(
   accountSecurityRoutes(app, pool);
   userLifecycleRoutes(app, pool);
   onboardingRoutes(app, pool, (options.oidc ?? oidcFromEnv())?.issuer);
+  customerInvitationRoutes(app, pool);
   credentialChangeRoute(app, pool, localAllowed);
   async function tx<T>(res: Response, fn: (c: PoolClient) => Promise<T>) {
     const c = await pool.connect();
