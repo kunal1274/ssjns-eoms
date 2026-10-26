@@ -2218,6 +2218,174 @@
         "caseId": "E2E-JRN-03-009",
         "step": "A concurrent state change rejects the stale form without another decision"
       }
+    },
+    {
+      "id": "COV-LIFECYCLE-READ-RETRY",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "form",
+      "control": "Lifecycle read recovery",
+      "assertion": "Failed access and preview reads retain an entered decision and offer retry",
+      "binding": {
+        "caseId": "E2E-JRN-03-010",
+        "step": "Retry a failed access check and retain the draft after a failed preview read"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-REVOKED-FEEDBACK",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "action",
+      "control": "Revoked operator feedback",
+      "assertion": "Revoked authority blocks a write, clears private target state and leaves visible recovery guidance",
+      "binding": {
+        "caseId": "E2E-JRN-03-010",
+        "step": "A revoked operator cannot write and can still see recovery guidance"
+      }
+    },
+    {
+      "id": "COV-REGISTER-MULTI-ESTATE",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "field",
+      "control": "User registration and multiple estates",
+      "assertion": "Native fields prevent an empty registration and two selected estates remain staged without access",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Validate registration fields and recover a committed multi-estate creation exactly once"
+      }
+    },
+    {
+      "id": "COV-REGISTER-EXACT-RECOVERY",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "form",
+      "control": "Unknown registration result",
+      "assertion": "Committed response loss locks navigation and exact retry recovers one identity and audit event",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Validate registration fields and recover a committed multi-estate creation exactly once"
+      }
+    },
+    {
+      "id": "COV-REGISTER-CORRECTION",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "form",
+      "control": "Staged correction",
+      "assertion": "Reviewed staged correction invalidates earlier proof",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Correct staged fields and cancel outdated invitation proof before final handover"
+      }
+    },
+    {
+      "id": "COV-INVITATION-CANCEL",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "action",
+      "control": "Invitation cancellation",
+      "assertion": "Declared cancellation blocks the cancelled invitation before final handover",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Correct staged fields and cancel outdated invitation proof before final handover"
+      }
+    },
+    {
+      "id": "COV-INVITATION-HANDOVER",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "action",
+      "control": "Prepared invitation",
+      "assertion": "Secret is masked and explicitly prepared rather than falsely reported as emailed",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Prepare a secret invitation with an honest delivery status and recipient-selected password"
+      }
+    },
+    {
+      "id": "COV-INVITATION-ACCEPT",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "form",
+      "control": "Recipient invitation acceptance",
+      "assertion": "Recipient chooses a development password, consumes invitation and clears displayed token",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Prepare a secret invitation with an honest delivery status and recipient-selected password"
+      }
+    },
+    {
+      "id": "COV-ACCESS-MANIFEST",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "navigation",
+      "control": "Account and device access status",
+      "assertion": "Fresh authentication shows actual employee reference and the two approved estate assignments",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Sign in freshly and inspect the employee registration and synchronized estate access"
+      }
+    },
+    {
+      "id": "COV-CUSTOMER-ASSIGNMENTS",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "form",
+      "control": "Customer estate replacement",
+      "assertion": "Reviewed exact estate/role replacement updates only the intended customer assignments",
+      "binding": {
+        "caseId": "E2E-JRN-03-012",
+        "step": "Replace the exact selected estate role after explicit review"
+      }
+    },
+    {
+      "id": "COV-CUSTOMER-SUSPENSION",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "action",
+      "control": "Customer-only suspension and restoration",
+      "assertion": "Customer work is denied during suspension while the global account/session stays active, then reviewed access returns",
+      "binding": {
+        "caseId": "E2E-JRN-03-012",
+        "step": "Suspend and reactivate customer access while preserving the global account and the live session"
+      }
+    },
+    {
+      "id": "COV-INVITATION-OIDC-MFA",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "action",
+      "control": "Organization invitation assurance",
+      "assertion": "Controlled missing-MFA identity cannot activate the staged account",
+      "binding": {
+        "caseId": "E2E-JRN-03-013",
+        "step": "Reject missing MFA without activating the staged invitation"
+      }
+    },
+    {
+      "id": "COV-INVITATION-OIDC-SUBJECT",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "action",
+      "control": "Bound organization activation",
+      "assertion": "Approved exact subject with verified MFA activates and signs in with exactly the proposed estate",
+      "binding": {
+        "caseId": "E2E-JRN-03-013",
+        "step": "Accept the bound organization subject with verified MFA and open only the approved estate"
+      }
+    },
+    {
+      "id": "COV-REGISTER-SCOPED-SEARCH",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "navigation",
+      "control": "Scoped user search",
+      "assertion": "Find a saved staged registration by email and open its actual scoped identity",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Find the staged user by scoped email without requiring a copied UUID"
+      }
     }
   ]
 }

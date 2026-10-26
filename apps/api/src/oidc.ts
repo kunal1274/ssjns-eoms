@@ -193,54 +193,77 @@ export function oidcRoutes(
       },
     }),
   );
-  app.post("/api/auth/oidc/start", async (req, res) => {
-    if (!c)
-      throw new ApiError(
-        503,
-        "Organization sign-in has not been configured. Contact your administrator.",
-      );
-    z.object({}).strict().parse(req.body);
-    const limit = await pool.query(
-      "SELECT eoms.auth_attempt_allowed($1,20) AS allowed",
-      [hash("oidc-ip:" + req.ip)],
+  for (const enrollment of [false, true])
+    app.post(
+      enrollment ? "/api/auth/enrollment/oidc/start" : "/api/auth/oidc/start",
+      async (req, res) => {
+        if (!c)
+          throw new ApiError(
+            503,
+            "Organization sign-in has not been configured. Contact your administrator.",
+          );
+        const enrollmentInput = enrollment
+          ? z
+              .object({ token: z.string().regex(/^[a-f0-9]{64}$/) })
+              .strict()
+              .parse(req.body)
+          : (z.object({}).strict().parse(req.body), null);
+        const limit = await pool.query(
+          "SELECT eoms.auth_attempt_allowed($1,20) AS allowed",
+          [hash("oidc-ip:" + req.ip)],
+        );
+        if (!limit.rows[0]?.allowed)
+          throw new ApiError(
+            429,
+            "Too many sign-in attempts. Try again later.",
+            "RATE_LIMITED",
+          );
+        const state = token(),
+          binding = token(),
+          nonce = token(),
+          verifier = token();
+        if (enrollmentInput)
+          await pool.query(
+            "SELECT eoms.begin_enrollment_oidc($1,$2,$3,$4,$5)",
+            [
+              hash(state),
+              hash(binding),
+              verifier,
+              hash(nonce),
+              hash(enrollmentInput.token),
+            ],
+          );
+        else
+          await pool.query("SELECT eoms.begin_oidc($1,$2,$3,$4)", [
+            hash(state),
+            hash(binding),
+            verifier,
+            hash(nonce),
+          ]);
+        res.cookie("eoms_oidc", binding, {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          path: "/api/auth/oidc",
+          maxAge: 600000,
+        });
+        const u = new URL(c.authorizationEndpoint);
+        u.search = new URLSearchParams({
+          client_id: c.clientId,
+          response_type: "code",
+          scope: "openid",
+          redirect_uri: c.redirectUri,
+          state,
+          nonce,
+          code_challenge: createHash("sha256")
+            .update(verifier)
+            .digest("base64url"),
+          code_challenge_method: "S256",
+          max_age: "600",
+        }).toString();
+        res.json({ authorizationUrl: u.href });
+      },
     );
-    if (!limit.rows[0]?.allowed)
-      throw new ApiError(
-        429,
-        "Too many sign-in attempts. Try again later.",
-        "RATE_LIMITED",
-      );
-    const state = token(),
-      binding = token(),
-      nonce = token(),
-      verifier = token();
-    await pool.query("SELECT eoms.begin_oidc($1,$2,$3,$4)", [
-      hash(state),
-      hash(binding),
-      verifier,
-      hash(nonce),
-    ]);
-    res.cookie("eoms_oidc", binding, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/api/auth/oidc",
-      maxAge: 600000,
-    });
-    const u = new URL(c.authorizationEndpoint);
-    u.search = new URLSearchParams({
-      client_id: c.clientId,
-      response_type: "code",
-      scope: "openid",
-      redirect_uri: c.redirectUri,
-      state,
-      nonce,
-      code_challenge: createHash("sha256").update(verifier).digest("base64url"),
-      code_challenge_method: "S256",
-      max_age: "600",
-    }).toString();
-    res.json({ authorizationUrl: u.href });
-  });
   app.get("/api/auth/oidc/callback", async (req, res) => {
     if (!c)
       throw new ApiError(503, "Organization sign-in has not been configured.");
@@ -256,7 +279,7 @@ export function oidcRoutes(
       const binding = opaqueCookie(req.headers.cookie, "eoms_oidc");
       if (!binding) throw Error("Missing browser binding");
       const state = (
-        await pool.query("SELECT * FROM eoms.consume_oidc($1,$2)", [
+        await pool.query("SELECT * FROM eoms.consume_enrollment_oidc($1,$2)", [
           hash(input.state),
           hash(binding),
         ])
@@ -291,6 +314,11 @@ export function oidcRoutes(
         raw = token(),
         csrf = token(),
         previous = sessionCookie(req.headers.cookie);
+      if (state.invitation_hash)
+        await pool.query(
+          "SELECT eoms.accept_user_invitation($1,'oidc',NULL,$2,$3,$4)",
+          [state.invitation_hash, c.issuer, claims.sub, res.locals.requestId],
+        );
       const linked = await pool.query(
         "SELECT * FROM eoms.open_oidc_session($1,$2,$3,$4,$5,$6)",
         [

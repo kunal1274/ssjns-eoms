@@ -1,3 +1,4 @@
+import { publicOnboardingRoutes, onboardingRoutes } from "./onboarding";
 import { userLifecycleRoutes } from "./user-lifecycle";
 import { oidcRoutes, oidcFromEnv, type OidcConfig } from "./oidc";
 import {
@@ -104,6 +105,7 @@ export function createApp(
   );
   const localAllowed = process.env.NODE_ENV !== "production";
   publicRecoveryRoutes(app, pool, localAllowed);
+  publicOnboardingRoutes(app, pool);
   const dummy = passwordHash("dummy-unknown-account-" + token());
   app.post(
     "/api/auth/login",
@@ -227,6 +229,7 @@ export function createApp(
   });
   accountSecurityRoutes(app, pool);
   userLifecycleRoutes(app, pool);
+  onboardingRoutes(app, pool, (options.oidc ?? oidcFromEnv())?.issuer);
   credentialChangeRoute(app, pool, localAllowed);
   async function tx<T>(res: Response, fn: (c: PoolClient) => Promise<T>) {
     const c = await pool.connect();

@@ -1,3 +1,4 @@
+import { Onboarding, AccessManifest } from "./Onboarding";
 import { UserLifecycle } from "./UserLifecycle";
 import { SecurityOperator } from "./SecurityOperator";
 import { useEffect, useRef, useState } from "react";
@@ -27,7 +28,9 @@ export function AccountSecurity({
     [confirmAll, setConfirmAll] = useState(false);
   const [operatorPending, setOperatorPending] = useState(false);
   const [lifecyclePending, setLifecyclePending] = useState(false);
-  const busy = ownBusy || operatorPending || lifecyclePending;
+  const [onboardingPending, setOnboardingPending] = useState(false);
+  const busy =
+    ownBusy || operatorPending || lifecyclePending || onboardingPending;
   const pending = useRef<any>(null),
     live = useRef(true);
   useEffect(() => {
@@ -284,20 +287,31 @@ export function AccountSecurity({
         )}
       <SecurityOperator
         api={api}
-        disabled={ownBusy || uncertain || lifecyclePending}
+        disabled={ownBusy || uncertain || lifecyclePending || onboardingPending}
         onPending={(pending) => {
           setOperatorPending(pending);
-          onPending(pending || uncertain || lifecyclePending);
+          onPending(
+            pending || uncertain || lifecyclePending || onboardingPending,
+          );
         }}
       />
       <UserLifecycle
         api={api}
-        disabled={ownBusy || uncertain || operatorPending}
+        disabled={ownBusy || uncertain || operatorPending || onboardingPending}
         onPending={(value) => {
           setLifecyclePending(value);
-          onPending(value || uncertain || operatorPending);
+          onPending(value || uncertain || operatorPending || onboardingPending);
         }}
       />
+      <Onboarding
+        api={api}
+        disabled={ownBusy || uncertain || operatorPending || lifecyclePending}
+        onPending={(v) => {
+          setOnboardingPending(v);
+          onPending(v || uncertain || operatorPending || lifecyclePending);
+        }}
+      />
+      <AccessManifest api={api} disabled={busy || uncertain} />
       <h3>Security history</h3>
       <p>
         Only events for your own account are shown. Detailed events contain safe

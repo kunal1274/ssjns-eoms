@@ -488,6 +488,7 @@ try {
       "034_oidc_identity.sql",
       "035_security_operator.sql",
       "036_user_lifecycle.sql",
+      "037_user_onboarding.sql",
     ])
       await c.query(await readFile("db/migrations/" + migration, "utf8"));
     assert.equal(

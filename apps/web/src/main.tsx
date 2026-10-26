@@ -1,3 +1,4 @@
+import { AcceptInvitation } from "./Onboarding";
 import { SignInHelp } from "./SignInHelp";
 import { AccountSecurity } from "./AccountSecurity";
 import { SearchSelect } from "./SearchSelect";
@@ -378,6 +379,7 @@ function App() {
               <button disabled={busy || !online}>Sign in</button>
             </form>
           )}
+          <AcceptInvitation api={api} options={authOptions} busy={busy} />
           <SignInHelp
             api={api}
             options={authOptions}

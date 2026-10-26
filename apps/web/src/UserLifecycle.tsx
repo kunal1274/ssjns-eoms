@@ -31,11 +31,17 @@ export function UserLifecycle({
       generation.current++;
     };
   }, []);
-  async function checkAccess() {
+  async function checkAccess(retry = false) {
     setAccessError("");
     try {
       const v = await api("/auth/lifecycle/context");
-      if (live.current) setAllowed(v.allowed);
+      if (live.current) {
+        setAllowed(v.allowed);
+        if (retry && !v.allowed)
+          setAccessError(
+            "Lifecycle administration is unavailable. Ask an authorized platform operator to review your appointment.",
+          );
+      }
     } catch (e) {
       if (live.current) {
         setAllowed(false);
@@ -66,6 +72,10 @@ export function UserLifecycle({
         setItems([]);
         setCursor(null);
         setAllowed(false);
+        setAccessError(
+          (e as Error).message +
+            " Lifecycle access changed. Contact an authorized platform operator or retry the access check.",
+        );
       }
     } finally {
       if (live.current && g === generation.current) setBusy(false);
@@ -103,7 +113,13 @@ export function UserLifecycle({
           e.message +
             " Preview the account again before making another decision.",
         );
-        if ([401, 403].includes(e.status)) setAllowed(false);
+        if ([401, 403].includes(e.status)) {
+          setAllowed(false);
+          setAccessError(
+            e.message +
+              " Lifecycle access changed. Contact an authorized platform operator or retry the access check.",
+          );
+        }
       } else {
         setUncertain(true);
         setError(
@@ -118,7 +134,7 @@ export function UserLifecycle({
     return accessError ? (
       <div>
         <p role="alert">{accessError}</p>
-        <button disabled={disabled} onClick={() => void checkAccess()}>
+        <button disabled={disabled} onClick={() => void checkAccess(true)}>
           Retry lifecycle access check
         </button>
       </div>
@@ -190,6 +206,13 @@ export function UserLifecycle({
               before suspension or deactivation.
             </p>
           )}
+          {(target.state === "staged" || target.enrollmentRequired) && (
+            <p role="status">
+              This account has not accepted its invitation. Ask the onboarding
+              administrator to review its registration; global reactivation
+              cannot complete enrollment.
+            </p>
+          )}
           {!target.self && (
             <form
               key={target.id + ":" + target.revision}
@@ -220,9 +243,11 @@ export function UserLifecycle({
                   <option value="" disabled>
                     Choose a state change
                   </option>
-                  {target.state !== "active" && (
-                    <option value="active">Reactivate</option>
-                  )}
+                  {target.state !== "active" &&
+                    target.state !== "staged" &&
+                    !target.enrollmentRequired && (
+                      <option value="active">Reactivate</option>
+                    )}
                   {target.state === "active" &&
                     target.protectedSetups === 0 && (
                       <option value="suspended">Suspend</option>
