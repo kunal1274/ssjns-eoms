@@ -46,6 +46,7 @@ jobs:
       - run: npm run test:coverage && npm run test:coverage-ui
       - run: npm audit --audit-level=high
       - name: Build and start the shared Docker environment
+        id: shared_docker
         run: |
           node scripts/setup-env.mjs
           docker compose config --quiet
@@ -59,7 +60,7 @@ jobs:
           docker compose up -d --wait api web
           docker compose --profile tools run --rm smoke node scripts/docker-smoke.mjs verify
       - name: Stop isolated Docker environment
-        if: always()
+        if: ${{ always() && (steps.shared_docker.outcome == 'success' || steps.shared_docker.outcome == 'failure') }}
         run: docker compose down --remove-orphans
   quality-gate:
     name: quality-gate

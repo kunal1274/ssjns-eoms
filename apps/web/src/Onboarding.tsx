@@ -495,6 +495,58 @@ export function Onboarding({
                   </ul>
                 </>
               )}
+              {target.reopenAllowed && (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const d = new FormData(e.currentTarget);
+                    prepare("reopen", {
+                      targetId: target.id,
+                      revision: target.registrationRevision,
+                      reviewed: true,
+                      reference: d.get("reference"),
+                      reason: d.get("reason"),
+                    });
+                  }}
+                >
+                  <h4>Recover an unaccepted registration</h4>
+                  <p>
+                    This returns the registration to staged, invalidates pending
+                    invitations and grants no sign-in or estate access. Review
+                    the registration and prepare a fresh invitation afterward.
+                    Both platform lifecycle and scoped onboarding authority are
+                    required.
+                  </p>
+                  <label>
+                    Registration recovery reference
+                    <input
+                      name="reference"
+                      required
+                      minLength={5}
+                      maxLength={200}
+                      disabled={locked}
+                    />
+                  </label>
+                  <label>
+                    Registration recovery reason
+                    <textarea
+                      name="reason"
+                      required
+                      minLength={10}
+                      maxLength={500}
+                      disabled={locked}
+                    />
+                  </label>
+                  <label>
+                    <input type="checkbox" required disabled={locked} />I
+                    reviewed this unaccepted registration and the need to
+                    restart invitation acceptance.
+                  </label>
+                  <button disabled={locked}>
+                    Reopen registration without activating
+                  </button>
+                </form>
+              )}
               {target.state !== "active" && target.state !== "staged" && (
                 <p role="status">
                   The global account is {target.state}. Customer access does not

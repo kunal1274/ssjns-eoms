@@ -42,6 +42,164 @@ async function open(page: any, context: any, f: any) {
 const onboarding = (page: any) =>
   page.getByRole("region", { name: "User onboarding", exact: true });
 
+test("E2E-JRN-03-014 @regression recover a mistakenly deactivated registration without enabling access", async ({
+  page,
+  context,
+}) => {
+  const f = await upgradedWorkFixture({ setupAdmin: true });
+  let failure: unknown = null;
+  try {
+    await appoint(f);
+    const call = (path: string, body: any) =>
+      fetch(f.apiURL + "/api/auth/" + path, {
+        method: "POST",
+        headers: {
+          Origin: "http://localhost:5284",
+          Cookie: "eoms_session=" + f.raw,
+          "Content-Type": "application/json",
+          "X-CSRF-Token": "synthetic-history-ui",
+        },
+        body: JSON.stringify(body),
+      });
+    const registered = await call("onboarding/write", {
+      operation: "stage",
+      key: randomUUID(),
+      input: {
+        customerId: f.customer,
+        email: randomUUID() + "@fixture.local",
+        name: "Recoverable synthetic employee",
+        userCode: "REC-" + randomUUID().slice(0, 8),
+        employeeReference: "Synthetic recovery employee",
+        estates: [{ estateId: f.estate, role: "clerk" }],
+        reference: "Synthetic registration recovery",
+        reason: "Prepare a controlled unaccepted registration for recovery",
+      },
+    });
+    expect(registered.status).toBe(200);
+    const user = await registered.json();
+    expect(
+      (
+        await call("lifecycle/change", {
+          targetId: user.targetId,
+          revision: "0",
+          state: "deactivated",
+          key: randomUUID(),
+          reviewed: true,
+          reference: "Synthetic mistaken deactivation",
+          reason: "Record controlled deactivation before invitation acceptance",
+        })
+      ).status,
+    ).toBe(200);
+    await open(page, context, f);
+    const p = onboarding(page);
+    await p
+      .getByLabel("Onboarding customer", { exact: true })
+      .selectOption(f.customer);
+    await expect(
+      p.getByRole("button", { name: "Create staged user", exact: true }),
+    ).toBeEnabled();
+    await p
+      .getByLabel("Onboarding account UUID", { exact: true })
+      .fill(user.targetId);
+    await p
+      .getByRole("button", { name: "Preview onboarding account", exact: true })
+      .click();
+    await expect(
+      p.getByRole("button", {
+        name: "Reopen registration without activating",
+        exact: true,
+      }),
+    ).toBeEnabled();
+    await test.step("Validate and recover the registration without sign-in or estate grants", async () => {
+      const form = p.locator("form").filter({
+        has: p.getByRole("button", {
+          name: "Reopen registration without activating",
+          exact: true,
+        }),
+      });
+      await form.getByRole("button").click();
+      await expect(
+        form.getByLabel("Registration recovery reference", { exact: true }),
+      ).toBeFocused();
+      await form
+        .getByLabel("Registration recovery reference", { exact: true })
+        .fill("Synthetic reviewed recovery ticket");
+      await form
+        .getByLabel("Registration recovery reason", { exact: true })
+        .fill(
+          "Correct a mistakenly deactivated registration without granting access",
+        );
+      await form.getByRole("checkbox").check();
+      await form.getByRole("button").click();
+      await expect(
+        p.getByText(
+          "Recoverable synthetic employee · Account: staged · Customer access: pending-activation",
+          { exact: true },
+        ),
+      ).toBeVisible();
+      await expect(
+        p.getByRole("button", {
+          name: "Prepare or reissue invitation",
+          exact: true,
+        }),
+      ).toBeEnabled();
+      const state = (
+        await f.root.query(
+          "SELECT active,lifecycle_state FROM eoms.users WHERE id=$1",
+          [user.targetId],
+        )
+      ).rows[0];
+      expect(state).toEqual({ active: false, lifecycle_state: "staged" });
+      expect(
+        (
+          await f.root.query(
+            "SELECT * FROM eoms.memberships WHERE user_id=$1",
+            [user.targetId],
+          )
+        ).rowCount,
+      ).toBe(0);
+      expect(
+        (
+          await f.root.query("SELECT * FROM eoms.sessions WHERE user_id=$1", [
+            user.targetId,
+          ])
+        ).rowCount,
+      ).toBe(0);
+    });
+    await test.step("Open the actual short and detailed registration recovery audit", async () => {
+      const events = (
+        await f.root.query(
+          "SELECT id,actor_id FROM eoms.security_events WHERE subject_id=$1 AND action='registration.reopen'",
+          [user.targetId],
+        )
+      ).rows;
+      expect(events).toHaveLength(1);
+      expect(events[0].actor_id).toBe(f.user);
+      await expect(p.getByText(/registration\.reopen/)).toBeVisible();
+      await p
+        .getByRole("button", {
+          name: "Details for registration event " + events[0].id,
+          exact: true,
+        })
+        .click();
+      await expect(
+        p.getByText("Synthetic reviewed recovery ticket", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        p.getByText(
+          "Correct a mistakenly deactivated registration without granting access",
+          { exact: true },
+        ),
+      ).toBeVisible();
+    });
+  } catch (e) {
+    failure = e;
+    throw e;
+  } finally {
+    await closeAccountBrowser(page, f, failure);
+  }
+});
+
 test("E2E-JRN-03-010 @regression lifecycle read recovery retains drafts and revoked authority leaves actionable feedback", async ({
   page,
   context,

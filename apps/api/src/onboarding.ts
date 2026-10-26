@@ -189,6 +189,14 @@ export function onboardingRoutes(app: Express, pool: Pool, issuer?: string) {
         before,
       ])
     ).rows[0].value;
+    if (i.targetId && v) {
+      v.reopenAllowed = (
+        await pool.query(
+          "SELECT eoms.registration_reopen_context($1,$2,$3) AS allowed",
+          [res.locals.sessionHash, i.customerId ?? null, i.targetId],
+        )
+      ).rows[0].allowed;
+    }
     if (v?.history) {
       const more = v.history.length > 25;
       v.history = v.history.slice(0, 25);
@@ -247,6 +255,7 @@ export function onboardingRoutes(app: Express, pool: Pool, issuer?: string) {
         operation: z.enum([
           "stage",
           "amend",
+          "reopen",
           "invite",
           "cancel",
           "access",
@@ -283,6 +292,11 @@ export function onboardingRoutes(app: Express, pool: Pool, issuer?: string) {
             .max(100)
             .refine((v) => new Set(v.map((x) => x.estateId)).size === v.length),
         })
+        .strict()
+        .parse(envelope.input);
+    else if (envelope.operation === "reopen")
+      input = z
+        .object({ ...shared, targetId, revision, reviewed: z.literal(true) })
         .strict()
         .parse(envelope.input);
     else if (envelope.operation === "amend")
@@ -385,6 +399,23 @@ export function onboardingRoutes(app: Express, pool: Pool, issuer?: string) {
         })
         .strict()
         .parse(envelope.input);
+    if (envelope.operation === "reopen") {
+      res.json(
+        (
+          await pool.query(
+            "SELECT eoms.reopen_registration($1,$2,$3,$4,$5) AS value",
+            [
+              res.locals.sessionHash,
+              req.get("X-CSRF-Token"),
+              JSON.stringify(input),
+              envelope.key,
+              res.locals.requestId,
+            ],
+          )
+        ).rows[0].value,
+      );
+      return;
+    }
     res.json(
       (
         await pool.query(

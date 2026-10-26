@@ -86,7 +86,7 @@ const preview = async (call: any, f: any, id: string) => {
   return r.json();
 };
 async function login(call: any, email: string, password: string) {
-  const r = await call("login", { email, password });
+  const r = await call("login", { email, password }, "");
   assert.equal(r.status, 200);
   const raw = r.headers
     .getSetCookie()
@@ -794,6 +794,167 @@ test("global staged registrations grant no tenant access and cannot bypass bound
       (await call("onboarding/estates?customerId=" + f.customer + "&limit=1"))
         .status,
       200,
+    );
+  }));
+test("reopening an unaccepted registration requires platform and scoped authority, invalidates proof and remains inactive until fresh acceptance", async () =>
+  fixture(async (f, call) => {
+    const u = await stage(f, call),
+      a = await invite(f, call, u);
+    await authorize(f);
+    const deactivation = await call("lifecycle/change", {
+      targetId: u.targetId,
+      revision: "0",
+      state: "deactivated",
+      key: randomUUID(),
+      reviewed: true,
+      ...reason,
+    });
+    assert.equal(deactivation.status, 200);
+    const recovery = {
+      operation: "reopen",
+      key: randomUUID(),
+      input: {
+        customerId: f.customer,
+        targetId: u.targetId,
+        revision: a.revision,
+        reviewed: true,
+        ...reason,
+      },
+    };
+    await authorize(f, "revoked");
+    assert.equal((await call("onboarding/write", recovery)).status, 403);
+    assert.equal((await preview(call, f, u.targetId)).reopenAllowed, false);
+    await authorize(f);
+    assert.equal((await preview(call, f, u.targetId)).reopenAllowed, true);
+    assert.equal(
+      (
+        await call("onboarding/write", {
+          ...recovery,
+          input: { ...recovery.input, customerId: randomUUID() },
+        })
+      ).status,
+      403,
+    );
+    assert.equal(
+      (
+        await call("onboarding/write", {
+          ...recovery,
+          input: { ...recovery.input, reviewed: false },
+        })
+      ).status,
+      422,
+    );
+    assert.equal(
+      (
+        await call("onboarding/write", {
+          ...recovery,
+          input: { ...recovery.input, revision: 0 },
+        })
+      ).status,
+      409,
+    );
+    const restored = await call("onboarding/write", recovery);
+    assert.equal(restored.status, 200, await restored.clone().text());
+    const result = await restored.json();
+    assert.equal(result.state, "staged");
+    assert.equal(result.signInEnabled, false);
+    assert.equal(result.estateAccessGranted, false);
+    const row = (
+      await f.root.query(
+        "SELECT active,password_hash FROM eoms.users WHERE id=$1",
+        [u.targetId],
+      )
+    ).rows[0];
+    assert.equal(row.active, false);
+    assert.equal(row.password_hash, "staged-no-credential");
+    assert.equal(
+      (
+        await f.root.query("SELECT * FROM eoms.memberships WHERE user_id=$1", [
+          u.targetId,
+        ])
+      ).rowCount,
+      0,
+    );
+    assert.equal(
+      (
+        await f.root.query(
+          "SELECT state FROM eoms.user_invitations WHERE id=$1",
+          [a.invitationId],
+        )
+      ).rows[0].state,
+      "superseded",
+    );
+    assert.equal(
+      (
+        await call("enrollment/accept", {
+          token: a.secret,
+          password: "synthetic-old-reopened-invite",
+        })
+      ).status,
+      422,
+    );
+    assert.equal(
+      (await (await call("onboarding/write", recovery)).json()).replayed,
+      true,
+    );
+    assert.equal(
+      (
+        await call("onboarding/write", {
+          ...recovery,
+          input: {
+            ...recovery.input,
+            reason: "Changed recovery intent must be rejected",
+          },
+        })
+      ).status,
+      409,
+    );
+    const b = await invite(f, call, { ...u, revision: result.revision });
+    assert.equal(
+      (
+        await call("enrollment/accept", {
+          token: b.secret,
+          password: "synthetic-fresh-reopened-invite",
+        })
+      ).status,
+      200,
+    );
+    assert.equal(
+      (await (await call("onboarding/write", recovery)).json()).replayed,
+      true,
+    );
+    assert.equal(
+      (
+        await f.root.query("SELECT active FROM eoms.users WHERE id=$1", [
+          u.targetId,
+        ])
+      ).rows[0].active,
+      true,
+    );
+    assert.equal((await preview(call, f, u.targetId)).reopenAllowed, false);
+    assert.equal(
+      (
+        await call("onboarding/write", {
+          ...recovery,
+          key: randomUUID(),
+          input: { ...recovery.input, revision: b.revision + 1 },
+        })
+      ).status,
+      409,
+    );
+    const events = (
+      await f.root.query(
+        "SELECT * FROM eoms.security_events WHERE subject_id=$1 AND action='registration.reopen'",
+        [u.targetId],
+      )
+    ).rows;
+    assert.equal(events.length, 1);
+    assert.equal(events[0].actor_id, f.user);
+    assert.equal(events[0].request_id, result.requestId);
+    await assert.rejects(
+      f.root.query("DELETE FROM eoms.security_events WHERE id=$1", [
+        events[0].id,
+      ]),
     );
   }));
 async function oidcFlow(f: any, idp: any, secret: string) {

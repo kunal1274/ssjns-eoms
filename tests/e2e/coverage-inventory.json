@@ -2386,6 +2386,30 @@
         "caseId": "E2E-JRN-03-011",
         "step": "Find the staged user by scoped email without requiring a copied UUID"
       }
+    },
+    {
+      "id": "COV-REGISTER-RECOVERY",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "form",
+      "control": "Registration recovery",
+      "assertion": "Required recovery fields and review reopen an unaccepted registration without sessions or estate grants",
+      "binding": {
+        "caseId": "E2E-JRN-03-014",
+        "step": "Validate and recover the registration without sign-in or estate grants"
+      }
+    },
+    {
+      "id": "COV-REGISTER-RECOVERY-AUDIT",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "navigation",
+      "control": "Recovery audit details",
+      "assertion": "Actual recovery event, actor, reason and reference are available in short and detailed history",
+      "binding": {
+        "caseId": "E2E-JRN-03-014",
+        "step": "Open the actual short and detailed registration recovery audit"
+      }
     }
   ]
 }
