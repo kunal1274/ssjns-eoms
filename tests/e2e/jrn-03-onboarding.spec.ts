@@ -217,6 +217,7 @@ test("E2E-JRN-03-010 @regression lifecycle read recovery retains drafts and revo
     await expect(
       page.getByRole("heading", { name: "Muster register", exact: true }),
     ).toBeVisible();
+    const readFailures: string[] = [];
     let accessFail = true,
       previewFail = false;
     await page.route("**/api/auth/lifecycle/context*", async (route) => {
@@ -226,13 +227,15 @@ test("E2E-JRN-03-010 @regression lifecycle read recovery retains drafts and revo
       if ((!hasTarget && accessFail) || (hasTarget && previewFail)) {
         accessFail = false;
         previewFail = false;
+        const requestId = randomUUID();
+        readFailures.push(requestId);
         await route.fulfill({
           status: 503,
           contentType: "application/json",
           body: JSON.stringify({
             error: "Temporary lifecycle read failure",
             code: "SERVICE_UNAVAILABLE",
-            requestId: randomUUID(),
+            requestId,
           }),
         });
       } else await route.fallback();
@@ -241,11 +244,17 @@ test("E2E-JRN-03-010 @regression lifecycle read recovery retains drafts and revo
       await page
         .getByRole("button", { name: "Account security", exact: true })
         .click();
-      await expect(
-        page
-          .getByRole("alert")
-          .filter({ hasText: "Temporary lifecycle read failure" }),
-      ).toBeVisible();
+      const accessAlert = page
+        .getByRole("alert")
+        .filter({ hasText: "The service could not complete this request." });
+      await expect(accessAlert).toBeVisible();
+      expect(readFailures).toHaveLength(1);
+      await expect(accessAlert).toContainText(
+        "Support reference: " + readFailures[0],
+      );
+      await expect(accessAlert).not.toContainText(
+        "Temporary lifecycle read failure",
+      );
       await page
         .getByRole("button", {
           name: "Retry lifecycle access check",
@@ -285,6 +294,13 @@ test("E2E-JRN-03-010 @regression lifecycle read recovery retains drafts and revo
         .getByRole("button", { name: "Preview lifecycle account", exact: true })
         .click();
       await expect(p.getByRole("alert")).toContainText(
+        "The service could not complete this request.",
+      );
+      expect(readFailures).toHaveLength(2);
+      await expect(p.getByRole("alert")).toContainText(
+        "Support reference: " + readFailures[1],
+      );
+      await expect(p.getByRole("alert")).not.toContainText(
         "Temporary lifecycle read failure",
       );
       await expect(
