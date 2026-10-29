@@ -7,13 +7,39 @@ export default defineConfig({
     host: process.env.WEB_HOST || "127.0.0.1",
     port: Number(process.env.WEB_PORT || 5174),
     strictPort: true,
-    proxy: { "/api": process.env.API_TARGET || "http://127.0.0.1:4100" },
+    proxy: {
+      "/api": {
+        target: process.env.API_TARGET || "http://127.0.0.1:4100",
+        changeOrigin: true,
+        configure: (proxy, _options) => {
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            // Preserve the Origin header from the browser
+            if (req.headers.origin) {
+              proxyReq.setHeader('Origin', req.headers.origin);
+            }
+          });
+        },
+      },
+    },
   },
   preview: {
     host: "127.0.0.1",
     port: Number(process.env.PWA_PORT || 5175),
     strictPort: true,
-    proxy: { "/api": process.env.API_TARGET || "http://127.0.0.1:4101" },
+    proxy: {
+      "/api": {
+        target: process.env.API_TARGET || "http://127.0.0.1:4101",
+        changeOrigin: true,
+        configure: (proxy, _options) => {
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            // Preserve the Origin header from the browser
+            if (req.headers.origin) {
+              proxyReq.setHeader('Origin', req.headers.origin);
+            }
+          });
+        },
+      },
+    },
   },
   build: { outDir: "dist" },
 });
