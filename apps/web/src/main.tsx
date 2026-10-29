@@ -1,3 +1,11 @@
+import { AcceptInvitation } from "./Onboarding";
+import { SignInHelp } from "./SignInHelp";
+import { AccountSecurity } from "./AccountSecurity";
+import { SearchSelect } from "./SearchSelect";
+import { WorkAvailability } from "./EstateLifecycle";
+import { Organization } from "./Organization";
+import { AuditTrail } from "./AuditTrail";
+import { requestFailure, connectionFailure, RequestFailure } from "./feedback";
 import React, { useEffect, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
@@ -27,10 +35,7 @@ function App() {
   useEffect(() => {
     const logout = (e: StorageEvent) => {
       if (e.key === "eoms-logout") {
-        setUser(null);
-        setEstate("");
-        setRows([]);
-        setCreating(false);
+        clearIdentity();
       }
     };
     window.addEventListener("storage", logout);
@@ -70,12 +75,18 @@ function App() {
     [audit, setAudit] = useState<Row[]>([]),
     [cursor, setCursor] = useState<string | null>(null),
     [detail, setDetail] = useState<Row | null>(null),
+    [legacyWorkEstate, setLegacyWorkEstate] = useState(""),
     [tab, setTab] = useState("Muster register"),
     [error, setError] = useState(""),
-    [busy, setBusy] = useState(false),
+    [actionBusy, setBusy] = useState(false),
     [ready, setReady] = useState(false),
     [creating, setCreating] = useState(false),
     [selected, setSelected] = useState<string[]>([]);
+  const [organizationPending, setOrganizationPending] = useState(false);
+  const [securityPending, setSecurityPending] = useState(false);
+  const [authOptions, setAuthOptions] = useState<any>(null);
+  const identityGeneration = useRef(0);
+  const busy = actionBusy || organizationPending || securityPending;
   const [workerSearch, setWorkerSearch] = useState(""),
     [taskSearch, setTaskSearch] = useState(""),
     [workerNext, setWorkerNext] = useState<string | null>(null),
@@ -111,22 +122,85 @@ function App() {
       throw Error(
         "Reconnect for this action. You can save a device draft using references already loaded.",
       );
-    const r = await fetch("/api" + path, {
-      method: body === undefined ? "GET" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": csrf,
-        ...(key ? { "Idempotency-Key": key } : {}),
-      },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
-    if (r.status === 204) return null;
-    const value = await r.json();
-    if (!r.ok) {
-      if (r.status === 401) setUser(null);
-      throw new Error(value.error || "Request failed");
+    const generation = identityGeneration.current;
+    let r: Response;
+    try {
+      r = await fetch("/api" + path, {
+        method: body === undefined ? "GET" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrf,
+          ...(key ? { "Idempotency-Key": key } : {}),
+        },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+    } catch {
+      throw new Error(connectionFailure);
     }
+    if (path !== "/auth/options" && generation !== identityGeneration.current)
+      throw Error("Your account changed. Reload this view.");
+    if (r.status === 204) return null;
+    const value = await r.json().catch(() => null);
+    if (!r.ok) {
+      if (r.status === 401 && path !== "/auth/login") {
+        clearIdentity();
+        if (path !== "/auth/session" || value?.error?.includes("expired"))
+          setDeviceMessage(
+            "Your session has ended. Sign in again to continue. Device drafts remain available to their owner after sign-in.",
+          );
+      }
+      throw new RequestFailure(r.status, value, r.headers.get("X-Request-ID"));
+    }
+    if (value === null) throw new Error(connectionFailure);
     return value;
+  }
+  function clearIdentity() {
+    identityGeneration.current++;
+    setUser(null);
+    setTab("Muster register");
+    setCsrf("");
+    setEstate("");
+    setEstates([]);
+    setRows([]);
+    setWorkers([]);
+    setTasks([]);
+    setGangs([]);
+    setAudit([]);
+    setDetail(null);
+    setCreating(false);
+    setSecurityPending(false);
+    setOrganizationPending(false);
+    sessionStorage.removeItem("eoms-estate");
+  }
+  async function signOut(all: boolean) {
+    await act(async () => {
+      if (!online)
+        throw Error("Reconnect to sign out and revoke the server session.");
+      if (!navigator.locks)
+        throw Error("This browser cannot coordinate device storage safely.");
+      let signedOut = false;
+      await navigator.locks.request("eoms-device-sync", async () => {
+        const count = await deviceDraftCount();
+        if (
+          count &&
+          !confirm(
+            `Sign out and discard ${count} device draft(s)? Sync them first to retain them on the server.`,
+          )
+        )
+          return;
+        await api(all ? "/auth/sign-out-all" : "/auth/logout", {});
+        await clearDeviceDrafts();
+        signedOut = true;
+      });
+      if (!signedOut) return;
+      localStorage.setItem("eoms-logout", String(Date.now()));
+      clearIdentity();
+      setDeviceMessage(
+        all
+          ? "All EOMS sessions have ended. Your identity-provider session is managed separately."
+          : "You have signed out.",
+      );
+    });
   }
   async function act(fn: () => Promise<void>) {
     setBusy(true);
@@ -140,6 +214,18 @@ function App() {
     }
   }
   useEffect(() => {
+    void api("/auth/options")
+      .then(setAuthOptions)
+      .catch(() => {});
+    const currentURL = new URL(window.location.href);
+    if (currentURL.searchParams.has("authError")) {
+      const ref = currentURL.searchParams.get("reference") ?? "";
+      setError(
+        "Organization sign-in could not be completed. Start again or contact your administrator." +
+          (/^[a-f0-9-]{36}$/.test(ref) ? " Reference: " + ref : ""),
+      );
+      window.history.replaceState({}, "", currentURL.pathname);
+    }
     api("/auth/session")
       .then((v) => {
         setUser(v.user);
@@ -149,17 +235,36 @@ function App() {
       .finally(() => setReady(true));
   }, []);
   useEffect(() => {
-    if (user)
-      api("/estates")
+    let current = true;
+    setEstates([]);
+    setEstate("");
+    if (user) {
+      const preferred = sessionStorage.getItem("eoms-estate");
+      const params = new URLSearchParams({ limit: "25" });
+      if (preferred) params.set("selectedId", preferred);
+      api("/navigation/estates?" + params)
         .then((v) => {
-          setEstates(v);
-          const preferred = sessionStorage.getItem("eoms-estate");
+          if (!current) return;
+          setEstates(v.selected ? [...v.items, v.selected] : v.items);
           setEstate(
-            v.find((e: Row) => e.id === preferred)?.id || v[0]?.id || "",
+            (chosen) => chosen || v.selected?.id || v.items[0]?.id || "",
           );
         })
-        .catch((e) => setError(e.message));
+        .catch((e) => {
+          if (current) setError(e.message);
+        });
+    }
+    return () => {
+      current = false;
+    };
   }, [user]);
+  function chooseEstate(id: string, row?: Row) {
+    sessionStorage.setItem("eoms-estate", id);
+    if (row) setEstates((old) => [...old.filter((e) => e.id !== id), row]);
+    setEstate(id);
+  }
+  const currentEstate = useRef(estate);
+  currentEstate.current = estate;
   const base = "/estates/" + estate;
   async function refresh() {
     const [list, w, t, a, g] = await Promise.all([
@@ -169,6 +274,7 @@ function App() {
       api(base + "/audit"),
       api(base + "/gangs?assignable=true"),
     ]);
+    if (currentEstate.current !== estate) return;
     setRows(list.items);
     setCursor(list.nextCursor);
     setWorkers(w.items);
@@ -187,11 +293,19 @@ function App() {
   }
   useEffect(() => {
     setDetail(null);
+    setLegacyWorkEstate("");
     setReviewAction(null);
     setCreating(false);
     setRows([]);
+    setWorkers([]);
+    setTasks([]);
+    setGangs([]);
+    setAudit([]);
     if (estate) void act(refresh);
   }, [estate]);
+  useEffect(() => {
+    if (detail) document.getElementById("muster-detail")?.focus();
+  }, [detail?.id]);
   const role = estates.find((e) => e.id === estate)?.role,
     canWrite = ["manager", "supervisor"].includes(role || "");
   if (!ready)
@@ -222,45 +336,61 @@ function App() {
               retained until you reconnect or clear browser data.
             </p>
           )}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const f = new FormData(e.currentTarget);
-              void act(async () => {
-                const v = await api("/auth/login", {
-                  email: f.get("email"),
-                  password: f.get("password"),
+          {deviceMessage && <p role="status">{deviceMessage}</p>}
+          {authOptions?.localEnabled !== false && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const f = new FormData(e.currentTarget);
+                void act(async () => {
+                  const v = await api("/auth/login", {
+                    email: f.get("email"),
+                    password: f.get("password"),
+                  });
+                  identityGeneration.current++;
+                  setUser(v.user);
+                  setCsrf(v.csrf);
                 });
-                setUser(v.user);
-                setCsrf(v.csrf);
-              });
-            }}
-          >
-            <label>
-              Email
-              <input
-                name="email"
-                type="email"
-                autoComplete="username"
-                required
-              />
-            </label>
-            <label>
-              Password
-              <input
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-              />
-            </label>
-            {error && (
-              <p role="alert" className="error">
-                {error}
-              </p>
-            )}
-            <button disabled={busy || !online}>Sign in</button>
-          </form>
+              }}
+            >
+              <label>
+                Email
+                <input
+                  name="email"
+                  type="email"
+                  autoComplete="username"
+                  required
+                />
+              </label>
+              <label>
+                Password
+                <input
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                />
+              </label>
+              {error && (
+                <p role="alert" className="error">
+                  {error}
+                </p>
+              )}
+              <button disabled={busy || !online}>Sign in</button>
+            </form>
+          )}
+          <AcceptInvitation api={api} options={authOptions} busy={busy} />
+          <SignInHelp
+            api={api}
+            options={authOptions}
+            busy={busy}
+            onOrganizationSignIn={() =>
+              void act(async () => {
+                const v = await api("/auth/oidc/start", {});
+                window.location.assign(v.authorizationUrl);
+              })
+            }
+          />
           <small>Development environment · Synthetic estate data</small>
         </section>
       </main>
@@ -274,17 +404,21 @@ function App() {
         <small>WORKSPACE</small>
         {[
           "Muster register",
+          "Organization",
           "Task capacity",
           "Workers",
           "Gangs",
           "Operational periods",
           "Audit trail",
+          "Account security",
         ].map((x) => (
           <button
             className={tab === x ? "nav active" : "nav"}
             key={x}
+            disabled={organizationPending || securityPending}
             onClick={() => {
               setTab(x);
+              setLegacyWorkEstate("");
               setDetail(null);
               setReviewAction(null);
               setCreating(false);
@@ -303,24 +437,28 @@ function App() {
       </aside>
       <div className="body">
         <header>
-          <label className="estate">
-            Estate
-            <select
-              aria-label="Estate"
+          <div className="estate">
+            <SearchSelect
+              key={user.id}
+              api={api}
+              path="/navigation/estates"
+              label="Estate"
               value={estate}
+              onChange={chooseEstate}
+              onResolved={(row) =>
+                setEstates((old) => [
+                  ...old.filter((e) => e.id !== row.id),
+                  row,
+                ])
+              }
+              seed={estates
+                .filter((e) => e.id === estate)
+                .map((e) => ({ ...e, id: String(e.id), name: String(e.name) }))}
+              showCode={false}
               disabled={busy || !online}
-              onChange={(e) => {
-                sessionStorage.setItem("eoms-estate", e.target.value);
-                setEstate(e.target.value);
-              }}
-            >
-              {estates.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.name}
-                </option>
-              ))}
-            </select>
-          </label>
+              placeholder="Choose assigned estate"
+            />
+          </div>
           <div>
             {user.name}
             <small className="role">{role}</small>
@@ -328,37 +466,7 @@ function App() {
           <button
             className="secondary"
             disabled={busy}
-            onClick={() =>
-              void act(async () => {
-                if (!online)
-                  throw Error(
-                    "Reconnect to sign out and revoke the server session.",
-                  );
-                if (!navigator.locks)
-                  throw Error(
-                    "This browser cannot coordinate device storage safely.",
-                  );
-                let signedOut = false;
-                await navigator.locks.request("eoms-device-sync", async () => {
-                  const count = await deviceDraftCount();
-                  if (
-                    count &&
-                    !confirm(
-                      `Sign out and discard ${count} device draft(s)? Sync them first to retain them on the server.`,
-                    )
-                  )
-                    return;
-                  await api("/auth/logout", {});
-                  await clearDeviceDrafts();
-                  signedOut = true;
-                });
-                if (!signedOut) return;
-                localStorage.setItem("eoms-logout", String(Date.now()));
-                setUser(null);
-                setEstate("");
-                setRows([]);
-              })
-            }
+            onClick={() => void signOut(false)}
           >
             Sign out
           </button>
@@ -369,6 +477,39 @@ function App() {
             {online ? "Online" : "Offline — local draft capture only"}
           </div>
           <PwaInstall />
+          {!estate && (
+            <p role="status">
+              No estate is selected or assigned. Use Organization to review your
+              explicit assignments, or contact your administrator. Account
+              security is available without an estate assignment.
+            </p>
+          )}
+          {tab === "Account security" && (
+            <AccountSecurity
+              api={api}
+              onPending={setSecurityPending}
+              onSignOutAll={() => signOut(true)}
+              onCredentialChanged={() => {
+                clearIdentity();
+                setDeviceMessage(
+                  "Password changed. All previous sessions have ended. Sign in with your new password. Device drafts remain assigned to their owner.",
+                );
+              }}
+            />
+          )}
+          {estate && tab === "Muster register" && (
+            <WorkAvailability
+              api={api}
+              online={online}
+              estate={estate}
+              onSetup={() => {
+                setTab("Organization");
+                setDetail(null);
+                setReviewAction(null);
+                setCreating(false);
+              }}
+            />
+          )}
           {deviceMessage && <p role="status">{deviceMessage}</p>}
           {!online && (
             <p className="notice">
@@ -390,8 +531,9 @@ function App() {
               <p className="eyebrow">FIELD OPERATIONS</p>
               <h1>{tab}</h1>
               <p>
-                Record work with clear ownership and a traceable approval
-                history.
+                {tab === "Organization"
+                  ? "Review your assigned customer, company and estate, then continue to operations."
+                  : "Record work with clear ownership and a traceable approval history."}
               </p>
             </div>
             {canWrite && tab === "Muster register" && (
@@ -510,6 +652,12 @@ function App() {
                   )}
                 </div>
                 <div className="grid">
+                  <p>
+                    Only available tasks are listed. Reactivate paused
+                    estates/blocks in Organization → Estate and unit
+                    availability, then search tasks again. Legacy unlinked tasks
+                    are governed by estate availability.
+                  </p>
                   <label>
                     Task / activity
                     <select name="task" aria-label="Task / activity" required>
@@ -750,7 +898,7 @@ function App() {
             </section>
           )}
           {detail && (
-            <section className="card">
+            <section className="card" id="muster-detail" tabIndex={-1}>
               <div className="cardtitle">
                 <h2>Muster detail · {detail.status}</h2>
                 <button className="secondary" onClick={() => setDetail(null)}>
@@ -761,6 +909,44 @@ function App() {
                 {detail.business_date} · {detail.gang_code} ·{" "}
                 {detail.quantity_ha} Ha
               </p>
+              <p data-work-attribution="true">
+                {detail.legal_company_id
+                  ? `Recorded responsible company: ${detail.legal_company_name} · ${detail.legal_responsibility_id ? "Dated assignment" : "Baseline assignment"}`
+                  : "Legacy record: company attribution was not captured."}
+              </p>
+              {!detail.legal_company_id && (
+                <section aria-label="Historical attribution guidance">
+                  <p>
+                    Company attribution was not recorded for this historical
+                    work. Today's company or the task's current block link
+                    cannot establish that historical fact. Ask the migration
+                    owner to reconcile the source record; opening this detail
+                    does not assign or correct attribution.
+                  </p>
+                  <details>
+                    <summary>View historical record references</summary>
+                    <dl>
+                      <dt>Work record ID</dt>
+                      <dd>{detail.id}</dd>
+                      <dt>Estate ID</dt>
+                      <dd>{detail.estate_id}</dd>
+                      <dt>Task ID</dt>
+                      <dd>{detail.occurrence_id}</dd>
+                    </dl>
+                  </details>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLegacyWorkEstate(estate);
+                      setDetail(null);
+                      setReviewAction(null);
+                      setTab("Task capacity");
+                    }}
+                  >
+                    Return to unresolved work review
+                  </button>
+                </section>
+              )}
               <table>
                 <thead>
                   <tr>
@@ -888,6 +1074,15 @@ function App() {
           {["Task capacity", "Workers", "Operational periods"].includes(tab) &&
             estate && (
               <Maintenance
+                onOpenHierarchy={() => setTab("Organization")}
+                openLegacyWork={legacyWorkEstate === estate}
+                onOpenWork={(value) => {
+                  if (currentEstate.current !== estate) return;
+                  setDetail(value);
+                  setCreating(false);
+                  setReviewAction(null);
+                  setTab("Muster register");
+                }}
                 key={estate + tab}
                 base={base}
                 api={api}
@@ -909,26 +1104,21 @@ function App() {
               manager={role === "manager"}
             />
           )}
+          {tab === "Organization" && (
+            <Organization
+              api={api}
+              onPending={setOrganizationPending}
+              onOpenEstate={(id) => {
+                chooseEstate(id);
+                setTab("Muster register");
+                setDetail(null);
+                setCreating(false);
+                setReviewAction(null);
+              }}
+            />
+          )}
           {tab === "Audit trail" && (
-            <section className="card">
-              <h2>Latest 50 estate events</h2>
-              {!audit.length && (
-                <p className="empty">Events appear when work is recorded.</p>
-              )}
-              {audit.map((a) => (
-                <div className="event" key={a.id}>
-                  <span className="dot" />
-                  <div>
-                    <strong>{a.action}</strong>
-                    <small>
-                      {a.actor} · {new Date(a.created_at).toLocaleString()}
-                    </small>
-                    <code>{a.record_id || a.detail?.month}</code>
-                    {a.detail?.reason && <p>{a.detail.reason}</p>}
-                  </div>
-                </div>
-              ))}
-            </section>
+            <AuditTrail events={audit as import("./AuditTrail").AuditEvent[]} />
           )}
         </main>
       </div>

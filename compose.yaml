@@ -1,19 +1,138 @@
 name: eoms-pern
+x-application: &application
+  build:
+    context: .
+    target: development
+  image: eoms-foundation:local
+  init: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: [/tmp]
 services:
   postgres:
-    image: postgres:18
+    image: postgres:18@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336
     environment:
       POSTGRES_DB: eoms
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
-    ports:
-      - "127.0.0.1:55432:5432"
-    volumes:
-      - eoms_pg:/var/lib/postgresql
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run node scripts/setup-env.mjs first}
+    ports: ["127.0.0.1:55432:5432"]
+    volumes: [eoms_pg:/var/lib/postgresql]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d eoms"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 15
+  migrate:
+    <<: *application
+    read_only: true
+    command: [npm, run, db:migrate]
+    environment:
+      NODE_ENV: development
+      ADMIN_DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/eoms
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Run node scripts/setup-env.mjs first}
+    depends_on:
+      postgres: { condition: service_healthy }
+  api:
+    <<: *application
+    read_only: true
+    restart: unless-stopped
+    command: [node, --import, tsx, apps/api/src/server.ts]
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://eoms_app:${APP_DB_PASSWORD}@postgres:5432/eoms
+      API_HOST: 0.0.0.0
+      API_PORT: 4100
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:5174}
+      OIDC_ISSUER: ${OIDC_ISSUER:-}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+      OIDC_AUTHORIZATION_ENDPOINT: ${OIDC_AUTHORIZATION_ENDPOINT:-}
+      OIDC_TOKEN_ENDPOINT: ${OIDC_TOKEN_ENDPOINT:-}
+      OIDC_JWKS_URI: ${OIDC_JWKS_URI:-}
+      OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-}
+      OIDC_RECOVERY_URL: ${OIDC_RECOVERY_URL:-}
+      OIDC_SECURITY_URL: ${OIDC_SECURITY_URL:-}
+      OIDC_MFA_ACRS: ${OIDC_MFA_ACRS:-}
+    ports: ["127.0.0.1:4100:4100"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          scripts/docker-health.mjs,
+          "http://127.0.0.1:4100/api/health",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+  web:
+    <<: *application
+    restart: unless-stopped
+    command: [npm, run, dev:web]
+    environment:
+      NODE_ENV: development
+      WEB_HOST: 0.0.0.0
+      WEB_PORT: 5174
+      API_TARGET: http://api:4100
+    ports: ["127.0.0.1:5174:5174"]
+    depends_on:
+      api: { condition: service_healthy }
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          scripts/docker-health.mjs,
+          "http://127.0.0.1:5174/api/health",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+  seed:
+    <<: *application
+    profiles: [tools]
+    command: [npm, run, db:seed]
+    environment:
+      NODE_ENV: development
+      ADMIN_DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/eoms
+    volumes: [eoms_local:/app/.local]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+  verify:
+    <<: *application
+    profiles: [tools]
+    # Preserve the existing test scripts' loopback-only database safeguard.
+    network_mode: service:postgres
+    command:
+      [
+        sh,
+        -ec,
+        "npm run db:test && npm test && npm run test:integration && NODE_ENV=production npm run build",
+      ]
+    environment:
+      NODE_ENV: test
+      ADMIN_DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@127.0.0.1:5432/eoms
+      DATABASE_URL: postgresql://eoms_app:${APP_DB_PASSWORD}@127.0.0.1:5432/eoms
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+      WEB_ORIGIN: http://localhost:5174
+    volumes: [eoms_verify_local:/app/.local]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+  smoke:
+    <<: *application
+    profiles: [tools]
+    network_mode: service:web
+    command: [node, scripts/docker-smoke.mjs, create]
+    environment:
+      SMOKE_BASE_URL: http://127.0.0.1:5174
+    volumes: [eoms_local:/app/.local]
+    depends_on:
+      web: { condition: service_healthy }
 volumes:
   eoms_pg:
+  eoms_local:
+  eoms_verify_local:

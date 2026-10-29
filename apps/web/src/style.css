@@ -126,9 +126,28 @@ header {
 }
 .estate {
   margin-right: auto;
+  min-width: 0;
+  max-width: 440px;
 }
-.estate select {
-  min-width: 220px;
+.estate select,
+.estate input {
+  width: 100%;
+  min-width: 0;
+}
+.estate .searchselect {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 6px;
+}
+.estate .searchselect > label:nth-of-type(2),
+.estate .searchselect > p {
+  grid-column: 1 / -1;
+}
+.estate .searchselect p {
+  margin: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
 }
 .role {
   text-transform: capitalize;
@@ -333,8 +352,12 @@ code {
     padding: 14px;
     gap: 12px;
   }
-  .estate select {
-    min-width: 140px;
+  header {
+    flex-wrap: wrap;
+  }
+  .estate {
+    flex-basis: 100%;
+    max-width: none;
   }
   main {
     padding: 20px 14px;
@@ -379,4 +402,61 @@ code {
 }
 .editor .actions {
   margin-top: 20px;
+}
+
+.error {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.eventbody {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.event summary {
+  cursor: pointer;
+  padding: 12px 0;
+  font-weight: 600;
+}
+.auditdetails {
+  margin: 0 0 14px;
+}
+.auditdetails dt {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+.auditdetails dd {
+  margin: 4px 0 0;
+}
+
+.feedbacktext {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+textarea {
+  width: 100%;
+  font: inherit;
+  padding: 10px;
+  border: 1px solid #cbd6ce;
+  border-radius: 6px;
+  min-height: 70px;
+}
+.editor form > label {
+  margin: 12px 0;
+}
+
+.account-security article {
+  border-top: 1px solid #dbe3ec;
+  padding: 12px 0;
+}
+.account-security small,
+.account-security dd,
+.account-security button {
+  overflow-wrap: anywhere;
+}
+.account-security pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }

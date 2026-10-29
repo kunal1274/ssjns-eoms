@@ -154,6 +154,16 @@ test("create is persistent and idempotent; changed payload conflicts", async () 
     b = await create(s, body, key);
   assert.equal(a.status, 201);
   assert.equal(a.body.id, b.body.id);
+  assert.notEqual(a.headers["x-request-id"], b.headers["x-request-id"]);
+  const persistedAudit = await admin.query(
+    "SELECT detail FROM eoms.audit WHERE record_id=$1 AND action='muster.created'",
+    [a.body.id],
+  );
+  assert.equal(
+    persistedAudit.rows[0].detail.requestId,
+    a.headers["x-request-id"],
+  );
+  assert.equal(persistedAudit.rowCount, 1);
   assert.equal((await create(s, { ...body, quantityHa: 1 }, key)).status, 409);
   const read = await s.agent.get(`/api/estates/${estate}/musters/${a.body.id}`);
   assert.equal(read.status, 200);

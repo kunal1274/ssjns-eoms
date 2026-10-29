@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  merge_group:
+    types: [checks_requested]
 permissions:
   contents: read
 concurrency:
@@ -11,15 +13,17 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Cold Chrome setup plus the expanded browser and Docker gates can exceed20min.
+    # Individual Playwright/expect timeouts and retries remain unchanged.
+    timeout-minutes: 30
     services:
       postgres:
-        image: postgres:18
+        image: postgres:18@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336
         env:
           POSTGRES_DB: eoms
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: isolated_ci_admin
-        ports: ['5432:5432']
+        ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U postgres -d eoms"
           --health-interval 5s --health-timeout 5s --health-retries 15
@@ -32,11 +36,44 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '24'
+          node-version: "24"
           cache: npm
       - run: npm ci
+      - run: npm run format:check
       - run: npm run db:migrate && npm run db:seed && npm run db:test
       - run: npm test && npm run test:integration && npm run build
       - run: npx playwright install --with-deps chrome
+      - name: Verify existing-account consent smoke journey
+        run: npx playwright test jrn-03-customer-join
       - run: npm run verify:browser
+      - run: npm run test:e2e
+      - run: npm run test:coverage && npm run test:coverage-ui
       - run: npm audit --audit-level=high
+      - name: Build and start the shared Docker environment
+        id: shared_docker
+        run: |
+          node scripts/setup-env.mjs
+          docker compose config --quiet
+          docker compose up --build -d --wait api web
+          docker compose --profile tools run --rm seed
+      - name: Verify container database, build, proxy and persistence
+        run: |
+          docker compose --profile tools run --rm verify
+          docker compose --profile tools run --rm smoke
+          docker compose down
+          docker compose up -d --wait api web
+          docker compose --profile tools run --rm smoke node scripts/docker-smoke.mjs verify
+      - name: Stop isolated Docker environment
+        if: ${{ always() && (steps.shared_docker.outcome == 'success' || steps.shared_docker.outcome == 'failure') }}
+        run: docker compose down --remove-orphans
+  quality-gate:
+    name: quality-gate
+    runs-on: ubuntu-latest
+    needs: [verify]
+    if: always()
+    permissions: {}
+    steps:
+      - name: Require every verification stage to succeed
+        env:
+          VERIFY_RESULT: ${{ needs.verify.result }}
+        run: test "$VERIFY_RESULT" = success

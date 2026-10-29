@@ -1,14 +1,15 @@
+import { browserOptions } from "./browser-options.mjs";
 import { chromium } from "playwright";
 import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 const accounts = JSON.parse(await readFile(".local/dev-accounts.json", "utf8"));
-const browser = await chromium.launch({ headless: true, channel: "chrome" });
+const browser = await chromium.launch(browserOptions());
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 const suffix = String(Date.now());
 try {
-  await page.goto((process.env.BROWSER_BASE_URL || "http://localhost:5174"));
+  await page.goto(process.env.BROWSER_BASE_URL || "http://localhost:5174");
   const a = accounts.find((x) => x.email === "manager@eoms.local");
   await page.getByLabel("Email", { exact: true }).fill(a.email);
   await page.getByLabel("Password", { exact: true }).fill(a.password);

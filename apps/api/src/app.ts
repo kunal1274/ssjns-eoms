@@ -1,25 +1,45 @@
-import express, {
-  type Request,
-  type Response,
-  type NextFunction,
-} from "express";
+import { customerInvitationRoutes } from "./customer-invitations";
+import { publicOnboardingRoutes, onboardingRoutes } from "./onboarding";
+import { userLifecycleRoutes } from "./user-lifecycle";
+import { oidcRoutes, oidcFromEnv, type OidcConfig } from "./oidc";
+import {
+  publicRecoveryRoutes,
+  credentialChangeRoute,
+} from "./credential-recovery";
+import { accountSecurityRoutes } from "./account-security";
+import { sessionCookie } from "./session-cookie.ts";
+import { hierarchyScopeRoutes } from "./hierarchy-scope";
+import { provisioningRoutes } from "./provisioning";
+import { siteRoutes } from "./sites";
+import { decisionLedgerRoutes } from "./decision-ledgers";
+import { navigationRoutes } from "./navigation";
+import {
+  lifecycleRoutes,
+  lifecycleLock,
+  assertTaskAvailable,
+} from "./lifecycle";
+import { responsibilityGovernanceRoutes } from "./responsibility-governance";
+import { responsibilityRoutes } from "./responsibility";
+import { placementGovernanceRoutes } from "./placement-governance";
+import { placementRoutes } from "./placement";
+import { hierarchyRoutes } from "./hierarchy";
+import { organizationRoutes } from "./organization";
+import express, { type Request, type Response } from "express";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
-import { z, ZodError } from "zod";
+import { z } from "zod";
 import type { Pool, PoolClient } from "pg";
 import { webOrigin } from "./config.ts";
 import { hash, token, verifyPassword, passwordHash } from "./security.ts";
 import { allocateHundredths } from "../../../packages/domain/allocation.ts";
 import { workflowRoutes, assertGangAllowed } from "./workflow.ts";
 import { maintenanceRoutes } from "./maintenance.ts";
-class ApiError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}
+import {
+  ApiError,
+  requestContext,
+  safeErrorHandler,
+  type FailureLogger,
+} from "./http.ts";
 const uuid = z.string().uuid();
 const createSchema = z
   .object({
@@ -48,15 +68,24 @@ const createSchema = z
       .refine((v) => new Set(v).size === v.length, "Workers must be unique"),
   })
   .strict();
-export function createApp(pool: Pool) {
+export function createApp(
+  pool: Pool,
+  options: { log?: FailureLogger; webOrigin?: string; oidc?: OidcConfig } = {},
+) {
   const app = express();
   app.disable("x-powered-by");
+  app.use("/api", requestContext);
   app.use(helmet());
-  app.use(express.json({ limit: "64kb" }));
-  app.use("/api", (_req, res, next) => {
+  app.use("/api/auth", (_req, res, next) => {
     res.set("Cache-Control", "no-store");
     next();
   });
+  // Only the bounded source-check upload accepts a larger JSON envelope.
+  app.post(
+    "/api/estates/:estateId/reconciliation/jobs/:jobId/evidence",
+    express.json({ limit: "3mb" }),
+  );
+  app.use(express.json({ limit: "64kb" }));
   app.get("/api/health", async (_req, res) => {
     await pool.query("SELECT 1");
     res.json({ status: "ok", service: "eoms-api", stage: "foundation" });
@@ -64,11 +93,20 @@ export function createApp(pool: Pool) {
   app.use("/api", (req, res, next) => {
     if (
       !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
-      req.get("Origin") !== webOrigin
+      req.get("Origin") !== (options.webOrigin ?? webOrigin)
     )
-      return res.status(403).json({ error: "Untrusted request origin" });
+      throw new ApiError(403, "Untrusted request origin", "ORIGIN_REJECTED");
     next();
   });
+  oidcRoutes(
+    app,
+    pool,
+    options.oidc ?? oidcFromEnv(),
+    options.webOrigin ?? webOrigin,
+  );
+  const localAllowed = process.env.NODE_ENV !== "production";
+  publicRecoveryRoutes(app, pool, localAllowed);
+  publicOnboardingRoutes(app, pool);
   const dummy = passwordHash("dummy-unknown-account-" + token());
   app.post(
     "/api/auth/login",
@@ -77,8 +115,17 @@ export function createApp(pool: Pool) {
       limit: 20,
       standardHeaders: "draft-8",
       legacyHeaders: false,
+      handler: (_req, _res, next) =>
+        next(
+          new ApiError(
+            429,
+            "Too many sign-in attempts. Try again later.",
+            "RATE_LIMITED",
+          ),
+        ),
     }),
     async (req, res) => {
+      if (!localAllowed) throw new ApiError(403, "Use organization sign-in.");
       const input = z
         .object({
           email: z.string().email().max(254),
@@ -86,8 +133,18 @@ export function createApp(pool: Pool) {
         })
         .strict()
         .parse(req.body);
+      const attempts = await pool.query(
+        "SELECT eoms.auth_attempt_allowed($1,60) AS account_allowed,eoms.auth_attempt_allowed($2,1000) AS ip_allowed",
+        [hash("account:" + input.email.toLowerCase()), hash("ip:" + req.ip)],
+      );
+      if (!attempts.rows[0]?.account_allowed || !attempts.rows[0]?.ip_allowed)
+        throw new ApiError(
+          429,
+          "Too many sign-in attempts. Try again later.",
+          "RATE_LIMITED",
+        );
       const result = await pool.query(
-        "SELECT id,email,display_name,password_hash,active FROM eoms.users WHERE email=$1",
+        "SELECT * FROM eoms.login_credential($1)",
         [input.email.toLowerCase()],
       );
       const u = result.rows[0];
@@ -95,14 +152,29 @@ export function createApp(pool: Pool) {
         input.password,
         u?.password_hash ?? (await dummy),
       );
-      if (!valid || !u?.active)
+      if (!valid || !u?.active) {
+        await pool.query("SELECT eoms.auth_failure($1,$2)", [
+          input.email.toLowerCase(),
+          res.locals.requestId,
+        ]);
         throw new ApiError(401, "Email or password is incorrect");
+      }
       const raw = token(),
         csrf = token();
-      await pool.query(
-        "INSERT INTO eoms.sessions(token_hash,user_id,csrf,expires_at) VALUES($1,$2,$3,now()+interval '8 hours')",
-        [hash(raw), u.id, csrf],
+      const previous = sessionCookie(req.headers.cookie);
+      const opened = await pool.query(
+        "SELECT eoms.open_local_session($1,$2,$3,$4,$5,$6) AS opened",
+        [
+          u.id,
+          u.password_hash,
+          hash(raw),
+          csrf,
+          previous ? hash(previous) : null,
+          res.locals.requestId,
+        ],
       );
+      if (!opened.rows[0]?.opened)
+        throw new ApiError(401, "Email or password is incorrect");
       res.cookie("eoms_session", raw, {
         httpOnly: true,
         sameSite: "strict",
@@ -117,17 +189,11 @@ export function createApp(pool: Pool) {
     },
   );
   app.use("/api", async (req, res, next) => {
-    const cookie = req.headers.cookie
-      ?.split(";")
-      .map((s) => s.trim())
-      .find((s) => s.startsWith("eoms_session="))
-      ?.slice(13);
-    if (!cookie || !/^[a-f0-9]{64}$/.test(cookie))
-      throw new ApiError(401, "Sign in to continue");
-    const rows = await pool.query(
-      "SELECT u.id,u.email,u.display_name,s.csrf FROM eoms.sessions s JOIN eoms.users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() AND u.active",
-      [hash(cookie)],
-    );
+    const cookie = sessionCookie(req.headers.cookie);
+    if (!cookie) throw new ApiError(401, "Sign in to continue");
+    const rows = await pool.query("SELECT * FROM eoms.auth_session($1)", [
+      hash(cookie),
+    ]);
     if (!rows.rowCount)
       throw new ApiError(401, "Session expired. Sign in again.");
     res.locals.user = rows.rows[0];
@@ -136,7 +202,7 @@ export function createApp(pool: Pool) {
       !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
       req.get("X-CSRF-Token") !== rows.rows[0].csrf
     )
-      throw new ApiError(403, "Invalid CSRF token");
+      throw new ApiError(403, "Invalid CSRF token", "CSRF_REJECTED");
     next();
   });
   app.get("/api/auth/session", (req, res) => {
@@ -147,11 +213,26 @@ export function createApp(pool: Pool) {
     });
   });
   app.post("/api/auth/logout", async (_req, res) => {
-    await pool.query("DELETE FROM eoms.sessions WHERE token_hash=$1", [
+    await pool.query("SELECT eoms.close_session($1,$2)", [
       res.locals.sessionHash,
+      res.locals.requestId,
     ]);
     res.clearCookie("eoms_session", { path: "/api" }).status(204).end();
   });
+  app.post("/api/auth/sign-out-all", async (req, res) => {
+    z.object({}).strict().parse(req.body);
+    await pool.query("SELECT eoms.close_all_sessions($1,$2,$3)", [
+      res.locals.sessionHash,
+      req.get("X-CSRF-Token"),
+      res.locals.requestId,
+    ]);
+    res.clearCookie("eoms_session", { path: "/api" }).status(204).end();
+  });
+  accountSecurityRoutes(app, pool);
+  userLifecycleRoutes(app, pool);
+  onboardingRoutes(app, pool, (options.oidc ?? oidcFromEnv())?.issuer);
+  customerInvitationRoutes(app, pool);
+  credentialChangeRoute(app, pool, localAllowed);
   async function tx<T>(res: Response, fn: (c: PoolClient) => Promise<T>) {
     const c = await pool.connect();
     try {
@@ -170,6 +251,18 @@ export function createApp(pool: Pool) {
       c.release();
     }
   }
+  organizationRoutes(app, tx);
+  provisioningRoutes(app, tx);
+  hierarchyScopeRoutes(app, tx);
+  navigationRoutes(app, tx);
+  decisionLedgerRoutes(app, tx);
+  hierarchyRoutes(app, tx);
+  siteRoutes(app, tx);
+  lifecycleRoutes(app, tx);
+  placementRoutes(app, tx);
+  placementGovernanceRoutes(app, tx);
+  responsibilityRoutes(app, tx);
+  responsibilityGovernanceRoutes(app, tx);
   async function estateTx<T>(
     req: Request,
     res: Response,
@@ -185,6 +278,7 @@ export function createApp(pool: Pool) {
       if (!m.rowCount) throw new ApiError(403, "Estate access denied");
       if (write && !["manager", "supervisor"].includes(m.rows[0].role))
         throw new ApiError(403, "Your role cannot record or confirm muster");
+      if (write) await lifecycleLock(c, id);
       return fn(c, id);
     });
   }
@@ -198,7 +292,13 @@ export function createApp(pool: Pool) {
   ) {
     await c.query(
       "INSERT INTO eoms.audit(estate_id,actor_id,action,record_id,detail) VALUES($1,$2,$3,$4,$5)",
-      [estateId, res.locals.user.id, action, id, JSON.stringify(detail)],
+      [
+        estateId,
+        res.locals.user.id,
+        action,
+        id,
+        JSON.stringify({ ...detail, requestId: res.locals.requestId }),
+      ],
     );
   }
   async function openPeriod(c: PoolClient, estateId: string, date: string) {
@@ -221,7 +321,7 @@ export function createApp(pool: Pool) {
         async (c) =>
           (
             await c.query(
-              "SELECT e.id,e.code,e.name,m.role FROM eoms.estates e JOIN eoms.memberships m ON m.estate_id=e.id WHERE m.user_id=$1 ORDER BY e.name",
+              "SELECT e.id,e.code,e.name,e.active,m.role FROM eoms.estates e JOIN eoms.memberships m ON m.estate_id=e.id WHERE m.user_id=$1 ORDER BY e.name",
               [res.locals.user.id],
             )
           ).rows,
@@ -345,12 +445,13 @@ export function createApp(pool: Pool) {
       await assertGangAllowed(c, res, id, input.gangCode, ApiError);
       const occurrence = (
         await c.query(
-          "SELECT id,capacity_ha FROM eoms.occurrences WHERE estate_id=$1 AND id=$2",
+          "SELECT id,capacity_ha,block_unit_id FROM eoms.occurrences WHERE estate_id=$1 AND id=$2",
           [id, input.occurrenceId],
         )
       ).rows[0];
       if (!occurrence)
         throw new ApiError(422, "Task does not belong to this estate");
+      await assertTaskAvailable(c, id, occurrence.block_unit_id);
       if (input.quantityHa > Number(occurrence.capacity_ha))
         throw new ApiError(422, "Work exceeds registered task area");
       const workers = (
@@ -386,6 +487,9 @@ export function createApp(pool: Pool) {
       await audit(c, id, res, "muster.created", row.id, {
         quantityHa: input.quantityHa,
         workers: input.workerIds.length,
+        legalCompanyId: row.legal_company_id,
+        legalCompanyName: row.legal_company_name,
+        legalResponsibilityId: row.legal_responsibility_id,
       });
       await c.query(
         "INSERT INTO eoms.idempotency(estate_id,user_id,key,request_hash,response) VALUES($1,$2,$3,$4,$5)",
@@ -415,6 +519,13 @@ export function createApp(pool: Pool) {
         await openPeriod(c, id, first.business_date);
         await assertGangAllowed(c, res, id, first.gang_code, ApiError);
         if (first.status === "confirmed") return first;
+        const block = (
+          await c.query(
+            "SELECT block_unit_id FROM eoms.occurrences WHERE estate_id=$1 AND id=$2",
+            [id, first.occurrence_id],
+          )
+        ).rows[0];
+        await assertTaskAvailable(c, id, block?.block_unit_id ?? null);
         const occurrence = (
           await c.query(
             "SELECT capacity_ha FROM eoms.occurrences WHERE estate_id=$1 AND id=$2 FOR UPDATE",
@@ -501,33 +612,9 @@ export function createApp(pool: Pool) {
       ),
     ),
   );
-  app.use("/api", (_req, res) =>
-    res.status(404).json({ error: "API route not found" }),
-  );
-  app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
-    if (error instanceof ZodError)
-      return res.status(422).json({
-        error: error.errors
-          .map((e) => `${e.path.join(".")}: ${e.message}`)
-          .join("; "),
-      });
-    if (error instanceof ApiError)
-      return res.status(error.status).json({ error: error.message });
-    if (error.code === "23503")
-      return res.status(422).json({ error: "Invalid record reference" });
-    if (error.code === "23505")
-      return res
-        .status(409)
-        .json({ error: "A matching record already exists" });
-    if (error.type === "entity.too.large")
-      return res.status(413).json({ error: "Request too large" });
-    if (error.type === "entity.parse.failed")
-      return res.status(400).json({ error: "Invalid JSON" });
-    console.error("API error", {
-      code: error.code || "unknown",
-      message: error.message,
-    });
-    res.status(500).json({ error: "Request could not be completed" });
+  app.use("/api", () => {
+    throw new ApiError(404, "API route not found");
   });
+  app.use(safeErrorHandler(options.log));
   return app;
 }

@@ -1,0 +1,2463 @@
+{
+  "schemaVersion": 1,
+  "scope": "Initial EOMS assertion inventory: selected organization/work controls plus explicit journey gaps. This is not a complete product/control inventory; legacy-script and manual evidence is not imported.",
+  "projects": ["chrome-desktop", "chrome-mobile"],
+  "items": [
+    {
+      "id": "COV-EMAIL-REQUIRED",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "field",
+      "control": "Email",
+      "assertion": "Empty email prevents login and receives focus",
+      "binding": {
+        "caseId": "E2E-JRN-03-001",
+        "step": "Required email and password prevent submission and receive focus"
+      }
+    },
+    {
+      "id": "COV-EMAIL-FORMAT",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "field",
+      "control": "Email",
+      "assertion": "Invalid email format prevents login",
+      "binding": {
+        "caseId": "E2E-JRN-03-001",
+        "step": "Required email and password prevent submission and receive focus"
+      }
+    },
+    {
+      "id": "COV-PASSWORD-REQUIRED",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "field",
+      "control": "Password",
+      "assertion": "Empty password prevents login and receives focus",
+      "binding": {
+        "caseId": "E2E-JRN-03-001",
+        "step": "Required email and password prevent submission and receive focus"
+      }
+    },
+    {
+      "id": "COV-LOGIN-PREVENT",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "form",
+      "control": "Sign-in form",
+      "assertion": "Invalid input sends no login POST",
+      "binding": {
+        "caseId": "E2E-JRN-03-001",
+        "step": "Required email and password prevent submission and receive focus"
+      }
+    },
+    {
+      "id": "COV-LOGIN-RECOVERY",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "form",
+      "control": "Service error",
+      "assertion": "Safe support reference, hidden private error, preserved email and enabled retry",
+      "binding": {
+        "caseId": "E2E-JRN-03-001",
+        "step": "Show safe service guidance and support reference, preserving the form"
+      }
+    },
+    {
+      "id": "COV-LOGIN-NAV",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "navigation",
+      "control": "Sign in \u2192 register",
+      "assertion": "Real authentication retry reaches register and clears alert",
+      "binding": {
+        "caseId": "E2E-JRN-03-001",
+        "step": "Retry against real authentication and navigate to the register"
+      }
+    },
+    {
+      "id": "COV-DATE-REQUIRED",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "field",
+      "control": "Work date",
+      "assertion": "Missing date prevents POST and receives focus",
+      "binding": {
+        "caseId": "E2E-JRN-07-002",
+        "step": "Missing date, gang and area focus the invalid field without posting"
+      }
+    },
+    {
+      "id": "COV-GANG-REQUIRED",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "field",
+      "control": "Gang",
+      "assertion": "Missing gang prevents POST and receives focus",
+      "binding": {
+        "caseId": "E2E-JRN-07-002",
+        "step": "Missing date, gang and area focus the invalid field without posting"
+      }
+    },
+    {
+      "id": "COV-AREA-REQUIRED",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "field",
+      "control": "Area",
+      "assertion": "Missing area prevents POST and receives focus",
+      "binding": {
+        "caseId": "E2E-JRN-07-002",
+        "step": "Missing date, gang and area focus the invalid field without posting"
+      }
+    },
+    {
+      "id": "COV-AREA-BOUNDS",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "field",
+      "control": "Area",
+      "assertion": "Zero and invalid precision fail native validity; no POST",
+      "binding": {
+        "caseId": "E2E-JRN-07-002",
+        "step": "Missing date, gang and area focus the invalid field without posting"
+      }
+    },
+    {
+      "id": "COV-WORKER-REQUIRED",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "field",
+      "control": "Workers",
+      "assertion": "No worker disables Save; selecting a worker re-enables it and retains area",
+      "binding": {
+        "caseId": "E2E-JRN-07-002",
+        "step": "Missing worker selection disables saving and keeps entered values"
+      }
+    },
+    {
+      "id": "COV-WORK-REJECTION",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "form",
+      "control": "Rejected submission",
+      "assertion": "Injected 422 shows guidance/reference, retains date/area and creates no record",
+      "binding": {
+        "caseId": "E2E-JRN-07-002",
+        "step": "Server validation rejection supplies guidance without saving a record"
+      }
+    },
+    {
+      "id": "COV-WORK-RETRY",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "action",
+      "control": "Corrected retry",
+      "assertion": "Real retry saves one record and one creation audit; success feedback and no alert",
+      "binding": {
+        "caseId": "E2E-JRN-07-002",
+        "step": "Corrected retry saves exactly one draft and one audit event"
+      }
+    },
+    {
+      "id": "COV-DRAFT-SAVE",
+      "journey": "JRN-07",
+      "screen": "Muster register",
+      "category": "action",
+      "control": "Save draft",
+      "assertion": "201 response, success status and visible persisted record/detail",
+      "binding": {
+        "caseId": "E2E-JRN-07-001",
+        "step": "Save once and verify a persisted draft plus success feedback"
+      }
+    },
+    {
+      "id": "COV-CONFIRM-RELOAD",
+      "journey": "JRN-07",
+      "screen": "Muster detail",
+      "category": "action",
+      "control": "Confirm and reload",
+      "assertion": "Confirmed heading and persisted record/quantity survive reload",
+      "binding": {
+        "caseId": "E2E-JRN-07-001",
+        "step": "Confirm and verify the saved state after reload"
+      }
+    },
+    {
+      "id": "COV-AUDIT-SUMMARY-DETAIL",
+      "journey": "JRN-07",
+      "screen": "Audit trail",
+      "category": "audit",
+      "control": "Audit disclosure",
+      "assertion": "Readable confirmation, expandable reference and exactly creation/confirmation events",
+      "binding": {
+        "caseId": "E2E-JRN-07-001",
+        "step": "Check scope denial, short audit and expandable details"
+      }
+    },
+    {
+      "id": "COV-SCOPE-DENIAL",
+      "journey": "JRN-07",
+      "screen": "Muster register",
+      "category": "action",
+      "control": "Cross-estate access",
+      "assertion": "Other-estate API returns 403",
+      "binding": {
+        "caseId": "E2E-JRN-07-001",
+        "step": "Check scope denial, short audit and expandable details"
+      }
+    },
+    {
+      "id": "COV-VIEWPORT-OVERFLOW",
+      "journey": "JRN-07",
+      "screen": "Audit trail",
+      "category": "navigation",
+      "control": "Viewport layout",
+      "assertion": "Audit screen has no horizontal overflow at the selected viewport",
+      "binding": {
+        "caseId": "E2E-JRN-07-001",
+        "step": "Check scope denial, short audit and expandable details"
+      }
+    },
+    {
+      "id": "COV-LOGOUT-NAV",
+      "journey": "JRN-07",
+      "screen": "Muster register",
+      "category": "navigation",
+      "control": "Sign out",
+      "assertion": "Sign-out returns to sign-in form",
+      "binding": {
+        "caseId": "E2E-JRN-07-001",
+        "step": "Sign out and return to the sign-in form"
+      }
+    },
+    {
+      "id": "COV-TASK-REQUIRED",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "field",
+      "control": "Task selector",
+      "assertion": "Explicit empty/invalid task validation"
+    },
+    {
+      "id": "COV-AREA-LIMIT",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "field",
+      "control": "Area limit",
+      "assertion": "Maximum permitted area boundary and contextual error"
+    },
+    {
+      "id": "COV-FORM-CANCEL",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "action",
+      "control": "Cancel/reset",
+      "assertion": "Unsaved-change handling and reset semantics"
+    },
+    {
+      "id": "COV-AUDIT-SEARCH",
+      "journey": "JRN-11",
+      "screen": "Audit trail",
+      "category": "navigation",
+      "control": "History/search",
+      "assertion": "Authorized history filters, pagination and record links"
+    },
+    {
+      "id": "COV-AUDIT-PERMISSIONS",
+      "journey": "JRN-11",
+      "screen": "Audit trail",
+      "category": "audit",
+      "control": "Detail permissions",
+      "assertion": "Server audit/detail/field permissions; UI hiding is insufficient"
+    },
+    {
+      "id": "COV-SESSION-REVOKE",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "action",
+      "control": "Revoked session",
+      "assertion": "Protected action denied after revocation",
+      "binding": {
+        "caseId": "E2E-JRN-03-003",
+        "step": "Recover a committed revocation after losing its response without replaying new effects"
+      }
+    },
+    {
+      "id": "COV-KEYBOARD-FORM",
+      "journey": "JRN-07",
+      "screen": "Work form",
+      "category": "form",
+      "control": "Keyboard journey",
+      "assertion": "Full keyboard flow and error-summary focus/associations"
+    },
+    {
+      "id": "COV-JOURNEY-01",
+      "journey": "JRN-01",
+      "screen": "Tenant provisioning",
+      "category": "journey",
+      "control": "Tenant provisioning",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-02",
+      "journey": "JRN-02",
+      "screen": "Hierarchy",
+      "category": "journey",
+      "control": "Hierarchy",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-04",
+      "journey": "JRN-04",
+      "screen": "Custom roles",
+      "category": "journey",
+      "control": "Custom roles",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-05",
+      "journey": "JRN-05",
+      "screen": "Licensing",
+      "category": "journey",
+      "control": "Licensing",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-06",
+      "journey": "JRN-06",
+      "screen": "Master maintenance",
+      "category": "journey",
+      "control": "Master maintenance",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-08",
+      "journey": "JRN-08",
+      "screen": "Independent review/reversal",
+      "category": "journey",
+      "control": "Independent review/reversal",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-09",
+      "journey": "JRN-09",
+      "screen": "Correction lineage",
+      "category": "journey",
+      "control": "Correction lineage",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-10",
+      "journey": "JRN-10",
+      "screen": "Offline queue",
+      "category": "journey",
+      "control": "Offline queue",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-12",
+      "journey": "JRN-12",
+      "screen": "Consolidated reports",
+      "category": "journey",
+      "control": "Consolidated reports",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-13",
+      "journey": "JRN-13",
+      "screen": "Integration reconciliation",
+      "category": "journey",
+      "control": "Integration reconciliation",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-14",
+      "journey": "JRN-14",
+      "screen": "Task queues",
+      "category": "journey",
+      "control": "Task queues",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-15",
+      "journey": "JRN-15",
+      "screen": "Payroll/finance",
+      "category": "journey",
+      "control": "Payroll/finance",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-JOURNEY-16",
+      "journey": "JRN-16",
+      "screen": "Wider field operations",
+      "category": "journey",
+      "control": "Wider field operations",
+      "assertion": "Runner assertion mapping remains incomplete; see accepted journey evidence map and legacy/API evidence separately"
+    },
+    {
+      "id": "COV-ORGANIZATION-SCOPE",
+      "journey": "JRN-02",
+      "screen": "Organization",
+      "category": "navigation",
+      "control": "Organization context",
+      "assertion": "Only assigned estate and its customer appear; sibling estate excluded",
+      "binding": {
+        "caseId": "E2E-JRN-02-001",
+        "step": "Read scoped customer/company/estate context"
+      }
+    },
+    {
+      "id": "COV-CUSTOMER-HISTORY",
+      "journey": "JRN-02",
+      "screen": "Organization",
+      "category": "audit",
+      "control": "Customer display history",
+      "assertion": "Recorded creation and expandable before/after display fields",
+      "binding": {
+        "caseId": "E2E-JRN-02-001",
+        "step": "Inspect recorded customer creation details"
+      }
+    },
+    {
+      "id": "COV-ESTATE-HANDOFF",
+      "journey": "JRN-02",
+      "screen": "Organization",
+      "category": "action",
+      "control": "Open assigned estate",
+      "assertion": "Opening the assigned estate returns to its register and capture action",
+      "binding": {
+        "caseId": "E2E-JRN-02-001",
+        "step": "Open assigned estate and continue in muster register"
+      }
+    },
+    {
+      "id": "COV-GROUP-SETUP",
+      "journey": "JRN-02",
+      "screen": "Hierarchy setup",
+      "category": "form",
+      "control": "Group and company",
+      "assertion": "Create legal group and persist company assignment",
+      "binding": {
+        "caseId": "E2E-JRN-02-002",
+        "step": "Create legal group and assign company"
+      }
+    },
+    {
+      "id": "COV-DIVISION-FIELD",
+      "journey": "JRN-02",
+      "screen": "Hierarchy setup",
+      "category": "form",
+      "control": "Division and field",
+      "assertion": "Create division and field with persisted parent relationship",
+      "binding": {
+        "caseId": "E2E-JRN-02-002",
+        "step": "Create division and optional field"
+      }
+    },
+    {
+      "id": "COV-BLOCK-EDIT",
+      "journey": "JRN-02",
+      "screen": "Hierarchy setup",
+      "category": "action",
+      "control": "Block create and edit",
+      "assertion": "Create block under field and update display name with version increment",
+      "binding": {
+        "caseId": "E2E-JRN-02-002",
+        "step": "Create block and edit its display name"
+      }
+    },
+    {
+      "id": "COV-HIERARCHY-HISTORY",
+      "journey": "JRN-02",
+      "screen": "Hierarchy setup",
+      "category": "audit",
+      "control": "Hierarchy history",
+      "assertion": "Reload persisted hierarchy and inspect recorded before/after, reason and request reference",
+      "binding": {
+        "caseId": "E2E-JRN-02-002",
+        "step": "Review persisted hierarchy and recorded changes"
+      }
+    },
+    {
+      "id": "COV-TASK-CONFIGURED-BLOCK",
+      "journey": "JRN-06",
+      "screen": "Task capacity",
+      "category": "form",
+      "control": "Configured block selector",
+      "assertion": "Persist task block ID and display linked status",
+      "binding": {
+        "caseId": "E2E-JRN-06-001",
+        "step": "Create task from configured block and verify stable reference"
+      }
+    },
+    {
+      "id": "COV-TASK-LEGACY-LINK",
+      "journey": "JRN-06",
+      "screen": "Task capacity",
+      "category": "action",
+      "control": "Legacy link review",
+      "assertion": "Explicit legacy mode, conflict support reference, retained fields, no rejected write and real versioned link",
+      "binding": {
+        "caseId": "E2E-JRN-06-001",
+        "step": "Review legacy task linking with recoverable conflict and retained fields"
+      }
+    },
+    {
+      "id": "COV-BLOCK-TASK-WORK",
+      "journey": "JRN-06",
+      "screen": "Task capacity",
+      "category": "journey",
+      "control": "Block to work handoff",
+      "assertion": "Save and reload work tied to the configured task and block IDs",
+      "binding": {
+        "caseId": "E2E-JRN-06-001",
+        "step": "Capture and persist work against the configured task identity"
+      }
+    },
+    {
+      "id": "COV-TASK-LINK-AUDIT",
+      "journey": "JRN-06",
+      "screen": "Task capacity",
+      "category": "audit",
+      "control": "Link audit and hierarchy handoff",
+      "assertion": "Readable summary/reason/block reference, persisted linked status, one before/after event and hierarchy navigation",
+      "binding": {
+        "caseId": "E2E-JRN-06-001",
+        "step": "Inspect recorded block link summary details and persisted task status"
+      }
+    },
+    {
+      "id": "COV-AREA-PARENT-SETUP",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "form",
+      "control": "Optional operating areas",
+      "assertion": "Create region and business unit with persisted typed parent",
+      "binding": {
+        "caseId": "E2E-JRN-02-003",
+        "step": "Create optional region and business unit with recorded parent"
+      }
+    },
+    {
+      "id": "COV-ESTATE-PLACEMENT",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "action",
+      "control": "Initial estate placement",
+      "assertion": "Persist initial area with unchanged company, reload and reject direct reassignment",
+      "binding": {
+        "caseId": "E2E-JRN-02-003",
+        "step": "Place estate once and persist unchanged legal ownership"
+      }
+    },
+    {
+      "id": "COV-PLACEMENT-AUDIT",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "audit",
+      "control": "Operating placement history",
+      "assertion": "Versioned label edit and recorded before/after, reason and request reference",
+      "binding": {
+        "caseId": "E2E-JRN-02-003",
+        "step": "Edit area display and review before after placement audit"
+      }
+    },
+    {
+      "id": "COV-AREA-SCOPE",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "navigation",
+      "control": "Read-only placement scope",
+      "assertion": "Unassigned sibling areas/estate absent; no setup controls; assigned-estate register handoff",
+      "binding": {
+        "caseId": "E2E-JRN-02-003",
+        "step": "Verify ordinary estate access gains no sibling area or estate visibility"
+      }
+    },
+    {
+      "id": "COV-LEGAL-BASELINE",
+      "journey": "JRN-02",
+      "screen": "Estate responsibility",
+      "category": "navigation",
+      "control": "Responsibility date review",
+      "assertion": "Before-boundary view resolves baseline and makes no schedule write",
+      "binding": {
+        "caseId": "E2E-JRN-02-004",
+        "step": "Review baseline responsibility before the effective boundary"
+      }
+    },
+    {
+      "id": "COV-LEGAL-SCHEDULE",
+      "journey": "JRN-02",
+      "screen": "Estate responsibility",
+      "category": "form",
+      "control": "Dated responsibility change",
+      "assertion": "Persist dated company with unchanged baseline and inspect previous/new/reason/reference",
+      "binding": {
+        "caseId": "E2E-JRN-02-004",
+        "step": "Schedule dated responsibility and inspect recorded change details"
+      }
+    },
+    {
+      "id": "COV-LEGAL-WORK-SNAPSHOT",
+      "journey": "JRN-02",
+      "screen": "Estate responsibility",
+      "category": "journey",
+      "control": "Work attribution snapshot",
+      "assertion": "Save and reload muster with captured company name/ID and responsibility event",
+      "binding": {
+        "caseId": "E2E-JRN-02-004",
+        "step": "Capture reload and inspect immutable responsible company snapshot"
+      }
+    },
+    {
+      "id": "COV-LEGAL-RECORDED-WORK-GUARD",
+      "journey": "JRN-02",
+      "screen": "Estate responsibility",
+      "category": "action",
+      "control": "Recorded work protection",
+      "assertion": "Real conflict retains input and support reference; no extra schedule or attribution rewrite",
+      "binding": {
+        "caseId": "E2E-JRN-02-004",
+        "step": "Reject schedule affecting recorded work with retained input and audit reference"
+      }
+    },
+    {
+      "id": "COV-CANCEL-REQUEST",
+      "journey": "JRN-02",
+      "screen": "Responsibility cancellation",
+      "category": "form",
+      "control": "Cancellation request and self-review denial",
+      "assertion": "Pending request leaves schedule active and server rejects self-review",
+      "binding": {
+        "caseId": "E2E-JRN-02-005",
+        "step": "Request future cancellation without changing active responsibility"
+      }
+    },
+    {
+      "id": "COV-CANCEL-REVIEW",
+      "journey": "JRN-02",
+      "screen": "Responsibility cancellation",
+      "category": "audit",
+      "control": "Independent setup review",
+      "assertion": "Distinct authenticated reviewer approves; request/decision actors and references are visible; resolver excludes cancelled change",
+      "binding": {
+        "caseId": "E2E-JRN-02-005",
+        "step": "Independent setup reviewer approves and records actor reasons and references"
+      }
+    },
+    {
+      "id": "COV-CANCEL-REPLACEMENT",
+      "journey": "JRN-02",
+      "screen": "Responsibility cancellation",
+      "category": "action",
+      "control": "Linked correction",
+      "assertion": "Append replacement with revision 2 and original cancelled event retained",
+      "binding": {
+        "caseId": "E2E-JRN-02-005",
+        "step": "Create linked same-date replacement while retaining cancelled original"
+      }
+    },
+    {
+      "id": "COV-CANCEL-WORK-GUARD",
+      "journey": "JRN-02",
+      "screen": "Responsibility cancellation",
+      "category": "journey",
+      "control": "Replacement attribution and recovery",
+      "assertion": "Work captures replacement identity; recorded-work guard retains input/reference and makes no extra request",
+      "binding": {
+        "caseId": "E2E-JRN-02-005",
+        "step": "Capture replacement work and deny cancellation with retained recovery guidance"
+      }
+    },
+    {
+      "id": "COV-MOVE-REQUEST",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "action",
+      "control": "Request/self-review guard",
+      "assertion": "Pending move leaves current area unchanged; real self-review denied",
+      "binding": {
+        "caseId": "E2E-JRN-02-006",
+        "step": "Request a move and retain current placement until independent review"
+      }
+    },
+    {
+      "id": "COV-MOVE-DEPENDENCIES",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "action",
+      "control": "Dependency recovery",
+      "assertion": "Assigned area blocks deactivation, retaining reason/reference and active state",
+      "binding": {
+        "caseId": "E2E-JRN-02-006",
+        "step": "Block area deactivation with retained reason and support reference"
+      }
+    },
+    {
+      "id": "COV-MOVE-APPROVE",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "action",
+      "control": "Independent move review",
+      "assertion": "Distinct reviewer moves estate, preserves company/version and request/decision provenance",
+      "binding": {
+        "caseId": "E2E-JRN-02-006",
+        "step": "Independent approval moves estate and preserves legal identity with audit references"
+      }
+    },
+    {
+      "id": "COV-MOVE-LIFECYCLE",
+      "journey": "JRN-02",
+      "screen": "Operating placement",
+      "category": "action",
+      "control": "Area lifecycle",
+      "assertion": "Vacated area deactivates, inactive target denied, reactivation records before/after state",
+      "binding": {
+        "caseId": "E2E-JRN-02-006",
+        "step": "Deactivate emptied source prevent reuse and reactivate with lifecycle history"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-DEPENDENCY",
+      "journey": "JRN-02",
+      "screen": "Estate and unit availability",
+      "category": "action",
+      "control": "Child dependency recovery",
+      "assertion": "Active child blocks parent pause with retained reason and reference",
+      "binding": {
+        "caseId": "E2E-JRN-02-007",
+        "step": "Guide child dependency recovery and retain reason with support reference"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-DRAFT",
+      "journey": "JRN-02",
+      "screen": "Estate and unit availability",
+      "category": "action",
+      "control": "Open draft safeguards",
+      "assertion": "UI capture creates a draft that blocks block/estate pause",
+      "binding": {
+        "caseId": "E2E-JRN-02-007",
+        "step": "Capture a linked draft and block both unit and estate deactivation"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-HISTORY",
+      "journey": "JRN-02",
+      "screen": "Estate and unit availability",
+      "category": "action",
+      "control": "Preserved work and audit",
+      "assertion": "Confirmed work remains intact, linked task disappears from capture, real new POST denied and before/after audit retained",
+      "binding": {
+        "caseId": "E2E-JRN-02-007",
+        "step": "Confirm draft then deactivate hierarchy while retaining work and audit"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-ESTATE",
+      "journey": "JRN-02",
+      "screen": "Estate and unit availability",
+      "category": "action",
+      "control": "Estate pause guidance",
+      "assertion": "Inactive banner, retained readable work and navigation back to availability",
+      "binding": {
+        "caseId": "E2E-JRN-02-007",
+        "step": "Pause estate and keep confirmed history readable with clear work guidance"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-RESUME",
+      "journey": "JRN-02",
+      "screen": "Estate and unit availability",
+      "category": "action",
+      "control": "Ordered reactivation",
+      "assertion": "Parent-first guard retains input, ordered resume restores UI capture",
+      "binding": {
+        "caseId": "E2E-JRN-02-007",
+        "step": "Reactivate estate and parents before block then resume linked capture"
+      }
+    },
+    {
+      "id": "COV-NAV-ESTATE",
+      "journey": "JRN-02",
+      "screen": "Organization explorer",
+      "category": "navigation",
+      "control": "Estate search and paging",
+      "assertion": "Find assigned estate beyond the 200-row overview and reset/paginate results",
+      "binding": {
+        "caseId": "E2E-JRN-02-008",
+        "step": "Search and paginate assigned estates beyond the overview limit"
+      }
+    },
+    {
+      "id": "COV-NAV-RECOVERY",
+      "journey": "JRN-02",
+      "screen": "Organization explorer",
+      "category": "navigation",
+      "control": "Paging recovery",
+      "assertion": "Injected 503 retains rows/reference; real retry appends a unique next page",
+      "binding": {
+        "caseId": "E2E-JRN-02-008",
+        "step": "Recover a failed unit next page without losing rows or duplicating results"
+      }
+    },
+    {
+      "id": "COV-NAV-UNIT",
+      "journey": "JRN-02",
+      "screen": "Organization explorer",
+      "category": "navigation",
+      "control": "Unit search and record history",
+      "assertion": "Find configured unit beyond 500, literal search and actor/reference audit filtering",
+      "binding": {
+        "caseId": "E2E-JRN-02-008",
+        "step": "Find a unit beyond 500 and filter its actual actor and support history"
+      }
+    },
+    {
+      "id": "COV-NAV-CUSTOMER",
+      "journey": "JRN-02",
+      "screen": "Organization explorer",
+      "category": "navigation",
+      "control": "Older display history",
+      "assertion": "Server search reaches creation outside the recent history cap",
+      "binding": {
+        "caseId": "E2E-JRN-02-008",
+        "step": "Search older customer history outside the recent 50 event window"
+      }
+    },
+    {
+      "id": "COV-NAV-SCOPE",
+      "journey": "JRN-02",
+      "screen": "Organization explorer",
+      "category": "navigation",
+      "control": "Scoped work handoff",
+      "assertion": "Unassigned actor denied and selected estate opens register at correct context",
+      "binding": {
+        "caseId": "E2E-JRN-02-008",
+        "step": "Deny unassigned scope and continue from explorer into estate work"
+      }
+    },
+    {
+      "id": "COV-SELECTOR-ESTATE",
+      "journey": "JRN-02",
+      "screen": "Connected hierarchy configuration",
+      "category": "navigation",
+      "control": "Hierarchy estate",
+      "assertion": "Find assigned estate beyond overview and retain explicit scope",
+      "binding": {
+        "caseId": "E2E-JRN-02-009",
+        "step": "Find and retain an assigned estate outside the bounded setup overview"
+      }
+    },
+    {
+      "id": "COV-SELECTOR-PARENT",
+      "journey": "JRN-02",
+      "screen": "Connected hierarchy configuration",
+      "category": "form",
+      "control": "Unit parent and unit creation",
+      "assertion": "Retain chosen parent and inputs through correlated 503 and retry then persist field/block relationships",
+      "binding": {
+        "caseId": "E2E-JRN-02-009",
+        "step": "Recover parent search without discarding fields then create a field and block beyond 500"
+      }
+    },
+    {
+      "id": "COV-SELECTOR-EDIT",
+      "journey": "JRN-02",
+      "screen": "Connected hierarchy configuration",
+      "category": "form",
+      "control": "Existing unit",
+      "assertion": "Find deep record recover real version conflict and explicitly reload current revision",
+      "binding": {
+        "caseId": "E2E-JRN-02-009",
+        "step": "Refresh and explicitly reload a deep existing unit after a real version conflict"
+      }
+    },
+    {
+      "id": "COV-SELECTOR-TASK",
+      "journey": "JRN-02",
+      "screen": "Connected hierarchy configuration",
+      "category": "action",
+      "control": "Configured and matching block",
+      "assertion": "Create configured task and explicitly review exact-code legacy link beyond old unit cap",
+      "binding": {
+        "caseId": "E2E-JRN-02-009",
+        "step": "Choose a deep configured block and review exact-code legacy linking"
+      }
+    },
+    {
+      "id": "COV-SELECTOR-CAPTURE",
+      "journey": "JRN-02",
+      "screen": "Connected hierarchy configuration",
+      "category": "journey",
+      "control": "Muster capture",
+      "assertion": "Persist selected estate occurrence block and legal company identities",
+      "binding": {
+        "caseId": "E2E-JRN-02-009",
+        "step": "Capture work with the selected estate task block and company identities intact"
+      }
+    },
+    {
+      "id": "COV-CONTEXT-CUSTOMER",
+      "journey": "JRN-02",
+      "screen": "Customer company group setup",
+      "category": "navigation",
+      "control": "Customer",
+      "assertion": "Select a permitted root outside the overview and enter the correct setup",
+      "binding": {
+        "caseId": "E2E-JRN-02-010",
+        "step": "Find a permitted customer outside the organization overview and enter its setup"
+      }
+    },
+    {
+      "id": "COV-CONTEXT-GROUP",
+      "journey": "JRN-02",
+      "screen": "Customer company group setup",
+      "category": "form",
+      "control": "Company and group choices",
+      "assertion": "Retain deep company group IDs and reason through correlated group search failure and real retry",
+      "binding": {
+        "caseId": "E2E-JRN-02-010",
+        "step": "Recover group search with deep company choice and assignment reason retained"
+      }
+    },
+    {
+      "id": "COV-CONTEXT-VERSION",
+      "journey": "JRN-02",
+      "screen": "Customer company group setup",
+      "category": "form",
+      "control": "Company group save",
+      "assertion": "Reject real stale write then explicitly reload current company and save reviewed group at the next version",
+      "binding": {
+        "caseId": "E2E-JRN-02-010",
+        "step": "Recover a real company version conflict and explicitly reload before saving"
+      }
+    },
+    {
+      "id": "COV-CONTEXT-AUDIT",
+      "journey": "JRN-02",
+      "screen": "Customer company group setup",
+      "category": "audit",
+      "control": "Group assignment history",
+      "assertion": "Read actual before after actor support provenance and deny unassigned customer pin",
+      "binding": {
+        "caseId": "E2E-JRN-02-010",
+        "step": "Inspect actual group audit provenance and reject an unassigned customer pin"
+      }
+    },
+    {
+      "id": "COV-PAGED-PLACEMENT-PARENT",
+      "journey": "JRN-02",
+      "screen": "Placement and responsibility",
+      "category": "form",
+      "control": "Area parent and estate",
+      "assertion": "Find region and estate beyond overview then persist business unit parent",
+      "binding": {
+        "caseId": "E2E-JRN-02-011",
+        "step": "Find an estate and region beyond the overview then create its business unit"
+      }
+    },
+    {
+      "id": "COV-PAGED-PLACEMENT-RECOVERY",
+      "journey": "JRN-02",
+      "screen": "Placement and responsibility",
+      "category": "form",
+      "control": "Initial placement",
+      "assertion": "Retain selected IDs/reason through correlated area search failure and real retry",
+      "binding": {
+        "caseId": "E2E-JRN-02-011",
+        "step": "Retain placement inputs through search failure then save the intended estate area"
+      }
+    },
+    {
+      "id": "COV-PAGED-PLACEMENT-MOVE",
+      "journey": "JRN-02",
+      "screen": "Placement and responsibility",
+      "category": "journey",
+      "control": "Independent placement move",
+      "assertion": "Request and independently approve selected estate movement while preserving company and identity",
+      "binding": {
+        "caseId": "E2E-JRN-02-011",
+        "step": "Request and independently approve a move for the deeply selected estate"
+      }
+    },
+    {
+      "id": "COV-PAGED-PLACEMENT-COMPANY",
+      "journey": "JRN-02",
+      "screen": "Placement and responsibility",
+      "category": "form",
+      "control": "Responsibility company",
+      "assertion": "Select company outside overview and inspect real dated attribution audit",
+      "binding": {
+        "caseId": "E2E-JRN-02-011",
+        "step": "Select a deep responsible company and save a dated attributable change"
+      }
+    },
+    {
+      "id": "COV-PAGED-PLACEMENT-CAPTURE",
+      "journey": "JRN-02",
+      "screen": "Placement and responsibility",
+      "category": "journey",
+      "control": "Work attribution",
+      "assertion": "Persist estate operating area and date-effective company alignment on captured work",
+      "binding": {
+        "caseId": "E2E-JRN-02-011",
+        "step": "Capture work with estate identity operating placement and dated company aligned"
+      }
+    },
+    {
+      "id": "COV-PAGED-AVAILABILITY-HEADER",
+      "journey": "JRN-02",
+      "screen": "Organization / Availability",
+      "category": "navigation",
+      "control": "Estate switcher",
+      "assertion": "Search, page, switch and reload a deep estate with the actual membership role",
+      "binding": {
+        "caseId": "E2E-JRN-02-012",
+        "step": "Search and page assigned estates then retain a deep header selection after reload"
+      }
+    },
+    {
+      "id": "COV-PAGED-AVAILABILITY-SEARCH",
+      "journey": "JRN-02",
+      "screen": "Organization / Availability",
+      "category": "form",
+      "control": "Availability search recovery",
+      "assertion": "Retain selected deep unit and reason through safe correlated search failure/retry",
+      "binding": {
+        "caseId": "E2E-JRN-02-012",
+        "step": "Reach deep availability records and retain reason through correlated search recovery"
+      }
+    },
+    {
+      "id": "COV-PAGED-AVAILABILITY-VERSION",
+      "journey": "JRN-02",
+      "screen": "Organization / Availability",
+      "category": "action",
+      "control": "Availability conflict reload",
+      "assertion": "Retain stale reviewed state and reason, explicitly reload, then save with real detailed audit",
+      "binding": {
+        "caseId": "E2E-JRN-02-012",
+        "step": "Reject stale availability without replacing reviewed state until explicit reload"
+      }
+    },
+    {
+      "id": "COV-PAGED-AVAILABILITY-REFRESH",
+      "journey": "JRN-02",
+      "screen": "Organization / Availability",
+      "category": "action",
+      "control": "Acknowledged change recovery",
+      "assertion": "Block repeated writes after saved-but-refresh-failed and recover without duplicate history",
+      "binding": {
+        "caseId": "E2E-JRN-02-012",
+        "step": "Block duplicate changes after acknowledged save refresh failure and recover explicitly"
+      }
+    },
+    {
+      "id": "COV-PAGED-AVAILABILITY-CONTEXT",
+      "journey": "JRN-02",
+      "screen": "Organization / Availability",
+      "category": "navigation",
+      "control": "Inactive estate context",
+      "assertion": "Keep inactive estate selected across navigation and reload; refresh resumed work guidance",
+      "binding": {
+        "caseId": "E2E-JRN-02-012",
+        "step": "Keep an inactive estate selected across navigation and restore its work guidance"
+      }
+    },
+    {
+      "id": "COV-PAGED-AVAILABILITY-REVOKED",
+      "journey": "JRN-02",
+      "screen": "Estate header",
+      "category": "navigation",
+      "control": "Revoked preferred estate",
+      "assertion": "A revoked preferred estate causes a scoped error and empty selection; another estate requires explicit choice",
+      "binding": {
+        "caseId": "E2E-JRN-02-012",
+        "step": "Deny a revoked preferred estate without silently choosing another context"
+      }
+    },
+    {
+      "id": "COV-DECISION-LEDGER-HISTORY",
+      "journey": "JRN-02",
+      "screen": "Organization / Decision ledgers",
+      "category": "audit",
+      "control": "Older ledger details",
+      "assertion": "Page all three ledgers and find older records with actual actor, reviewer and support references",
+      "binding": {
+        "caseId": "E2E-JRN-02-013",
+        "step": "Page older responsibility cancellation and move history with actual audit provenance"
+      }
+    },
+    {
+      "id": "COV-DECISION-LEDGER-RECOVERY",
+      "journey": "JRN-02",
+      "screen": "Organization / Decision ledgers",
+      "category": "form",
+      "control": "Ledger retry with correction draft",
+      "assertion": "Retain linked correction fields and existing rows through failed-page recovery without duplicates",
+      "binding": {
+        "caseId": "E2E-JRN-02-013",
+        "step": "Retry a failed older ledger page while retaining the linked correction draft"
+      }
+    },
+    {
+      "id": "COV-DECISION-LEDGER-CORRECTION",
+      "journey": "JRN-02",
+      "screen": "Organization / Decision ledgers",
+      "category": "action",
+      "control": "Older correction source",
+      "assertion": "Save a deep approved-cancelled correction with immutable lineage; used source becomes ineligible",
+      "binding": {
+        "caseId": "E2E-JRN-02-013",
+        "step": "Save an older approved-cancelled correction with immutable lineage and current eligibility"
+      }
+    },
+    {
+      "id": "COV-DECISION-LEDGER-CANCELLATION",
+      "journey": "JRN-02",
+      "screen": "Organization / Decision ledgers",
+      "category": "action",
+      "control": "Independent older cancellation",
+      "assertion": "Deny self review, retain reason after stale approval, and independently reject the older request",
+      "binding": {
+        "caseId": "E2E-JRN-02-013",
+        "step": "Review an older pending cancellation independently and retain reason after stale approval"
+      }
+    },
+    {
+      "id": "COV-DECISION-LEDGER-MOVE",
+      "journey": "JRN-02",
+      "screen": "Organization / Decision ledgers",
+      "category": "navigation",
+      "control": "Older move handoff",
+      "assertion": "Send an older ledger request to independent review and apply the current versioned estate move",
+      "binding": {
+        "caseId": "E2E-JRN-02-013",
+        "step": "Approve an older move through ledger handoff with estate version and independent audit"
+      }
+    },
+    {
+      "id": "COV-DECISION-LEDGER-SCOPE",
+      "journey": "JRN-02",
+      "screen": "Organization / Decision ledgers",
+      "category": "navigation",
+      "control": "Ledger revocation",
+      "assertion": "Recheck estate access on refresh after membership revocation and remove previous record rows",
+      "binding": {
+        "caseId": "E2E-JRN-02-013",
+        "step": "Recheck access on ledger refresh after membership revocation"
+      }
+    },
+    {
+      "id": "COV-SITE-CREATE",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "form",
+      "control": "Facility setup",
+      "assertion": "Required code, explicit company/estate and saved version align",
+      "binding": {
+        "caseId": "E2E-JRN-02-014",
+        "step": "Create an explicit linked facility with field validation and current scope"
+      }
+    },
+    {
+      "id": "COV-SITE-SEARCH-RETRY",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "navigation",
+      "control": "Site search",
+      "assertion": "Failed search retains selected identity and editable reason; real retry succeeds",
+      "binding": {
+        "caseId": "E2E-JRN-02-014",
+        "step": "Search retry retains current site and editable fields"
+      }
+    },
+    {
+      "id": "COV-SITE-STALE-HISTORY",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "action",
+      "control": "Site edit and audit",
+      "assertion": "Concurrent edit rejects stale version; reviewed pause has immutable actor/reason/before-after reference",
+      "binding": {
+        "caseId": "E2E-JRN-02-014",
+        "step": "Reject stale edits then save reviewed availability with short and detailed history"
+      }
+    },
+    {
+      "id": "COV-SITE-HANDOFF",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "navigation",
+      "control": "Linked estate",
+      "assertion": "Persisted site reloads and opens only its explicitly assigned estate",
+      "binding": {
+        "caseId": "E2E-JRN-02-014",
+        "step": "Reload persisted site and open only its assigned estate"
+      }
+    },
+    {
+      "id": "COV-SITE-UNLINKED-TYPES",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "form",
+      "control": "Unlinked setup",
+      "assertion": "Create all five unlinked facility types with required field and format prevention",
+      "binding": {
+        "caseId": "E2E-JRN-02-015",
+        "step": "Create all five unlinked facility types with required field and format prevention"
+      }
+    },
+    {
+      "id": "COV-SITE-CHOICE-PAGES",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "navigation",
+      "control": "Site pages and retry",
+      "assertion": "Page site choices with a real retry while retaining an unsaved facility draft",
+      "binding": {
+        "caseId": "E2E-JRN-02-015",
+        "step": "Page site choices with a real retry while retaining an unsaved facility draft"
+      }
+    },
+    {
+      "id": "COV-SITE-FILTERS",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "field",
+      "control": "Type and availability filters",
+      "assertion": "Apply type and availability filters while retaining an explicitly selected out-of-filter site",
+      "binding": {
+        "caseId": "E2E-JRN-02-015",
+        "step": "Apply type and availability filters while retaining an explicitly selected out-of-filter site"
+      }
+    },
+    {
+      "id": "COV-SITE-HISTORY-PAGES",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "navigation",
+      "control": "History actor search and paging",
+      "assertion": "Page search and retry actual history with actor labels while preserving an edit draft",
+      "binding": {
+        "caseId": "E2E-JRN-02-015",
+        "step": "Page search and retry actual history with actor labels while preserving an edit draft"
+      }
+    },
+    {
+      "id": "COV-SITE-UNLINKED-RELOAD",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "navigation",
+      "control": "Unlinked reload",
+      "assertion": "Reload an unlinked facility without inventing an estate handoff",
+      "binding": {
+        "caseId": "E2E-JRN-02-015",
+        "step": "Reload an unlinked facility without inventing an estate handoff"
+      }
+    },
+    {
+      "id": "COV-SITE-VIEWER-DENIAL",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "action",
+      "control": "Read-only permissions",
+      "assertion": "Read assigned linked sites as a viewer without exposing unlinked configuration or write actions",
+      "binding": {
+        "caseId": "E2E-JRN-02-016",
+        "step": "Read assigned linked sites as a viewer without exposing unlinked configuration or write actions"
+      }
+    },
+    {
+      "id": "COV-SITE-SETUP-REVOKED",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "action",
+      "control": "Revoked setup history and draft",
+      "assertion": "Revoke setup authority and clear a denied history view and private draft",
+      "binding": {
+        "caseId": "E2E-JRN-02-016",
+        "step": "Revoke setup authority and clear a denied history view and private draft"
+      }
+    },
+    {
+      "id": "COV-SITE-ACCESS-RESTORE",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "action",
+      "control": "Explicit access recovery",
+      "assertion": "Recover an explicitly chosen linked read then restore setup only after an access check",
+      "binding": {
+        "caseId": "E2E-JRN-02-016",
+        "step": "Recover an explicitly chosen linked read then restore setup only after an access check"
+      }
+    },
+    {
+      "id": "COV-SITE-MEMBERSHIP-REVOKED",
+      "journey": "JRN-02",
+      "screen": "Operational sites",
+      "category": "action",
+      "control": "Revoked site detail/history and late reply",
+      "assertion": "Revoke estate membership and remove cached detail history and handoff without retargeting",
+      "binding": {
+        "caseId": "E2E-JRN-02-016",
+        "step": "Revoke estate membership and remove cached detail history and handoff without retargeting"
+      }
+    },
+    {
+      "id": "COV-LEGACY-PAGES",
+      "journey": "JRN-06",
+      "screen": "Legacy attribution review",
+      "category": "navigation",
+      "control": "Unresolved record search and paging",
+      "assertion": "Page unresolved tasks and retry a failed page while retaining the reviewed mapping draft",
+      "binding": {
+        "caseId": "E2E-JRN-06-002",
+        "step": "Page unresolved tasks and retry a failed page while retaining the reviewed mapping draft"
+      }
+    },
+    {
+      "id": "COV-LEGACY-SAVE-RECOVERY",
+      "journey": "JRN-06",
+      "screen": "Legacy attribution review",
+      "category": "form",
+      "control": "Reasoned block mapping conflict and saved refresh recovery",
+      "assertion": "Recover a real stale task version and a committed link whose refresh fails without duplicate writes",
+      "binding": {
+        "caseId": "E2E-JRN-06-002",
+        "step": "Recover a real stale task version and a committed link whose refresh fails without duplicate writes"
+      }
+    },
+    {
+      "id": "COV-LEGACY-AUDIT",
+      "journey": "JRN-06",
+      "screen": "Legacy attribution review",
+      "category": "action",
+      "control": "Saved mapping history and resolved queue state",
+      "assertion": "Inspect actual short and detailed link audit and persisted removal from the unresolved queue",
+      "binding": {
+        "caseId": "E2E-JRN-06-002",
+        "step": "Inspect actual short and detailed link audit and persisted removal from the unresolved queue"
+      }
+    },
+    {
+      "id": "COV-LEGACY-VIEWER",
+      "journey": "JRN-06",
+      "screen": "Legacy attribution review",
+      "category": "action",
+      "control": "Read-only review and missing-attribution guidance",
+      "assertion": "Review as an assigned non-manager and keep missing-company empty guidance honest",
+      "binding": {
+        "caseId": "E2E-JRN-06-002",
+        "step": "Review as an assigned non-manager and keep missing-company empty guidance honest"
+      }
+    },
+    {
+      "id": "COV-LEGACY-REVOKED",
+      "journey": "JRN-06",
+      "screen": "Legacy attribution review",
+      "category": "action",
+      "control": "Revoked scope and delayed response",
+      "assertion": "Clear revoked task review and private mapping inputs and reject an older authorized detail response",
+      "binding": {
+        "caseId": "E2E-JRN-06-002",
+        "step": "Clear revoked task review and private mapping inputs and reject an older authorized detail response"
+      }
+    },
+    {
+      "id": "COV-HISTORICAL-WORK-PAGES",
+      "journey": "JRN-06",
+      "screen": "Historical work review",
+      "category": "navigation",
+      "control": "Historical work paging and literal search",
+      "assertion": "Page and literally search actual pre-attribution work while excluding modern attributed records",
+      "binding": {
+        "caseId": "E2E-JRN-06-003",
+        "step": "Page and literally search actual pre-attribution work while excluding modern attributed records"
+      }
+    },
+    {
+      "id": "COV-HISTORICAL-WORK-HANDOFF",
+      "journey": "JRN-06",
+      "screen": "Historical work review",
+      "category": "navigation",
+      "control": "Historical detail retry and return handoff",
+      "assertion": "Retain the selected historical row through a detail failure then open real detail and return to its work queue",
+      "binding": {
+        "caseId": "E2E-JRN-06-003",
+        "step": "Retain the selected historical row through a detail failure then open real detail and return to its work queue"
+      }
+    },
+    {
+      "id": "COV-HISTORICAL-WORK-PRESERVE",
+      "journey": "JRN-06",
+      "screen": "Historical work review",
+      "category": "action",
+      "control": "Historical reload and immutable provenance",
+      "assertion": "Reload and reopen the persisted historical record without changing attribution allocations state or audit",
+      "binding": {
+        "caseId": "E2E-JRN-06-003",
+        "step": "Reload and reopen the persisted historical record without changing attribution allocations state or audit"
+      }
+    },
+    {
+      "id": "COV-HISTORICAL-WORK-SCOPE",
+      "journey": "JRN-06",
+      "screen": "Historical work review",
+      "category": "action",
+      "control": "Foreign and revoked historical detail access",
+      "assertion": "Deny foreign and revoked historical reads clear cached work and recover only after explicit restored access",
+      "binding": {
+        "caseId": "E2E-JRN-06-003",
+        "step": "Deny foreign and revoked historical reads clear cached work and recover only after explicit restored access"
+      }
+    },
+    {
+      "id": "COV-MAPPING-UPLOAD",
+      "journey": "JRN-06",
+      "screen": "Source mapping preview",
+      "category": "form",
+      "control": "Manifest upload and safe retry",
+      "assertion": "Validate uploaded manifest size and JSON and retain the proposal through a temporary preview failure",
+      "binding": {
+        "caseId": "E2E-JRN-06-004",
+        "step": "Validate uploaded manifest size and JSON and retain the proposal through a temporary preview failure"
+      }
+    },
+    {
+      "id": "COV-MAPPING-PROVENANCE",
+      "journey": "JRN-06",
+      "screen": "Source mapping preview",
+      "category": "action",
+      "control": "Read-only preview and declared/computed provenance",
+      "assertion": "Inspect actual blocked and review-required rows with unverified source and computed manifest provenance",
+      "binding": {
+        "caseId": "E2E-JRN-06-004",
+        "step": "Inspect actual blocked and review-required rows with unverified source and computed manifest provenance"
+      }
+    },
+    {
+      "id": "COV-MAPPING-REVALIDATE",
+      "journey": "JRN-06",
+      "screen": "Source mapping preview",
+      "category": "field",
+      "control": "Edited source proposals require revalidation",
+      "assertion": "Invalidate old results after proposal edits and block duplicate source rows and stale versions on revalidation",
+      "binding": {
+        "caseId": "E2E-JRN-06-004",
+        "step": "Invalidate old results after proposal edits and block duplicate source rows and stale versions on revalidation"
+      }
+    },
+    {
+      "id": "COV-MAPPING-REVOKED",
+      "journey": "JRN-06",
+      "screen": "Source mapping preview",
+      "category": "action",
+      "control": "Mapping access revocation clears private input",
+      "assertion": "Clear source proposals after setup authority loss and reject revoked membership even after access was restored",
+      "binding": {
+        "caseId": "E2E-JRN-06-004",
+        "step": "Clear source proposals after setup authority loss and reject revoked membership even after access was restored"
+      }
+    },
+    {
+      "id": "COV-REVIEW-RETRY",
+      "journey": "JRN-06",
+      "screen": "Saved reconciliation reviews",
+      "category": "form",
+      "control": "Idempotent review save recovery",
+      "assertion": "Recover a committed save after a lost response with exactly one review and audit event",
+      "binding": {
+        "caseId": "E2E-JRN-06-005",
+        "step": "Recover a committed save after a lost response with exactly one review and audit event"
+      }
+    },
+    {
+      "id": "COV-REVIEW-AUDIT",
+      "journey": "JRN-06",
+      "screen": "Saved reconciliation reviews",
+      "category": "navigation",
+      "control": "Persisted review and recorded audit",
+      "assertion": "Reload and reopen the saved manifest validation snapshot and short and detailed recorded audit",
+      "binding": {
+        "caseId": "E2E-JRN-06-005",
+        "step": "Reload and reopen the saved manifest validation snapshot and short and detailed recorded audit"
+      }
+    },
+    {
+      "id": "COV-REVIEW-REVALIDATE",
+      "journey": "JRN-06",
+      "screen": "Saved reconciliation reviews",
+      "category": "action",
+      "control": "Saved manifest current revalidation",
+      "assertion": "Load a saved manifest for current revalidation and save a distinct blocked snapshot without rewriting history",
+      "binding": {
+        "caseId": "E2E-JRN-06-005",
+        "step": "Load a saved manifest for current revalidation and save a distinct blocked snapshot without rewriting history"
+      }
+    },
+    {
+      "id": "COV-REVIEW-SCOPE",
+      "journey": "JRN-06",
+      "screen": "Saved reconciliation reviews",
+      "category": "action",
+      "control": "Saved review revocation clearing",
+      "assertion": "Clear retained manifests and audits after setup loss and deny reopened detail after membership revocation",
+      "binding": {
+        "caseId": "E2E-JRN-06-005",
+        "step": "Clear retained manifests and audits after setup loss and deny reopened detail after membership revocation"
+      }
+    },
+    {
+      "id": "COV-SOURCE-BOUNDS",
+      "journey": "JRN-06",
+      "screen": "Source file checks",
+      "category": "form",
+      "control": "Source upload bounds and mismatch",
+      "assertion": "Validate source-file bounds and record a real mismatch without authenticating or changing historical work",
+      "binding": {
+        "caseId": "E2E-JRN-06-006",
+        "step": "Validate source-file bounds and record a real mismatch without authenticating or changing historical work"
+      }
+    },
+    {
+      "id": "COV-SOURCE-RETRY",
+      "journey": "JRN-06",
+      "screen": "Source file checks",
+      "category": "action",
+      "control": "Committed digest check recovery",
+      "assertion": "Recover a committed matching source check after response loss without recording a duplicate event",
+      "binding": {
+        "caseId": "E2E-JRN-06-006",
+        "step": "Recover a committed matching source check after response loss without recording a duplicate event"
+      }
+    },
+    {
+      "id": "COV-SOURCE-AUDIT",
+      "journey": "JRN-06",
+      "screen": "Source file checks",
+      "category": "navigation",
+      "control": "Reload source-check audit",
+      "assertion": "Reload saved source checks and inspect short and detailed audit with byte identity separate from authenticity",
+      "binding": {
+        "caseId": "E2E-JRN-06-006",
+        "step": "Reload saved source checks and inspect short and detailed audit with byte identity separate from authenticity"
+      }
+    },
+    {
+      "id": "COV-SOURCE-SCOPE",
+      "journey": "JRN-06",
+      "screen": "Source file checks",
+      "category": "action",
+      "control": "Source input and metadata clearing",
+      "assertion": "Clear source-file inputs and recorded metadata after setup and membership revocation",
+      "binding": {
+        "caseId": "E2E-JRN-06-006",
+        "step": "Clear source-file inputs and recorded metadata after setup and membership revocation"
+      }
+    },
+    {
+      "id": "COV-PROVENANCE-INDEPENDENCE",
+      "journey": "JRN-06",
+      "screen": "Independent provenance review",
+      "category": "form",
+      "control": "Independent reviewer and examination guard",
+      "assertion": "Prevent preparer self-review and require a separate reviewer with explicit original examination before corroboration",
+      "binding": {
+        "caseId": "E2E-JRN-06-007",
+        "step": "Prevent preparer self-review and require a separate reviewer with explicit original examination before corroboration"
+      }
+    },
+    {
+      "id": "COV-PROVENANCE-RECOVERY",
+      "journey": "JRN-06",
+      "screen": "Independent provenance review",
+      "category": "action",
+      "control": "Independent observation retry and audit",
+      "assertion": "Recover a committed independent observation after response loss and inspect actual reviewer and request audit",
+      "binding": {
+        "caseId": "E2E-JRN-06-007",
+        "step": "Recover a committed independent observation after response loss and inspect actual reviewer and request audit"
+      }
+    },
+    {
+      "id": "COV-PROVENANCE-CORRECTION",
+      "journey": "JRN-06",
+      "screen": "Independent provenance review",
+      "category": "action",
+      "control": "Stale revision and linked correction",
+      "assertion": "Reject a stale tab then refresh and append a correction with previous observations visibly superseded",
+      "binding": {
+        "caseId": "E2E-JRN-06-007",
+        "step": "Reject a stale tab then refresh and append a correction with previous observations visibly superseded"
+      }
+    },
+    {
+      "id": "COV-PROVENANCE-REOPEN-SCOPE",
+      "journey": "JRN-06",
+      "screen": "Independent provenance review",
+      "category": "navigation",
+      "control": "Persisted provenance and private-input clearing",
+      "assertion": "Reopen persisted provenance lineage and clear private observations after setup and membership revocation",
+      "binding": {
+        "caseId": "E2E-JRN-06-007",
+        "step": "Reopen persisted provenance lineage and clear private observations after setup and membership revocation"
+      }
+    },
+    {
+      "id": "COV-READINESS-POLICY",
+      "journey": "JRN-06",
+      "screen": "Mapping readiness inspection",
+      "category": "navigation",
+      "control": "Fresh inspection and draft policy",
+      "assertion": "Open fresh saved-mapping inspection and inspect support provenance and unapproved policy with no write authorization",
+      "binding": {
+        "caseId": "E2E-JRN-06-008",
+        "step": "Open fresh saved-mapping inspection and inspect support provenance and unapproved policy with no write authorization"
+      }
+    },
+    {
+      "id": "COV-READINESS-CONFLICTS",
+      "journey": "JRN-06",
+      "screen": "Mapping readiness inspection",
+      "category": "action",
+      "control": "Current reviewer conflicts and revoked authority",
+      "assertion": "Refresh latest observations without hiding conflicts superseded outcomes or concerns from a reviewer whose access changed",
+      "binding": {
+        "caseId": "E2E-JRN-06-008",
+        "step": "Refresh latest observations without hiding conflicts superseded outcomes or concerns from a reviewer whose access changed"
+      }
+    },
+    {
+      "id": "COV-READINESS-DRIFT",
+      "journey": "JRN-06",
+      "screen": "Mapping readiness inspection",
+      "category": "action",
+      "control": "Saved versus current record drift",
+      "assertion": "Detect separately committed record-version drift and retain the original saved snapshot without approving application",
+      "binding": {
+        "caseId": "E2E-JRN-06-008",
+        "step": "Detect separately committed record-version drift and retain the original saved snapshot without approving application"
+      }
+    },
+    {
+      "id": "COV-READINESS-RECOVERY-SCOPE",
+      "journey": "JRN-06",
+      "screen": "Mapping readiness inspection",
+      "category": "action",
+      "control": "Inspection recovery and private-report clearing",
+      "assertion": "Recover a temporary inspection failure and clear report metadata after setup and membership revocation",
+      "binding": {
+        "caseId": "E2E-JRN-06-008",
+        "step": "Recover a temporary inspection failure and clear report metadata after setup and membership revocation"
+      }
+    },
+    {
+      "id": "COV-POLICY-AUTHOR",
+      "journey": "JRN-06",
+      "screen": "Mapping policy design review",
+      "category": "form",
+      "control": "Policy criteria and lost response",
+      "assertion": "Author explicit R0 criteria and recover a lost committed proposal response without duplicate versions",
+      "binding": {
+        "caseId": "E2E-JRN-06-009",
+        "step": "Author explicit R0 criteria and recover a lost committed proposal response without duplicate versions"
+      }
+    },
+    {
+      "id": "COV-POLICY-REVIEW",
+      "journey": "JRN-06",
+      "screen": "Mapping policy design review",
+      "category": "action",
+      "control": "Independent review and audit",
+      "assertion": "Record independent design concerns and linked corrections with short and detailed audit",
+      "binding": {
+        "caseId": "E2E-JRN-06-009",
+        "step": "Record independent design concerns and linked corrections with short and detailed audit"
+      }
+    },
+    {
+      "id": "COV-POLICY-REVISE",
+      "journey": "JRN-06",
+      "screen": "Mapping policy design review",
+      "category": "navigation",
+      "control": "Linked policy version and old history",
+      "assertion": "Revise criteria into a linked new version while retaining superseded proposal and review history",
+      "binding": {
+        "caseId": "E2E-JRN-06-009",
+        "step": "Revise criteria into a linked new version while retaining superseded proposal and review history"
+      }
+    },
+    {
+      "id": "COV-POLICY-RECOVERY",
+      "journey": "JRN-06",
+      "screen": "Mapping policy design review",
+      "category": "action",
+      "control": "Read recovery and denied scope",
+      "assertion": "Recover a policy read interruption and clear private criteria after setup and membership revocation",
+      "binding": {
+        "caseId": "E2E-JRN-06-009",
+        "step": "Recover a policy read interruption and clear private criteria after setup and membership revocation"
+      }
+    },
+    {
+      "id": "COV-POLICY-EXTERNAL-APPOINT",
+      "journey": "JRN-06",
+      "screen": "Policy authority and external decisions",
+      "category": "form",
+      "control": "Explicit authority appointment and retry",
+      "assertion": "Create exact policy criteria and appoint a separate scoped recorder with lost-response receipt recovery",
+      "binding": {
+        "caseId": "E2E-JRN-06-010",
+        "step": "Create exact policy criteria and appoint a separate scoped recorder with lost-response receipt recovery"
+      }
+    },
+    {
+      "id": "COV-POLICY-EXTERNAL-ACCEPT",
+      "journey": "JRN-06",
+      "screen": "Policy authority and external decisions",
+      "category": "form",
+      "control": "Attested exact external acceptance and recovery",
+      "assertion": "Record referenced external acceptance under an explicit appointment and recover one immutable decision",
+      "binding": {
+        "caseId": "E2E-JRN-06-010",
+        "step": "Record referenced external acceptance under an explicit appointment and recover one immutable decision"
+      }
+    },
+    {
+      "id": "COV-POLICY-EXTERNAL-WITHDRAW",
+      "journey": "JRN-06",
+      "screen": "Policy authority and external decisions",
+      "category": "action",
+      "control": "Linked external withdrawal and renewal",
+      "assertion": "Withdraw and renew external acceptance through linked audit events while historical business facts stay unchanged",
+      "binding": {
+        "caseId": "E2E-JRN-06-010",
+        "step": "Withdraw and renew external acceptance through linked audit events while historical business facts stay unchanged"
+      }
+    },
+    {
+      "id": "COV-POLICY-EXTERNAL-REVOKE",
+      "journey": "JRN-06",
+      "screen": "Policy authority and external decisions",
+      "category": "navigation",
+      "control": "Authority revocation and denied scope",
+      "assertion": "Revoke and reappoint without reviving earlier acceptance then recover read failure and clear denied private records",
+      "binding": {
+        "caseId": "E2E-JRN-06-010",
+        "step": "Revoke and reappoint without reviving earlier acceptance then recover read failure and clear denied private records"
+      }
+    },
+    {
+      "id": "COV-MAPPING-DECISION-SUBMIT",
+      "journey": "JRN-06",
+      "screen": "Governed mapping requests",
+      "category": "form",
+      "control": "Bound request appointment and recovery",
+      "assertion": "Renew explicit mapping appointment and recover one bound submission with actual snapshot audit",
+      "binding": {
+        "caseId": "E2E-JRN-06-011",
+        "step": "Renew explicit mapping appointment and recover one bound submission with actual snapshot audit"
+      }
+    },
+    {
+      "id": "COV-MAPPING-DECISION-RETURN",
+      "journey": "JRN-06",
+      "screen": "Governed mapping requests",
+      "category": "navigation",
+      "control": "Independent return and linked correction",
+      "assertion": "Record independent return and submit one linked immutable correction",
+      "binding": {
+        "caseId": "E2E-JRN-06-011",
+        "step": "Record independent return and submit one linked immutable correction"
+      }
+    },
+    {
+      "id": "COV-MAPPING-DECISION-APPROVE",
+      "journey": "JRN-06",
+      "screen": "Governed mapping requests",
+      "category": "action",
+      "control": "Stale binding and immutable approval recovery",
+      "assertion": "Reject stale approval after a real observation revision then correct and recover one independent approval",
+      "binding": {
+        "caseId": "E2E-JRN-06-011",
+        "step": "Reject stale approval after a real observation revision then correct and recover one independent approval"
+      }
+    },
+    {
+      "id": "COV-MAPPING-DECISION-WITHDRAW",
+      "journey": "JRN-06",
+      "screen": "Governed mapping requests",
+      "category": "action",
+      "control": "Current concern withdrawal and private clearing",
+      "assertion": "Invalidate approval on a current concern retain withdrawal history and recover read or access failures",
+      "binding": {
+        "caseId": "E2E-JRN-06-011",
+        "step": "Invalidate approval on a current concern retain withdrawal history and recover read or access failures"
+      }
+    },
+    {
+      "id": "COV-MAPPING-OVERLAY-AUTHORITY",
+      "journey": "JRN-06",
+      "screen": "Overlay execution and reconciliation",
+      "category": "form",
+      "control": "Authority",
+      "assertion": "Authorize a separate exact request executor with frozen lost-response recovery and actual audit",
+      "binding": {
+        "caseId": "E2E-JRN-06-012",
+        "step": "Authorize a separate exact request executor with frozen lost-response recovery and actual audit"
+      }
+    },
+    {
+      "id": "COV-MAPPING-OVERLAY-APPLY",
+      "journey": "JRN-06",
+      "screen": "Overlay execution and reconciliation",
+      "category": "action",
+      "control": "Apply",
+      "assertion": "Reject stale authority then apply exactly once with immutable receipt conserved totals and paged reconciliation",
+      "binding": {
+        "caseId": "E2E-JRN-06-012",
+        "step": "Reject stale authority then apply exactly once with immutable receipt conserved totals and paged reconciliation"
+      }
+    },
+    {
+      "id": "COV-MAPPING-OVERLAY-COMPENSATE",
+      "journey": "JRN-06",
+      "screen": "Overlay execution and reconciliation",
+      "category": "action",
+      "control": "Compensate",
+      "assertion": "Separately authorize independent compensation after source concerns and retain original application lineage",
+      "binding": {
+        "caseId": "E2E-JRN-06-012",
+        "step": "Separately authorize independent compensation after source concerns and retain original application lineage"
+      }
+    },
+    {
+      "id": "COV-MAPPING-OVERLAY-RECOVERY",
+      "journey": "JRN-06",
+      "screen": "Overlay execution and reconciliation",
+      "category": "navigation",
+      "control": "Recovery",
+      "assertion": "Clear failed reconciliation reports recover real reads and remove private overlay data after scope denial",
+      "binding": {
+        "caseId": "E2E-JRN-06-012",
+        "step": "Clear failed reconciliation reports recover real reads and remove private overlay data after scope denial"
+      }
+    },
+    {
+      "id": "COV-PROVISION-BOOTSTRAP",
+      "journey": "JRN-02",
+      "screen": "Hierarchy provisioning",
+      "category": "form",
+      "control": "Bootstrap",
+      "assertion": "Bootstrap an explicit named administrator without granting operator tenant work access",
+      "binding": {
+        "caseId": "E2E-JRN-02-017",
+        "step": "Bootstrap an explicit named administrator without granting operator tenant work access"
+      }
+    },
+    {
+      "id": "COV-PROVISION-COMPANY",
+      "journey": "JRN-02",
+      "screen": "Hierarchy provisioning",
+      "category": "action",
+      "control": "Company",
+      "assertion": "Hand off to the named tenant administrator and recover one coded company from a lost response",
+      "binding": {
+        "caseId": "E2E-JRN-02-017",
+        "step": "Hand off to the named tenant administrator and recover one coded company from a lost response"
+      }
+    },
+    {
+      "id": "COV-PROVISION-ESTATE",
+      "journey": "JRN-02",
+      "screen": "Hierarchy provisioning",
+      "category": "navigation",
+      "control": "Estate",
+      "assertion": "Provision an explicitly assigned estate preserve detailed audit and navigate into its empty work register",
+      "binding": {
+        "caseId": "E2E-JRN-02-017",
+        "step": "Provision an explicitly assigned estate preserve detailed audit and navigate into its empty work register"
+      }
+    },
+    {
+      "id": "COV-PROVISION-REVOKE",
+      "journey": "JRN-02",
+      "screen": "Hierarchy provisioning",
+      "category": "action",
+      "control": "Revoke",
+      "assertion": "Remove provisioning controls and private receipt details after actual setup authority revocation",
+      "binding": {
+        "caseId": "E2E-JRN-02-017",
+        "step": "Remove provisioning controls and private receipt details after actual setup authority revocation"
+      }
+    },
+    {
+      "id": "COV-HIERARCHY-SCOPE-GRANT",
+      "journey": "JRN-02",
+      "screen": "Explicit hierarchy read scopes",
+      "category": "form",
+      "control": "Grant",
+      "assertion": "Record node-only hierarchy read with exact uncertain-response recovery and actual audit",
+      "binding": {
+        "caseId": "E2E-JRN-02-018",
+        "step": "Record node-only hierarchy read with exact uncertain-response recovery and actual audit"
+      }
+    },
+    {
+      "id": "COV-HIERARCHY-SCOPE-READ",
+      "journey": "JRN-02",
+      "screen": "Explicit hierarchy read scopes",
+      "category": "action",
+      "control": "Read",
+      "assertion": "Read only the named node with no parent sibling or operational estate access",
+      "binding": {
+        "caseId": "E2E-JRN-02-018",
+        "step": "Read only the named node with no parent sibling or operational estate access"
+      }
+    },
+    {
+      "id": "COV-HIERARCHY-SCOPE-INHERIT",
+      "journey": "JRN-02",
+      "screen": "Explicit hierarchy read scopes",
+      "category": "action",
+      "control": "Inherit",
+      "assertion": "Explicitly renew descendant inheritance and recover a failed scoped read without widening work permissions",
+      "binding": {
+        "caseId": "E2E-JRN-02-018",
+        "step": "Explicitly renew descendant inheritance and recover a failed scoped read without widening work permissions"
+      }
+    },
+    {
+      "id": "COV-HIERARCHY-SCOPE-REVOKE",
+      "journey": "JRN-02",
+      "screen": "Explicit hierarchy read scopes",
+      "category": "navigation",
+      "control": "Revoke",
+      "assertion": "Revoke exact inherited metadata rights retain history and clear the reader context",
+      "binding": {
+        "caseId": "E2E-JRN-02-018",
+        "step": "Revoke exact inherited metadata rights retain history and clear the reader context"
+      }
+    },
+    {
+      "id": "COV-SETUP-HANDOVER-GRANT",
+      "journey": "JRN-02",
+      "screen": "Customer setup access handover",
+      "category": "form",
+      "control": "Grant",
+      "assertion": "Grant a separate setup recipient with frozen receipt recovery and detailed actual audit",
+      "binding": {
+        "caseId": "E2E-JRN-02-019",
+        "step": "Grant a separate setup recipient with frozen receipt recovery and detailed actual audit"
+      }
+    },
+    {
+      "id": "COV-SETUP-HANDOVER-DENY-WORK",
+      "journey": "JRN-02",
+      "screen": "Customer setup access handover",
+      "category": "action",
+      "control": "Deny-Work",
+      "assertion": "Verify configuration capability is separate from every estate work membership",
+      "binding": {
+        "caseId": "E2E-JRN-02-019",
+        "step": "Verify configuration capability is separate from every estate work membership"
+      }
+    },
+    {
+      "id": "COV-SETUP-HANDOVER-REVOKE",
+      "journey": "JRN-02",
+      "screen": "Customer setup access handover",
+      "category": "navigation",
+      "control": "Revoke",
+      "assertion": "Revoke the separate recipient retain last administrator and prevent self authority changes",
+      "binding": {
+        "caseId": "E2E-JRN-02-019",
+        "step": "Revoke the separate recipient retain last administrator and prevent self authority changes"
+      }
+    },
+    {
+      "id": "COV-SESSION-RESTORE",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "navigation",
+      "control": "Server session",
+      "assertion": "Sign in with a real isolated account and restore the authenticated screen",
+      "binding": {
+        "caseId": "E2E-JRN-03-002",
+        "step": "Sign in with a real isolated account and restore the authenticated screen"
+      }
+    },
+    {
+      "id": "COV-SESSION-EXPIRY",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "journey",
+      "control": "Server session",
+      "assertion": "Expire the actual server session and recover with a fresh sign-in",
+      "binding": {
+        "caseId": "E2E-JRN-03-002",
+        "step": "Expire the actual server session and recover with a fresh sign-in"
+      }
+    },
+    {
+      "id": "COV-SESSION-NO-REVIVAL",
+      "journey": "JRN-03",
+      "screen": "Sign in",
+      "category": "journey",
+      "control": "Server session",
+      "assertion": "Suspend and restore the user without reviving the previous session",
+      "binding": {
+        "caseId": "E2E-JRN-03-002",
+        "step": "Suspend and restore the user without reviving the previous session"
+      }
+    },
+    {
+      "id": "COV-F07-003-1",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Open own account security and identify current and other sessions",
+      "binding": {
+        "caseId": "E2E-JRN-03-003",
+        "step": "Open own account security and identify current and other sessions"
+      }
+    },
+    {
+      "id": "COV-F07-003-2",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Recover a committed revocation after losing its response without replaying new effects",
+      "binding": {
+        "caseId": "E2E-JRN-03-003",
+        "step": "Recover a committed revocation after losing its response without replaying new effects"
+      }
+    },
+    {
+      "id": "COV-F07-003-3",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Inspect the real revocation audit and revoke only other sessions",
+      "binding": {
+        "caseId": "E2E-JRN-03-003",
+        "step": "Inspect the real revocation audit and revoke only other sessions"
+      }
+    },
+    {
+      "id": "COV-F07-003-4",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Confirm sign out everywhere and return to the sign-in journey",
+      "binding": {
+        "caseId": "E2E-JRN-03-003",
+        "step": "Confirm sign out everywhere and return to the sign-in journey"
+      }
+    },
+    {
+      "id": "COV-F07-004-1",
+      "journey": "JRN-03",
+      "screen": "Sign in and recovery",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Request non-enumerating recovery guidance with accessible field validation",
+      "binding": {
+        "caseId": "E2E-JRN-03-004",
+        "step": "Request non-enumerating recovery guidance with accessible field validation"
+      }
+    },
+    {
+      "id": "COV-F07-004-2",
+      "journey": "JRN-03",
+      "screen": "Sign in and recovery",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Reject an invalid token then consume an operator-issued token and sign in",
+      "binding": {
+        "caseId": "E2E-JRN-03-004",
+        "step": "Reject an invalid token then consume an operator-issued token and sign in"
+      }
+    },
+    {
+      "id": "COV-F07-004-3",
+      "journey": "JRN-03",
+      "screen": "Sign in and recovery",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Verify the current password before changing it and ending all sessions",
+      "binding": {
+        "caseId": "E2E-JRN-03-004",
+        "step": "Verify the current password before changing it and ending all sessions"
+      }
+    },
+    {
+      "id": "COV-F07-005-1",
+      "journey": "JRN-03",
+      "screen": "Sign in and recovery",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Recover safely from an identity response without required MFA",
+      "binding": {
+        "caseId": "E2E-JRN-03-005",
+        "step": "Recover safely from an identity response without required MFA"
+      }
+    },
+    {
+      "id": "COV-F07-005-2",
+      "journey": "JRN-03",
+      "screen": "Sign in and recovery",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Complete controlled MFA sign-in and open provider-managed account security",
+      "binding": {
+        "caseId": "E2E-JRN-03-005",
+        "step": "Complete controlled MFA sign-in and open provider-managed account security"
+      }
+    },
+    {
+      "id": "COV-F07-006-1",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "journey",
+      "control": "Authentication and account security",
+      "assertion": "Guide a user without estate access to account security without granting work scope",
+      "binding": {
+        "caseId": "E2E-JRN-03-006",
+        "step": "Guide a user without estate access to account security without granting work scope"
+      }
+    },
+    {
+      "id": "COV-F07-007-1",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "journey",
+      "control": "Explicit security operator",
+      "assertion": "Preview a named account under an explicit global revocation mandate",
+      "binding": {
+        "caseId": "E2E-JRN-03-007",
+        "step": "Preview a named account under an explicit global revocation mandate"
+      }
+    },
+    {
+      "id": "COV-F07-007-2",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "journey",
+      "control": "Explicit security operator",
+      "assertion": "Recover the same administrative revocation without terminating a later fresh session",
+      "binding": {
+        "caseId": "E2E-JRN-03-007",
+        "step": "Recover the same administrative revocation without terminating a later fresh session"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-VALIDATION",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "form",
+      "control": "Preview and required confirmation",
+      "assertion": "Incomplete state and confirmation prevent lifecycle submission",
+      "binding": {
+        "caseId": "E2E-JRN-03-008",
+        "step": "Preview the account and prevent an incomplete lifecycle decision"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-RETRY",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "action",
+      "control": "Exact lifecycle retry",
+      "assertion": "Unknown result locks navigation and recovers one immutable suspension receipt",
+      "binding": {
+        "caseId": "E2E-JRN-03-008",
+        "step": "Recover a lost response exactly once while navigation remains locked"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-RESTORE",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "action",
+      "control": "Reactivation",
+      "assertion": "Reviewed reactivation requires fresh authentication; old token stays invalid",
+      "binding": {
+        "caseId": "E2E-JRN-03-008",
+        "step": "Reactivate after assignment review without reviving the old session"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-CONTINUITY",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "form",
+      "control": "Last administrator and self protection",
+      "assertion": "Last setup administrator cannot be disabled and self changes require another operator",
+      "binding": {
+        "caseId": "E2E-JRN-03-009",
+        "step": "Explain last administrator protection and require a separate operator for self changes"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-STALE",
+      "journey": "JRN-03",
+      "screen": "Account security",
+      "category": "form",
+      "control": "Stale decision",
+      "assertion": "Concurrent state change clears the stale decision without another audit write",
+      "binding": {
+        "caseId": "E2E-JRN-03-009",
+        "step": "A concurrent state change rejects the stale form without another decision"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-READ-RETRY",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "form",
+      "control": "Lifecycle read recovery",
+      "assertion": "Failed access and preview reads retain an entered decision and offer retry",
+      "binding": {
+        "caseId": "E2E-JRN-03-010",
+        "step": "Retry a failed access check and retain the draft after a failed preview read"
+      }
+    },
+    {
+      "id": "COV-LIFECYCLE-REVOKED-FEEDBACK",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "action",
+      "control": "Revoked operator feedback",
+      "assertion": "Revoked authority blocks a write, clears private target state and leaves visible recovery guidance",
+      "binding": {
+        "caseId": "E2E-JRN-03-010",
+        "step": "A revoked operator cannot write and can still see recovery guidance"
+      }
+    },
+    {
+      "id": "COV-REGISTER-MULTI-ESTATE",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "field",
+      "control": "User registration and multiple estates",
+      "assertion": "Native fields prevent an empty registration and two selected estates remain staged without access",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Validate registration fields and recover a committed multi-estate creation exactly once"
+      }
+    },
+    {
+      "id": "COV-REGISTER-EXACT-RECOVERY",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "form",
+      "control": "Unknown registration result",
+      "assertion": "Committed response loss locks navigation and exact retry recovers one identity and audit event",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Validate registration fields and recover a committed multi-estate creation exactly once"
+      }
+    },
+    {
+      "id": "COV-REGISTER-CORRECTION",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "form",
+      "control": "Staged correction",
+      "assertion": "Reviewed staged correction invalidates earlier proof",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Correct staged fields and cancel outdated invitation proof before final handover"
+      }
+    },
+    {
+      "id": "COV-INVITATION-CANCEL",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "action",
+      "control": "Invitation cancellation",
+      "assertion": "Declared cancellation blocks the cancelled invitation before final handover",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Correct staged fields and cancel outdated invitation proof before final handover"
+      }
+    },
+    {
+      "id": "COV-INVITATION-HANDOVER",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "action",
+      "control": "Prepared invitation",
+      "assertion": "Secret is masked and explicitly prepared rather than falsely reported as emailed",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Prepare a secret invitation with an honest delivery status and recipient-selected password"
+      }
+    },
+    {
+      "id": "COV-INVITATION-ACCEPT",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "form",
+      "control": "Recipient invitation acceptance",
+      "assertion": "Recipient chooses a development password, consumes invitation and clears displayed token",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Prepare a secret invitation with an honest delivery status and recipient-selected password"
+      }
+    },
+    {
+      "id": "COV-ACCESS-MANIFEST",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "navigation",
+      "control": "Account and device access status",
+      "assertion": "Fresh authentication shows actual employee reference and the two approved estate assignments",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Sign in freshly and inspect the employee registration and synchronized estate access"
+      }
+    },
+    {
+      "id": "COV-CUSTOMER-ASSIGNMENTS",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "form",
+      "control": "Customer estate replacement",
+      "assertion": "Reviewed exact estate/role replacement updates only the intended customer assignments",
+      "binding": {
+        "caseId": "E2E-JRN-03-012",
+        "step": "Replace the exact selected estate role after explicit review"
+      }
+    },
+    {
+      "id": "COV-CUSTOMER-SUSPENSION",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "action",
+      "control": "Customer-only suspension and restoration",
+      "assertion": "Customer work is denied during suspension while the global account/session stays active, then reviewed access returns",
+      "binding": {
+        "caseId": "E2E-JRN-03-012",
+        "step": "Suspend and reactivate customer access while preserving the global account and the live session"
+      }
+    },
+    {
+      "id": "COV-INVITATION-OIDC-MFA",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "action",
+      "control": "Organization invitation assurance",
+      "assertion": "Controlled missing-MFA identity cannot activate the staged account",
+      "binding": {
+        "caseId": "E2E-JRN-03-013",
+        "step": "Reject missing MFA without activating the staged invitation"
+      }
+    },
+    {
+      "id": "COV-INVITATION-OIDC-SUBJECT",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "action",
+      "control": "Bound organization activation",
+      "assertion": "Approved exact subject with verified MFA activates and signs in with exactly the proposed estate",
+      "binding": {
+        "caseId": "E2E-JRN-03-013",
+        "step": "Accept the bound organization subject with verified MFA and open only the approved estate"
+      }
+    },
+    {
+      "id": "COV-REGISTER-SCOPED-SEARCH",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "navigation",
+      "control": "Scoped user search",
+      "assertion": "Find a saved staged registration by email and open its actual scoped identity",
+      "binding": {
+        "caseId": "E2E-JRN-03-011",
+        "step": "Find the staged user by scoped email without requiring a copied UUID"
+      }
+    },
+    {
+      "id": "COV-REGISTER-RECOVERY",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "form",
+      "control": "Registration recovery",
+      "assertion": "Required recovery fields and review reopen an unaccepted registration without sessions or estate grants",
+      "binding": {
+        "caseId": "E2E-JRN-03-014",
+        "step": "Validate and recover the registration without sign-in or estate grants"
+      }
+    },
+    {
+      "id": "COV-REGISTER-RECOVERY-AUDIT",
+      "journey": "JRN-03",
+      "screen": "User onboarding",
+      "category": "navigation",
+      "control": "Recovery audit details",
+      "assertion": "Actual recovery event, actor, reason and reference are available in short and detailed history",
+      "binding": {
+        "caseId": "E2E-JRN-03-014",
+        "step": "Open the actual short and detailed registration recovery audit"
+      }
+    },
+    {
+      "id": "COV-CUSTOMER-JOIN-PROPOSAL",
+      "journey": "JRN-03",
+      "screen": "Existing account invitations",
+      "category": "form",
+      "control": "Existing account proposal",
+      "assertion": "Reviewed multi-estate proposal grants nothing before recipient consent",
+      "binding": {
+        "caseId": "E2E-JRN-03-015",
+        "step": "Prepare an explicit multi-estate proposal without a global directory or grants"
+      }
+    },
+    {
+      "id": "COV-CUSTOMER-JOIN-CONSENT",
+      "journey": "JRN-03",
+      "screen": "Existing account invitations",
+      "category": "action",
+      "control": "Independent recipient consent",
+      "assertion": "Signed-in recipient reviews estate roles and exact lost-response recovery records one consent event",
+      "binding": {
+        "caseId": "E2E-JRN-03-015",
+        "step": "The signed-in recipient reviews roles and recovers the same consent after a lost response"
+      }
+    },
+    {
+      "id": "COV-CUSTOMER-JOIN-CONTEXT",
+      "journey": "JRN-03",
+      "screen": "Existing account invitations",
+      "category": "navigation",
+      "control": "New customer estate context",
+      "assertion": "Current access includes new customer profile and estates while the original customer remains available",
+      "binding": {
+        "caseId": "E2E-JRN-03-015",
+        "step": "Refresh actual access and select a new estate while the original customer stays available"
+      }
+    },
+    {
+      "id": "COV-CUSTOMER-JOIN-PROFILE-SEARCH",
+      "journey": "JRN-03",
+      "screen": "Existing account invitations",
+      "category": "navigation",
+      "control": "Accepted customer profile search",
+      "assertion": "Administrator finds and previews an accepted existing person using the new customer-local user ID and supplied employee reference",
+      "binding": {
+        "caseId": "E2E-JRN-03-015",
+        "step": "Find the accepted person by the new customer's user ID"
+      }
+    }
+  ]
+}
